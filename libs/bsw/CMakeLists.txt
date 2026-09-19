@@ -24,6 +24,7 @@ endif ()
 
 add_subdirectory(bsp)
 add_subdirectory(common)
+add_subdirectory(canstack)
 add_subdirectory(cpp2can)
 add_subdirectory(io)
 add_subdirectory(lifecycle)
