@@ -1,0 +1,53 @@
+# *******************************************************************************
+# Copyright (c) 2026 Accenture
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+cc_library(
+    name = "gwbridge",
+    srcs = [
+        "src/gwbridge/BridgeSupervisor.cpp",
+        "src/gwbridge/CanIoBridge.cpp",
+        "src/gwbridge/EthIoBridge.cpp",
+        "src/gwbridge/LinIoBridge.cpp",
+    ],
+    hdrs = glob(["include/**/*.h"]),
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//executables/referenceApp/configuration:blob_configuration_headers",
+        "//libs/bsw/async",
+        "//libs/bsw/canstack",
+        "//libs/bsw/commgateway",
+        "//libs/bsw/io",
+        "//libs/bsw/lifecycle",
+        "//libs/bsw/routing",
+        "//libs/bsw/util",
+        "@etl",
+    ],
+)
+
+cc_library(
+    name = "gwbridge_test",
+    testonly = True,
+    srcs = [
+        "test/src/gwbridge/BridgeSupervisorTest.cpp",
+        "test/src/gwbridge/CanIoBridgeTest.cpp",
+        "test/src/gwbridge/IoBridgeTest.cpp",
+        "test/src/gwbridge/RouterBridgeTest.cpp",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gwbridge",
+        "//libs/bsw/async:async_mock",
+        "//libs/bsw/async:async_mock_impl",
+        "//libs/3rdparty/googletest:gmock_main",
+    ],
+)
