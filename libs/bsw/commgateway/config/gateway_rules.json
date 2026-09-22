@@ -1,0 +1,26 @@
+{
+  "signalRouting": [
+    {
+      "signalName": "VehicleSpeed",
+      "sources": [{"channelType": 0, "channelId": 0, "frameId": 256}],
+      "destinations": [
+        {"channelType": 1, "channelId": 0, "pid": 32},
+        {"channelType": 2, "channelId": 0, "pduId": 4096}
+      ],
+      "timeoutMs": 500,
+      "minIntervalMs": 100
+    },
+    {
+      "signalName": "EngineSpeed",
+      "sources": [{"channelType": 0, "channelId": 0, "frameId": 256}],
+      "destinations": [{"channelType": 1, "channelId": 0, "pid": 33}],
+      "transform": {"scale": 0.25, "offset": 0}
+    }
+  ],
+  "frameTimeouts": [
+    {"channelType": 0, "channelId": 0, "frameId": 256, "timeoutMs": 200}
+  ],
+  "channelStates": [
+    {"channelType": 0, "channelId": 0, "autoRecovery": true, "recoveryTimeMs": 1000}
+  ]
+}
