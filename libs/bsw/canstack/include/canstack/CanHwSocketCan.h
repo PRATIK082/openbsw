@@ -59,7 +59,7 @@ private:
 
     std::string const m_interfaceName;
     int m_socketFd;
-    bool m_initialized = false;
+    bool m_initialized  = false;
     uint8_t m_channelId = 0U;
     uint32_t m_baudrate = 0U;
     std::vector<RxCallback> m_rxCallbacks;

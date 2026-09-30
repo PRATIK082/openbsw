@@ -25,10 +25,10 @@ namespace commgateway
 /// cycleTimeMs == 0 marks an event-triggered (spontaneous) frame.
 struct LinScheduleEntry
 {
-    uint8_t pid          = 0U;
-    uint8_t dlc          = 0U;
-    uint32_t cycleTimeMs = 0U;
-    bool enabled         = true;
+    uint8_t pid           = 0U;
+    uint8_t dlc           = 0U;
+    uint32_t cycleTimeMs  = 0U;
+    bool enabled          = true;
     uint32_t lastTxTimeMs = 0U;
 };
 

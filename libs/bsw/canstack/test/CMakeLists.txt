@@ -12,11 +12,7 @@ add_executable(
 
 target_include_directories(canstackTest PUBLIC include)
 
-target_link_libraries(
-    canstackTest
-    PRIVATE canstack
-            asyncMock
-            asyncMockImpl
-            gmock_main)
+target_link_libraries(canstackTest PRIVATE canstack asyncMock asyncMockImpl
+                                           gmock_main)
 
 gtest_discover_tests(canstackTest PROPERTIES LABELS "canstackTest")

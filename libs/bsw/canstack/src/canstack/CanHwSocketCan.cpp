@@ -34,8 +34,7 @@ namespace logger = ::util::logger;
 
 CanHwSocketCan::CanHwSocketCan(std::string interfaceName)
 : m_interfaceName(std::move(interfaceName)), m_socketFd(-1)
-{
-}
+{}
 
 CanHwSocketCan::~CanHwSocketCan() { shutdown(); }
 
@@ -83,10 +82,7 @@ bool CanHwSocketCan::init(uint8_t const channelId, uint32_t const baudrate)
     m_initialized = true;
 
     logger::Logger::info(
-        logger::CANSTACK,
-        "SocketCAN up on %s (channel %u)",
-        m_interfaceName.c_str(),
-        channelId);
+        logger::CANSTACK, "SocketCAN up on %s (channel %u)", m_interfaceName.c_str(), channelId);
 
     return true;
 }
@@ -145,8 +141,7 @@ void CanHwSocketCan::mainFunction()
             break;
         }
 
-        uint32_t const mask
-            = ((frame.can_id & CAN_EFF_FLAG) != 0) ? CAN_EFF_MASK : CAN_SFF_MASK;
+        uint32_t const mask    = ((frame.can_id & CAN_EFF_FLAG) != 0) ? CAN_EFF_MASK : CAN_SFF_MASK;
         uint32_t const frameId = frame.can_id & mask;
 
         dispatchReceived(frameId, frame.can_dlc, frame.data);

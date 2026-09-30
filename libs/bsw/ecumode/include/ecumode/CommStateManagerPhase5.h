@@ -47,8 +47,8 @@ public:
     EcuMode getCurrentEcuMode() const;
 
     void setDefaultPolicy(EcuMode mode, FrameFilterPolicy policy);
-    void addException(EcuMode mode, uint32_t frameId, uint8_t channelType,
-                      FrameFilterPolicy policy);
+    void
+    addException(EcuMode mode, uint32_t frameId, uint8_t channelType, FrameFilterPolicy policy);
     void clearPolicies();
 
     FrameFilterPolicy getFrameFilterPolicy(uint32_t frameId, uint8_t channelType) const;

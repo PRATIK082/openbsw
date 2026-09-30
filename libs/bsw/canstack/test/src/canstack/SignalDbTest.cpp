@@ -26,7 +26,11 @@ using ::canstack::FrameConfig;
 using ::canstack::SignalConfig;
 
 SignalConfig makeSignal(
-    uint8_t startBit, uint8_t length, bool isMotorola, double factor = 1.0, double offset = 0.0,
+    uint8_t startBit,
+    uint8_t length,
+    bool isMotorola,
+    double factor = 1.0,
+    double offset = 0.0,
     bool isSigned = false)
 {
     SignalConfig signal;
@@ -39,7 +43,7 @@ SignalConfig makeSignal(
     signal.offset     = offset;
     signal.min        = -1.0e12;
     signal.max        = 1.0e12;
-    signal.channelId = 0U;
+    signal.channelId  = 0U;
     signal.isSigned   = isSigned;
     return signal;
 }
@@ -131,8 +135,8 @@ TEST(SignalDbTest, clamping)
 {
     ::canstack::SignalDatabase db;
     SignalConfig signal = makeSignal(0U, 8U, false);
-    signal.min = 0.0;
-    signal.max = 100.0;
+    signal.min          = 0.0;
+    signal.max          = 100.0;
 
     uint8_t data[8] = {};
     db.packSignal(data, signal, 300.0);
@@ -149,7 +153,8 @@ TEST(SignalDbTest, load_code_first_tables)
 {
     ::canstack::SignalDatabase db;
     db.loadFrameTable(::canstack::testutils::DEMO_FRAMES, ::canstack::testutils::DEMO_FRAME_COUNT);
-    db.loadSignalTable(::canstack::testutils::DEMO_SIGNALS, ::canstack::testutils::DEMO_SIGNAL_COUNT);
+    db.loadSignalTable(
+        ::canstack::testutils::DEMO_SIGNALS, ::canstack::testutils::DEMO_SIGNAL_COUNT);
 
     EXPECT_EQ(3U, db.getFrameCount());
     EXPECT_EQ(4U, db.getSignalCount());

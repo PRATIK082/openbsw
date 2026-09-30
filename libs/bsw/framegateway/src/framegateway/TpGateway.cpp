@@ -21,13 +21,12 @@ namespace framegateway
 namespace
 {
 
-uint8_t const PCI_TYPE_MASK     = 0xF0U;
-uint8_t const PCI_SF            = 0x00U;
-uint8_t const PCI_FF            = 0x10U;
-uint8_t const PCI_CF            = 0x20U;
-uint8_t const PCI_FC            = 0x30U;
-uint8_t const FC_STATUS_CTS     = 0x00U;
-uint8_t const FC_STATUS_WAIT    = 0x01U;
+uint8_t const PCI_TYPE_MASK      = 0xF0U;
+uint8_t const PCI_SF             = 0x00U;
+uint8_t const PCI_FF             = 0x10U;
+uint8_t const PCI_CF             = 0x20U;
+uint8_t const PCI_FC             = 0x30U;
+uint8_t const FC_STATUS_CTS      = 0x00U;
 uint8_t const FC_STATUS_OVERFLOW = 0x02U;
 
 } // namespace
@@ -35,9 +34,9 @@ uint8_t const FC_STATUS_OVERFLOW = 0x02U;
 void TpGateway::init(uint32_t maxSessions, uint32_t maxPduSize)
 {
     clear();
-    m_maxSessions  = maxSessions;
-    m_maxPduSize   = maxPduSize;
-    m_initialized  = true;
+    m_maxSessions = maxSessions;
+    m_maxPduSize  = maxPduSize;
+    m_initialized = true;
 }
 
 void TpGateway::shutdown()
@@ -53,9 +52,13 @@ void TpGateway::clear()
     m_reassemblyTimeoutCount = 0U;
 }
 
-uint32_t TpGateway::segmentAndTransmit(uint8_t channelType, uint8_t channelId, uint32_t frameId,
-                                       uint16_t pduLength, uint8_t const* pduData,
-                                       uint16_t maxFramePayload)
+uint32_t TpGateway::segmentAndTransmit(
+    uint8_t channelType,
+    uint8_t channelId,
+    uint32_t frameId,
+    uint16_t pduLength,
+    uint8_t const* pduData,
+    uint16_t maxFramePayload)
 {
     if (!m_initialized || !m_txSender || (pduData == nullptr) || (pduLength == 0U)
         || (pduLength > m_maxPduSize) || (maxFramePayload < 8U))
@@ -72,18 +75,18 @@ uint32_t TpGateway::segmentAndTransmit(uint8_t channelType, uint8_t channelId, u
     }
 
     TpSession session{};
-    session.sessionId       = m_nextSessionId++;
-    session.channelType     = channelType;
-    session.channelId       = channelId;
-    session.frameId         = frameId;
-    session.totalLength     = pduLength;
+    session.sessionId   = m_nextSessionId++;
+    session.channelType = channelType;
+    session.channelId   = channelId;
+    session.frameId     = frameId;
+    session.totalLength = pduLength;
     session.buffer.assign(pduData, pduData + pduLength);
-    session.isTransmitting  = true;
+    session.isTransmitting     = true;
     session.completionCallback = m_pduCallback;
 
     // Single frame fits: classic (<=7 B) or CAN FD escape (<= payload - 2).
-    bool const useEscape = (maxFramePayload > 8U) && (pduLength > 7U)
-                           && (pduLength <= (maxFramePayload - 2U));
+    bool const useEscape
+        = (maxFramePayload > 8U) && (pduLength > 7U) && (pduLength <= (maxFramePayload - 2U));
     if ((pduLength <= 7U) || useEscape)
     {
         std::vector<uint8_t> frame;
@@ -97,8 +100,8 @@ uint32_t TpGateway::segmentAndTransmit(uint8_t channelType, uint8_t channelId, u
             frame.push_back(static_cast<uint8_t>(pduLength));
         }
         frame.insert(frame.end(), pduData, pduData + pduLength);
-        if (!m_txSender(channelType, channelId, frameId, static_cast<uint16_t>(frame.size()),
-                        frame.data()))
+        if (!m_txSender(
+                channelType, channelId, frameId, static_cast<uint16_t>(frame.size()), frame.data()))
         {
             m_segmentationErrorCount++;
             return 0U;
@@ -131,8 +134,13 @@ uint32_t TpGateway::segmentAndTransmit(uint8_t channelType, uint8_t channelId, u
     return sessionId;
 }
 
-void TpGateway::onTransportFrameReceived(uint8_t channelType, uint8_t channelId, uint32_t frameId,
-                                         uint16_t length, uint8_t const* data, uint32_t nowMs)
+void TpGateway::onTransportFrameReceived(
+    uint8_t channelType,
+    uint8_t channelId,
+    uint32_t frameId,
+    uint16_t length,
+    uint8_t const* data,
+    uint32_t nowMs)
 {
     if (!m_initialized || (data == nullptr) || (length == 0U))
     {
@@ -168,13 +176,21 @@ void TpGateway::onTransportFrameReceived(uint8_t channelType, uint8_t channelId,
             m_activeSessions.erase(key);
             if (done.completionCallback)
             {
-                done.completionCallback(done.channelType, done.channelId, done.frameId,
-                                        done.totalLength, done.buffer.data());
+                done.completionCallback(
+                    done.channelType,
+                    done.channelId,
+                    done.frameId,
+                    done.totalLength,
+                    done.buffer.data());
             }
             else if (m_pduCallback)
             {
-                m_pduCallback(done.channelType, done.channelId, done.frameId, done.totalLength,
-                              done.buffer.data());
+                m_pduCallback(
+                    done.channelType,
+                    done.channelId,
+                    done.frameId,
+                    done.totalLength,
+                    done.buffer.data());
             }
         }
         return;
@@ -188,10 +204,10 @@ void TpGateway::onTransportFrameReceived(uint8_t channelType, uint8_t channelId,
         return;
     }
     TpSession session{};
-    session.sessionId       = m_nextSessionId++;
-    session.channelType     = channelType;
-    session.channelId       = channelId;
-    session.frameId         = frameId;
+    session.sessionId          = m_nextSessionId++;
+    session.channelType        = channelType;
+    session.channelId          = channelId;
+    session.frameId            = frameId;
     session.lastActivityTimeMs = nowMs;
     session.completionCallback = m_pduCallback;
 
@@ -202,13 +218,13 @@ void TpGateway::onTransportFrameReceived(uint8_t channelType, uint8_t channelId,
         {
             if (session.completionCallback)
             {
-                session.completionCallback(channelType, channelId, frameId, session.totalLength,
-                                           session.buffer.data());
+                session.completionCallback(
+                    channelType, channelId, frameId, session.totalLength, session.buffer.data());
             }
             else if (m_pduCallback)
             {
-                m_pduCallback(channelType, channelId, frameId, session.totalLength,
-                              session.buffer.data());
+                m_pduCallback(
+                    channelType, channelId, frameId, session.totalLength, session.buffer.data());
             }
         }
         return;
@@ -276,7 +292,7 @@ TpSession* TpGateway::findSession(uint8_t channelType, uint8_t channelId, uint32
 
 void TpGateway::handleSingleFrame(TpSession& session, uint8_t const* data, uint16_t length)
 {
-    uint32_t sfLength = data[0] & 0x0FU;
+    uint32_t sfLength    = data[0] & 0x0FU;
     uint16_t headerBytes = 1U;
     if ((data[0] == 0x00U) && (length >= 2U))
     {
@@ -295,8 +311,8 @@ void TpGateway::handleSingleFrame(TpSession& session, uint8_t const* data, uint1
     session.buffer.assign(data + headerBytes, data + headerBytes + sfLength);
 }
 
-void TpGateway::handleFirstFrame(TpSession& session, uint8_t const* data, uint16_t length,
-                                 uint16_t framePayload)
+void TpGateway::handleFirstFrame(
+    TpSession& session, uint8_t const* data, uint16_t length, uint16_t framePayload)
 {
     if (length < 2U)
     {
@@ -313,16 +329,16 @@ void TpGateway::handleFirstFrame(TpSession& session, uint8_t const* data, uint16
     }
     session.totalLength = totalLength;
     session.buffer.resize(totalLength);
-    uint16_t const firstBytes
-        = ((framePayload - 2U) < totalLength) ? (framePayload - 2U)
-                                             : static_cast<uint16_t>(totalLength);
+    uint16_t const firstBytes = ((framePayload - 2U) < totalLength)
+                                    ? (framePayload - 2U)
+                                    : static_cast<uint16_t>(totalLength);
     (void)std::memcpy(session.buffer.data(), data + 2U, firstBytes);
     session.receivedLength     = firstBytes;
     session.nextSequenceNumber = 1U;
 }
 
-void TpGateway::handleConsecutiveFrame(TpSession& session, uint8_t const* data, uint16_t length,
-                                       uint16_t framePayload)
+void TpGateway::handleConsecutiveFrame(
+    TpSession& session, uint8_t const* data, uint16_t length, uint16_t framePayload)
 {
     uint8_t const sequence = data[0] & 0x0FU;
     if (sequence != session.nextSequenceNumber)
@@ -340,8 +356,8 @@ void TpGateway::handleConsecutiveFrame(TpSession& session, uint8_t const* data, 
     session.nextSequenceNumber = static_cast<uint8_t>((session.nextSequenceNumber + 1U) & 0x0FU);
 }
 
-void TpGateway::handleFlowControl(TpSession& session, uint8_t const* data, uint16_t length,
-                                  uint16_t framePayload)
+void TpGateway::handleFlowControl(
+    TpSession& session, uint8_t const* data, uint16_t length, uint16_t framePayload)
 {
     (void)framePayload;
     if (!session.isTransmitting || !session.waitingForFlowControl || (length < 3U))
@@ -378,8 +394,12 @@ void TpGateway::sendFrames(TpSession& session, uint16_t framePayload)
             = (remaining < dataPerFrame) ? static_cast<uint16_t>(remaining) : dataPerFrame;
         frame[0] = static_cast<uint8_t>(PCI_CF | session.nextSequenceNumber);
         (void)std::memcpy(frame.data() + 1U, session.buffer.data() + session.sentLength, chunk);
-        if (!m_txSender(session.channelType, session.channelId, session.frameId,
-                        static_cast<uint16_t>(chunk + 1U), frame.data()))
+        if (!m_txSender(
+                session.channelType,
+                session.channelId,
+                session.frameId,
+                static_cast<uint16_t>(chunk + 1U),
+                frame.data()))
         {
             m_segmentationErrorCount++;
             return;

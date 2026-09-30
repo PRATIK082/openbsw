@@ -35,8 +35,8 @@ public:
     EthTransportIf(EthTransportIf const&)            = delete;
     EthTransportIf& operator=(EthTransportIf const&) = delete;
 
-    virtual bool send(uint32_t destIp, uint16_t destPort, uint16_t srcPort, uint8_t const* data,
-                      uint16_t length)
+    virtual bool
+    send(uint32_t destIp, uint16_t destPort, uint16_t srcPort, uint8_t const* data, uint16_t length)
         = 0;
     virtual void registerRxCallback(RxCallback cb) = 0;
 
@@ -94,7 +94,7 @@ public:
 
 private:
     EthIpduConfig m_config{};
-    EthTransportIf* m_transport  = nullptr;
+    EthTransportIf* m_transport = nullptr;
     EthPduCallback m_pduCallback;
     std::map<uint16_t, uint32_t> m_portToPdu;
     std::map<uint32_t, std::vector<uint8_t>> m_txBuffers;

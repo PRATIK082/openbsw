@@ -39,8 +39,8 @@ struct JsonValue
         Object
     };
 
-    Type type = Type::Null;
-    bool boolValue = false;
+    Type type          = Type::Null;
+    bool boolValue     = false;
     double numberValue = 0.0;
     std::string stringValue;
     std::vector<JsonValue> arrayValue;
@@ -236,14 +236,14 @@ private:
                 char const e = m_text[m_pos];
                 switch (e)
                 {
-                    case '"': out << '"'; break;
+                    case '"':  out << '"'; break;
                     case '\\': out << '\\'; break;
-                    case '/': out << '/'; break;
-                    case 'b': out << '\b'; break;
-                    case 'f': out << '\f'; break;
-                    case 'n': out << '\n'; break;
-                    case 'r': out << '\r'; break;
-                    case 't': out << '\t'; break;
+                    case '/':  out << '/'; break;
+                    case 'b':  out << '\b'; break;
+                    case 'f':  out << '\f'; break;
+                    case 'n':  out << '\n'; break;
+                    case 'r':  out << '\r'; break;
+                    case 't':  out << '\t'; break;
                     case 'u':
                     {
                         if ((m_pos + 4U) >= m_text.size())
@@ -292,9 +292,7 @@ private:
                         m_pos += 4U;
                         break;
                     }
-                    default:
-                        error = "invalid escape sequence";
-                        return false;
+                    default: error = "invalid escape sequence"; return false;
                 }
                 ++m_pos;
                 continue;
@@ -401,8 +399,7 @@ private:
     size_t m_pos = 0U;
 };
 
-bool
-getUInt(JsonValue const& value, uint32_t& result)
+bool getUInt(JsonValue const& value, uint32_t& result)
 {
     if (value.type != JsonValue::Type::Number)
     {
@@ -423,15 +420,13 @@ getUInt(JsonValue const& value, uint32_t& result)
 
 } // namespace
 
-CommStateManagerPhase5&
-CommStateManagerPhase5::getInstance()
+CommStateManagerPhase5& CommStateManagerPhase5::getInstance()
 {
     static CommStateManagerPhase5 instance;
     return instance;
 }
 
-void
-CommStateManagerPhase5::requestEcuMode(EcuMode const mode)
+void CommStateManagerPhase5::requestEcuMode(EcuMode const mode)
 {
     if (m_hasPending)
     {
@@ -448,44 +443,39 @@ CommStateManagerPhase5::requestEcuMode(EcuMode const mode)
     m_hasPending  = true;
 }
 
-EcuMode
-CommStateManagerPhase5::getCurrentEcuMode() const
-{
-    return m_currentMode;
-}
+EcuMode CommStateManagerPhase5::getCurrentEcuMode() const { return m_currentMode; }
 
-void
-CommStateManagerPhase5::setDefaultPolicy(EcuMode const mode, FrameFilterPolicy const policy)
+void CommStateManagerPhase5::setDefaultPolicy(EcuMode const mode, FrameFilterPolicy const policy)
 {
     m_defaultPolicies[mode] = policy;
 }
 
-void
-CommStateManagerPhase5::addException(EcuMode const mode, uint32_t const frameId,
-                                     uint8_t const channelType, FrameFilterPolicy const policy)
+void CommStateManagerPhase5::addException(
+    EcuMode const mode,
+    uint32_t const frameId,
+    uint8_t const channelType,
+    FrameFilterPolicy const policy)
 {
     m_exceptions[std::make_pair(mode, std::make_pair(frameId, channelType))] = policy;
 }
 
-void
-CommStateManagerPhase5::clearPolicies()
+void CommStateManagerPhase5::clearPolicies()
 {
     m_defaultPolicies.clear();
     m_exceptions.clear();
 }
 
-FrameFilterPolicy
-CommStateManagerPhase5::getFrameFilterPolicy(uint32_t const frameId,
-                                             uint8_t const channelType) const
+FrameFilterPolicy CommStateManagerPhase5::getFrameFilterPolicy(
+    uint32_t const frameId, uint8_t const channelType) const
 {
-    std::map<std::pair<EcuMode, ExceptionKey>, FrameFilterPolicy>::const_iterator const exIt =
-        m_exceptions.find(std::make_pair(m_currentMode, std::make_pair(frameId, channelType)));
+    std::map<std::pair<EcuMode, ExceptionKey>, FrameFilterPolicy>::const_iterator const exIt
+        = m_exceptions.find(std::make_pair(m_currentMode, std::make_pair(frameId, channelType)));
     if (exIt != m_exceptions.end())
     {
         return exIt->second;
     }
-    std::map<EcuMode, FrameFilterPolicy>::const_iterator const defIt =
-        m_defaultPolicies.find(m_currentMode);
+    std::map<EcuMode, FrameFilterPolicy>::const_iterator const defIt
+        = m_defaultPolicies.find(m_currentMode);
     if (defIt != m_defaultPolicies.end())
     {
         return defIt->second;
@@ -493,9 +483,8 @@ CommStateManagerPhase5::getFrameFilterPolicy(uint32_t const frameId,
     return FrameFilterPolicy::ALLOW;
 }
 
-bool
-CommStateManagerPhase5::isFrameAllowed(uint32_t const frameId, uint8_t const channelType,
-                                       bool const isTx) const
+bool CommStateManagerPhase5::isFrameAllowed(
+    uint32_t const frameId, uint8_t const channelType, bool const isTx) const
 {
     FrameFilterPolicy const policy = getFrameFilterPolicy(frameId, channelType);
     bool allowed                   = false;
@@ -514,27 +503,23 @@ CommStateManagerPhase5::isFrameAllowed(uint32_t const frameId, uint8_t const cha
     return allowed;
 }
 
-void
-CommStateManagerPhase5::setModeChangeCallback(ModeChangeCallback callback)
+void CommStateManagerPhase5::setModeChangeCallback(ModeChangeCallback callback)
 {
     m_modeChangeCallback = callback;
 }
 
-void
-CommStateManagerPhase5::registerActionHandler(std::string const& name, ActionHandler handler)
+void CommStateManagerPhase5::registerActionHandler(std::string const& name, ActionHandler handler)
 {
     m_actionHandlers[name] = handler;
 }
 
-void
-CommStateManagerPhase5::setModeActions(EcuMode const mode,
-                                       std::vector<std::string> const& actions)
+void CommStateManagerPhase5::setModeActions(
+    EcuMode const mode, std::vector<std::string> const& actions)
 {
     m_modeActions[mode] = actions;
 }
 
-bool
-CommStateManagerPhase5::loadConfig(std::string const& jsonText, std::string& error)
+bool CommStateManagerPhase5::loadConfig(std::string const& jsonText, std::string& error)
 {
     JsonValue root;
     {
@@ -563,9 +548,10 @@ CommStateManagerPhase5::loadConfig(std::string const& jsonText, std::string& err
             error = "\"modes\" must be an object";
             return false;
         }
-        for (std::map<std::string, JsonValue>::const_iterator modeIt =
-                 modesIt->second.objectValue.begin();
-             modeIt != modesIt->second.objectValue.end(); ++modeIt)
+        for (std::map<std::string, JsonValue>::const_iterator modeIt
+             = modesIt->second.objectValue.begin();
+             modeIt != modesIt->second.objectValue.end();
+             ++modeIt)
         {
             EcuMode mode = EcuMode::UNINIT;
             if (!parseEcuMode(modeIt->first, mode))
@@ -578,8 +564,8 @@ CommStateManagerPhase5::loadConfig(std::string const& jsonText, std::string& err
                 error = "mode \"" + modeIt->first + "\" must be an object";
                 return false;
             }
-            std::map<std::string, JsonValue>::const_iterator const defIt =
-                modeIt->second.objectValue.find("default");
+            std::map<std::string, JsonValue>::const_iterator const defIt
+                = modeIt->second.objectValue.find("default");
             if (defIt != modeIt->second.objectValue.end())
             {
                 if (defIt->second.type != JsonValue::Type::String)
@@ -595,8 +581,8 @@ CommStateManagerPhase5::loadConfig(std::string const& jsonText, std::string& err
                 }
                 newDefaults[mode] = policy;
             }
-            std::map<std::string, JsonValue>::const_iterator const excIt =
-                modeIt->second.objectValue.find("exceptions");
+            std::map<std::string, JsonValue>::const_iterator const excIt
+                = modeIt->second.objectValue.find("exceptions");
             if (excIt != modeIt->second.objectValue.end())
             {
                 if (excIt->second.type != JsonValue::Type::Array)
@@ -609,36 +595,37 @@ CommStateManagerPhase5::loadConfig(std::string const& jsonText, std::string& err
                     JsonValue const& entry = excIt->second.arrayValue[i];
                     if (entry.type != JsonValue::Type::Object)
                     {
-                        error = "exception entry of mode \"" + modeIt->first + "\" must be an object";
+                        error
+                            = "exception entry of mode \"" + modeIt->first + "\" must be an object";
                         return false;
                     }
-                    std::map<std::string, JsonValue>::const_iterator const frameIt =
-                        entry.objectValue.find("frameId");
-                    std::map<std::string, JsonValue>::const_iterator const channelIt =
-                        entry.objectValue.find("channelType");
-                    std::map<std::string, JsonValue>::const_iterator const policyIt =
-                        entry.objectValue.find("policy");
+                    std::map<std::string, JsonValue>::const_iterator const frameIt
+                        = entry.objectValue.find("frameId");
+                    std::map<std::string, JsonValue>::const_iterator const channelIt
+                        = entry.objectValue.find("channelType");
+                    std::map<std::string, JsonValue>::const_iterator const policyIt
+                        = entry.objectValue.find("policy");
                     if ((frameIt == entry.objectValue.end())
                         || (channelIt == entry.objectValue.end())
                         || (policyIt == entry.objectValue.end()))
                     {
                         error = "exception entry of mode \"" + modeIt->first
-                            + "\" needs frameId, channelType and policy";
+                                + "\" needs frameId, channelType and policy";
                         return false;
                     }
-                    uint32_t frameId      = 0U;
-                    uint32_t channelType  = 0U;
+                    uint32_t frameId         = 0U;
+                    uint32_t channelType     = 0U;
                     FrameFilterPolicy policy = FrameFilterPolicy::ALLOW;
                     if (!getUInt(frameIt->second, frameId))
                     {
                         error = "exception frameId of mode \"" + modeIt->first
-                            + "\" must be a non-negative integer";
+                                + "\" must be a non-negative integer";
                         return false;
                     }
                     if (!getUInt(channelIt->second, channelType) || (channelType > 255U))
                     {
                         error = "exception channelType of mode \"" + modeIt->first
-                            + "\" must be an integer in [0, 255]";
+                                + "\" must be an integer in [0, 255]";
                         return false;
                     }
                     if ((policyIt->second.type != JsonValue::Type::String)
@@ -648,14 +635,15 @@ CommStateManagerPhase5::loadConfig(std::string const& jsonText, std::string& err
                         return false;
                     }
                     newExceptions[std::make_pair(
-                        mode, std::make_pair(frameId, static_cast<uint8_t>(channelType)))] = policy;
+                        mode, std::make_pair(frameId, static_cast<uint8_t>(channelType)))]
+                        = policy;
                 }
             }
         }
     }
 
-    std::map<std::string, JsonValue>::const_iterator const actionsIt =
-        root.objectValue.find("actions");
+    std::map<std::string, JsonValue>::const_iterator const actionsIt
+        = root.objectValue.find("actions");
     if (actionsIt != root.objectValue.end())
     {
         if (actionsIt->second.type != JsonValue::Type::Object)
@@ -663,9 +651,10 @@ CommStateManagerPhase5::loadConfig(std::string const& jsonText, std::string& err
             error = "\"actions\" must be an object";
             return false;
         }
-        for (std::map<std::string, JsonValue>::const_iterator actionIt =
-                 actionsIt->second.objectValue.begin();
-             actionIt != actionsIt->second.objectValue.end(); ++actionIt)
+        for (std::map<std::string, JsonValue>::const_iterator actionIt
+             = actionsIt->second.objectValue.begin();
+             actionIt != actionsIt->second.objectValue.end();
+             ++actionIt)
         {
             EcuMode mode = EcuMode::UNINIT;
             if (!parseEcuMode(actionIt->first, mode))
@@ -694,26 +683,28 @@ CommStateManagerPhase5::loadConfig(std::string const& jsonText, std::string& err
     }
 
     for (std::map<EcuMode, FrameFilterPolicy>::const_iterator it = newDefaults.begin();
-         it != newDefaults.end(); ++it)
+         it != newDefaults.end();
+         ++it)
     {
         m_defaultPolicies[it->first] = it->second;
     }
-    for (std::map<std::pair<EcuMode, ExceptionKey>, FrameFilterPolicy>::const_iterator it =
-             newExceptions.begin();
-         it != newExceptions.end(); ++it)
+    for (std::map<std::pair<EcuMode, ExceptionKey>, FrameFilterPolicy>::const_iterator it
+         = newExceptions.begin();
+         it != newExceptions.end();
+         ++it)
     {
         m_exceptions[it->first] = it->second;
     }
     for (std::map<EcuMode, std::vector<std::string>>::const_iterator it = newActions.begin();
-         it != newActions.end(); ++it)
+         it != newActions.end();
+         ++it)
     {
         m_modeActions[it->first] = it->second;
     }
     return true;
 }
 
-void
-CommStateManagerPhase5::clear()
+void CommStateManagerPhase5::clear()
 {
     ::commgateway::CommStateManager::clear();
     m_currentMode = EcuMode::UNINIT;
@@ -727,8 +718,7 @@ CommStateManagerPhase5::clear()
     m_blockCount         = 0U;
 }
 
-void
-CommStateManagerPhase5::mainFunction(uint32_t const nowMs)
+void CommStateManagerPhase5::mainFunction(uint32_t const nowMs)
 {
     ::commgateway::CommStateManager::mainFunction(nowMs);
     if (!m_hasPending)
@@ -742,16 +732,16 @@ CommStateManagerPhase5::mainFunction(uint32_t const nowMs)
     {
         m_modeChangeCallback(from, m_currentMode);
     }
-    std::map<EcuMode, std::vector<std::string>>::const_iterator const actionIt =
-        m_modeActions.find(m_currentMode);
+    std::map<EcuMode, std::vector<std::string>>::const_iterator const actionIt
+        = m_modeActions.find(m_currentMode);
     if (actionIt == m_modeActions.end())
     {
         return;
     }
     for (size_t i = 0U; i < actionIt->second.size(); ++i)
     {
-        std::map<std::string, ActionHandler>::const_iterator const handlerIt =
-            m_actionHandlers.find(actionIt->second[i]);
+        std::map<std::string, ActionHandler>::const_iterator const handlerIt
+            = m_actionHandlers.find(actionIt->second[i]);
         if (handlerIt != m_actionHandlers.end())
         {
             if (static_cast<bool>(handlerIt->second))
@@ -762,10 +752,6 @@ CommStateManagerPhase5::mainFunction(uint32_t const nowMs)
     }
 }
 
-uint32_t
-CommStateManagerPhase5::getBlockCount() const
-{
-    return m_blockCount;
-}
+uint32_t CommStateManagerPhase5::getBlockCount() const { return m_blockCount; }
 
 } // namespace ecumode

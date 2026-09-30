@@ -40,7 +40,7 @@ uint64_t extractRaw(uint8_t const* frameData, uint8_t startBit, uint8_t length, 
         for (uint8_t i = 0U; i < length; ++i)
         {
             uint16_t const pos = static_cast<uint16_t>(startBit) + i;
-            uint8_t const bit = (frameData[pos / 8U] >> (pos % 8U)) & 1U;
+            uint8_t const bit  = (frameData[pos / 8U] >> (pos % 8U)) & 1U;
             raw |= static_cast<uint64_t>(bit) << i;
         }
     }
@@ -51,9 +51,9 @@ uint64_t extractRaw(uint8_t const* frameData, uint8_t startBit, uint8_t length, 
         for (uint8_t i = 0U; i < length; ++i)
         {
             uint8_t const bit = (frameData[pos / 8U] >> (pos % 8U)) & 1U;
-            raw = (raw << 1U) | bit;
-            pos = ((pos % 8U) == 0U) ? static_cast<uint16_t>(pos + 15U)
-                                    : static_cast<uint16_t>(pos - 1U);
+            raw               = (raw << 1U) | bit;
+            pos               = ((pos % 8U) == 0U) ? static_cast<uint16_t>(pos + 15U)
+                                                   : static_cast<uint16_t>(pos - 1U);
         }
     }
 
@@ -61,8 +61,7 @@ uint64_t extractRaw(uint8_t const* frameData, uint8_t startBit, uint8_t length, 
 }
 
 /// Inserts up to 64 raw bits following the DBC bit numbering rules.
-void insertRaw(
-    uint8_t* frameData, uint8_t startBit, uint8_t length, bool isMotorola, uint64_t raw)
+void insertRaw(uint8_t* frameData, uint8_t startBit, uint8_t length, bool isMotorola, uint64_t raw)
 {
     uint64_t const mask = (length >= 64U) ? ~0ULL : ((1ULL << length) - 1ULL);
     raw &= mask;
@@ -72,10 +71,9 @@ void insertRaw(
         for (uint8_t i = 0U; i < length; ++i)
         {
             uint16_t const pos = static_cast<uint16_t>(startBit) + i;
-            uint8_t const bit = static_cast<uint8_t>((raw >> i) & 1U);
-            uint8_t& byte = frameData[pos / 8U];
-            byte = static_cast<uint8_t>(
-                (byte & ~(1U << (pos % 8U))) | (bit << (pos % 8U)));
+            uint8_t const bit  = static_cast<uint8_t>((raw >> i) & 1U);
+            uint8_t& byte      = frameData[pos / 8U];
+            byte = static_cast<uint8_t>((byte & ~(1U << (pos % 8U))) | (bit << (pos % 8U)));
         }
     }
     else
@@ -85,11 +83,10 @@ void insertRaw(
         {
             // Bits are consumed MSB first.
             uint8_t const bit = static_cast<uint8_t>((raw >> (length - 1U - i)) & 1U);
-            uint8_t& byte = frameData[pos / 8U];
-            byte = static_cast<uint8_t>(
-                (byte & ~(1U << (pos % 8U))) | (bit << (pos % 8U)));
-            pos = ((pos % 8U) == 0U) ? static_cast<uint16_t>(pos + 15U)
-                                    : static_cast<uint16_t>(pos - 1U);
+            uint8_t& byte     = frameData[pos / 8U];
+            byte = static_cast<uint8_t>((byte & ~(1U << (pos % 8U))) | (bit << (pos % 8U)));
+            pos  = ((pos % 8U) == 0U) ? static_cast<uint16_t>(pos + 15U)
+                                      : static_cast<uint16_t>(pos - 1U);
         }
     }
 }
@@ -100,8 +97,8 @@ double rawToPhysical(uint64_t raw, SignalConfig const& signal)
 
     if (signal.isSigned)
     {
-        uint64_t const signBit = (signal.length >= 64U) ? (1ULL << 63U)
-                                                        : (1ULL << (signal.length - 1U));
+        uint64_t const signBit
+            = (signal.length >= 64U) ? (1ULL << 63U) : (1ULL << (signal.length - 1U));
         if ((raw & signBit) != 0U)
         {
             uint64_t const range
@@ -146,23 +143,23 @@ void SignalDatabase::loadFrameTable(FrameTableEntry const* entries, size_t const
     for (size_t i = 0U; i < count; ++i)
     {
         FrameTableEntry const& entry = entries[i];
-        auto const key = std::make_pair(entry.channelId, entry.frameId);
+        auto const key               = std::make_pair(entry.channelId, entry.frameId);
 
         auto it = m_frames.find(key);
         if (it == m_frames.end())
         {
             FrameConfig frame;
-            frame.frameId    = entry.frameId;
-            frame.frameName  = (entry.frameName != nullptr) ? entry.frameName : "";
-            frame.dlc        = entry.dlc;
-            frame.channelId  = entry.channelId;
-            m_frames[key]    = frame;
+            frame.frameId   = entry.frameId;
+            frame.frameName = (entry.frameName != nullptr) ? entry.frameName : "";
+            frame.dlc       = entry.dlc;
+            frame.channelId = entry.channelId;
+            m_frames[key]   = frame;
         }
         else
         {
             // A frame created implicitly by a signal table gets its metadata now.
-            it->second.frameName = (entry.frameName != nullptr) ? entry.frameName
-                                                                : it->second.frameName;
+            it->second.frameName
+                = (entry.frameName != nullptr) ? entry.frameName : it->second.frameName;
             if (entry.dlc > 0U)
             {
                 it->second.dlc = entry.dlc;
@@ -178,17 +175,17 @@ void SignalDatabase::loadSignalTable(SignalTableEntry const* entries, size_t con
         SignalTableEntry const& entry = entries[i];
 
         SignalConfig signal;
-        signal.signalName = (entry.signalName != nullptr) ? entry.signalName : "";
-        signal.frameId    = entry.frameId;
-        signal.startBit   = entry.startBit;
-        signal.length     = entry.length;
-        signal.isMotorola = entry.isMotorola;
-        signal.factor     = (entry.factor != 0.0) ? entry.factor : 1.0;
-        signal.offset     = entry.offset;
-        signal.min        = entry.min;
-        signal.max        = entry.max;
-        signal.unit       = (entry.unit != nullptr) ? entry.unit : "";
-        signal.channelId  = entry.channelId;
+        signal.signalName          = (entry.signalName != nullptr) ? entry.signalName : "";
+        signal.frameId             = entry.frameId;
+        signal.startBit            = entry.startBit;
+        signal.length              = entry.length;
+        signal.isMotorola          = entry.isMotorola;
+        signal.factor              = (entry.factor != 0.0) ? entry.factor : 1.0;
+        signal.offset              = entry.offset;
+        signal.min                 = entry.min;
+        signal.max                 = entry.max;
+        signal.unit                = (entry.unit != nullptr) ? entry.unit : "";
+        signal.channelId           = entry.channelId;
         signal.isMultiplexerSwitch = entry.isMultiplexerSwitch;
         signal.multiplexValue      = entry.multiplexValue;
         signal.isSigned            = entry.isSigned;
@@ -203,7 +200,8 @@ void SignalDatabase::clear()
     m_signalsByName.clear();
 }
 
-FrameConfig const* SignalDatabase::getFrameByChannelAndId(uint8_t const channelId, uint32_t const frameId) const
+FrameConfig const*
+SignalDatabase::getFrameByChannelAndId(uint8_t const channelId, uint32_t const frameId) const
 {
     auto const it = m_frames.find(std::make_pair(channelId, frameId));
     return (it != m_frames.end()) ? &it->second : nullptr;
@@ -233,11 +231,10 @@ void SignalDatabase::packSignal(uint8_t* frameData, SignalConfig const& signal, 
     }
 
     double const scaled = (clamped - signal.offset) / signal.factor;
-    int64_t raw = static_cast<int64_t>(std::llround(scaled));
+    int64_t raw         = static_cast<int64_t>(std::llround(scaled));
 
-    uint64_t const mask
-        = (signal.length >= 64U) ? ~0ULL : ((1ULL << signal.length) - 1ULL);
-    uint64_t rawBits = static_cast<uint64_t>(raw) & mask;
+    uint64_t const mask = (signal.length >= 64U) ? ~0ULL : ((1ULL << signal.length) - 1ULL);
+    uint64_t rawBits    = static_cast<uint64_t>(raw) & mask;
 
     insertRaw(frameData, signal.startBit, signal.length, signal.isMotorola, rawBits);
 }
@@ -283,7 +280,7 @@ bool SignalDatabase::parseDbcLine(std::string const& line, uint8_t const channel
         // Remainder: "<name>: <dlc> <sender>"; the name is delimited by ':'.
         std::string const rest(std::istreambuf_iterator<char>(iss), {});
         size_t const nameStart = rest.find_first_not_of(' ');
-        size_t const colonPos = rest.find(':');
+        size_t const colonPos  = rest.find(':');
         if ((colonPos == std::string::npos) || (nameStart == std::string::npos)
             || (nameStart > colonPos))
         {
@@ -302,7 +299,7 @@ bool SignalDatabase::parseDbcLine(std::string const& line, uint8_t const channel
             return false;
         }
 
-        uint32_t const rawId = static_cast<uint32_t>(strtoul(idToken.c_str(), nullptr, 10));
+        uint32_t const rawId   = static_cast<uint32_t>(strtoul(idToken.c_str(), nullptr, 10));
         uint32_t const frameId = rawId & 0x1FFFFFFFU;
 
         FrameConfig frame;
@@ -325,7 +322,7 @@ bool SignalDatabase::parseDbcLine(std::string const& line, uint8_t const channel
         std::string muxOrColon;
         iss >> name >> muxOrColon;
 
-        bool isSwitch = false;
+        bool isSwitch    = false;
         int16_t muxValue = -1;
 
         if (muxOrColon == "M")
@@ -348,10 +345,10 @@ bool SignalDatabase::parseDbcLine(std::string const& line, uint8_t const channel
         // Remainder: <start>|<len>@<endian><sign> (factor,offset) [min|max] "unit" ...
         std::string rest(std::istreambuf_iterator<char>(iss), {});
 
-        unsigned startBit = 0U;
-        unsigned length = 0U;
+        unsigned startBit    = 0U;
+        unsigned length      = 0U;
         unsigned endianDigit = 0U;
-        char sign = '+';
+        char sign            = '+';
 
         int const parsed
             = std::sscanf(rest.c_str(), "%u|%u@%u%c", &startBit, &length, &endianDigit, &sign);
@@ -361,9 +358,9 @@ bool SignalDatabase::parseDbcLine(std::string const& line, uint8_t const channel
             return false;
         }
 
-        size_t parenPos = rest.find('(');
+        size_t parenPos   = rest.find('(');
         size_t bracketPos = rest.find('[');
-        size_t unitPos = rest.find('"');
+        size_t unitPos    = rest.find('"');
 
         double factor = 1.0;
         double offset = 0.0;
@@ -390,27 +387,27 @@ bool SignalDatabase::parseDbcLine(std::string const& line, uint8_t const channel
         }
 
         SignalConfig signal;
-        signal.signalName = name;
-        signal.frameId = 0U; // Bound to the most recent BO_ frame in storeSignal.
-        signal.startBit = static_cast<uint8_t>(startBit);
-        signal.length = static_cast<uint8_t>(length);
-        signal.isMotorola = (endianDigit == 1U);
-        signal.factor = (factor != 0.0) ? factor : 1.0;
-        signal.offset = offset;
-        signal.min = min;
-        signal.max = max;
-        signal.unit = unit;
-        signal.channelId = channelId;
+        signal.signalName          = name;
+        signal.frameId             = 0U; // Bound to the most recent BO_ frame in storeSignal.
+        signal.startBit            = static_cast<uint8_t>(startBit);
+        signal.length              = static_cast<uint8_t>(length);
+        signal.isMotorola          = (endianDigit == 1U);
+        signal.factor              = (factor != 0.0) ? factor : 1.0;
+        signal.offset              = offset;
+        signal.min                 = min;
+        signal.max                 = max;
+        signal.unit                = unit;
+        signal.channelId           = channelId;
         signal.isMultiplexerSwitch = isSwitch;
-        signal.multiplexValue = muxValue;
-        signal.isSigned = (sign == '-');
+        signal.multiplexValue      = muxValue;
+        signal.isSigned            = (sign == '-');
 
         // Find the frame this signal belongs to: the last frame stored on this
         // channel is the message the SG_ line follows in a well formed DBC.
         if (!m_frames.empty())
         {
             // DBC files list SG_ lines right after their BO_ line.
-            auto it = m_frames.rbegin();
+            auto it        = m_frames.rbegin();
             signal.frameId = it->second.frameId;
         }
 
@@ -434,7 +431,7 @@ void SignalDatabase::storeFrame(FrameConfig const& frame)
     else
     {
         it->second.frameName = frame.frameName;
-        it->second.dlc = frame.dlc;
+        it->second.dlc       = frame.dlc;
     }
 }
 
@@ -447,20 +444,20 @@ void SignalDatabase::storeSignal(SignalConfig const& signal)
     {
         // Implicit frame: derive the dlc from the signal layout.
         FrameConfig frame;
-        frame.frameId = signal.frameId;
-        frame.frameName = "";
+        frame.frameId         = signal.frameId;
+        frame.frameName       = "";
         uint16_t const endBit = static_cast<uint16_t>(signal.startBit) + signal.length;
-        frame.dlc = static_cast<uint8_t>((endBit + 7U) / 8U);
-        frame.channelId = signal.channelId;
-        m_frames[key] = frame;
-        it = m_frames.find(key);
+        frame.dlc             = static_cast<uint8_t>((endBit + 7U) / 8U);
+        frame.channelId       = signal.channelId;
+        m_frames[key]         = frame;
+        it                    = m_frames.find(key);
     }
 
     for (auto& existing : it->second.signals)
     {
         if (existing.signalName == signal.signalName)
         {
-            existing = signal;
+            existing                           = signal;
             m_signalsByName[signal.signalName] = signal;
             return;
         }

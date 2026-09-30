@@ -27,7 +27,7 @@ static uint16_t const DOIP_PAYLOAD_ROUTING_ACTIVATION_RES = 0x0006U;
 static uint16_t const DOIP_PAYLOAD_UDS_MESSAGE            = 0x8001U;
 static uint16_t const DOIP_PAYLOAD_UDS_ACK                = 0x8002U;
 /// DoIP port per ISO 13400.
-static uint16_t const DOIP_DEFAULT_PORT = 13400U;
+static uint16_t const DOIP_DEFAULT_PORT                   = 13400U;
 
 /// Ethernet-based diagnostics endpoint configuration.
 struct DoIpConfig
@@ -40,7 +40,7 @@ struct DoIpConfig
 };
 
 /// Raw DoIP datagram transmit hook: (length, data) -> accepted.
-using DoIpTxSender = std::function<bool(uint16_t, uint8_t const*)>;
+using DoIpTxSender    = std::function<bool(uint16_t, uint8_t const*)>;
 /// Extracted UDS payload sink: (sourceAddress, targetAddress, length, data).
 using DoIpUdsCallback = std::function<void(uint16_t, uint16_t, uint16_t, uint8_t const*)>;
 
@@ -62,8 +62,8 @@ public:
     void onDoIpMessageReceived(uint8_t const* data, uint16_t length);
     bool sendDoIpMessage(uint16_t payloadType, uint8_t const* payload, uint16_t payloadLength);
     /// Sends a UDS request payload with source/target addresses.
-    bool sendUdsMessage(uint16_t sourceAddress, uint16_t targetAddress, uint8_t const* udsData,
-                        uint16_t udsLength);
+    bool sendUdsMessage(
+        uint16_t sourceAddress, uint16_t targetAddress, uint8_t const* udsData, uint16_t udsLength);
 
     void setTxSender(DoIpTxSender sender);
     void setUdsCallback(DoIpUdsCallback cb);

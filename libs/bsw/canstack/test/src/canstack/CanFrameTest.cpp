@@ -21,7 +21,8 @@ using namespace ::testing;
 /// Copies the frame payload into a container gmock can match on.
 std::vector<uint8_t> payloadOf(::canstack::CanFrame const& frame)
 {
-    return std::vector<uint8_t>(frame.getData(), frame.getData() + ::canstack::CanFrame::MAX_DATA_LENGTH);
+    return std::vector<uint8_t>(
+        frame.getData(), frame.getData() + ::canstack::CanFrame::MAX_DATA_LENGTH);
 }
 
 /**

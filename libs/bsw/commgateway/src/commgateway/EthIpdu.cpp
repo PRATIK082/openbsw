@@ -24,10 +24,9 @@ void EthIpduManager::init(EthIpduConfig const& config, EthTransportIf* transport
     m_initialized = (transport != nullptr);
     if (m_initialized)
     {
-        m_transport->registerRxCallback([this](uint32_t srcIp, uint16_t srcPort,
-                                               uint8_t const* data, uint16_t length) {
-            onDatagramReceived(srcIp, srcPort, data, length);
-        });
+        m_transport->registerRxCallback(
+            [this](uint32_t srcIp, uint16_t srcPort, uint8_t const* data, uint16_t length)
+            { onDatagramReceived(srcIp, srcPort, data, length); });
     }
 }
 
@@ -54,10 +53,10 @@ bool EthIpduManager::transmitPdu(uint32_t pduId, uint16_t length, uint8_t const*
     return true;
 }
 
-void EthIpduManager::onDatagramReceived(uint32_t /* srcIp */, uint16_t srcPort,
-                                        uint8_t const* data, uint16_t length)
+void EthIpduManager::onDatagramReceived(
+    uint32_t /* srcIp */, uint16_t srcPort, uint8_t const* data, uint16_t length)
 {
-    auto it    = m_portToPdu.find(srcPort);
+    auto it        = m_portToPdu.find(srcPort);
     uint32_t pduId = (it != m_portToPdu.end()) ? it->second : m_config.primaryPduId;
     onPduReceived(pduId, length, data);
 }
@@ -94,8 +93,12 @@ void EthIpduManager::mainFunction(uint32_t nowMs)
         return;
     }
     std::vector<uint8_t> const payload = it->second;
-    if (m_transport->send(m_config.destIp, m_config.destPort, m_config.srcPort, payload.data(),
-                          static_cast<uint16_t>(payload.size())))
+    if (m_transport->send(
+            m_config.destIp,
+            m_config.destPort,
+            m_config.srcPort,
+            payload.data(),
+            static_cast<uint16_t>(payload.size())))
     {
         m_lastTxTimeMs = nowMs;
         m_txCount++;

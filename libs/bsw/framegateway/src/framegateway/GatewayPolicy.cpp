@@ -21,8 +21,8 @@ void PolicyEngine::addPolicy(GatewayPolicy const& policy)
 {
     for (auto& existing : m_policies)
     {
-        if ((existing.channelType == policy.channelType)
-            && (existing.channelId == policy.channelId) && (existing.frameId == policy.frameId))
+        if ((existing.channelType == policy.channelType) && (existing.channelId == policy.channelId)
+            && (existing.frameId == policy.frameId))
         {
             existing = policy;
             return;
@@ -53,9 +53,13 @@ void PolicyEngine::clear()
 
 void PolicyEngine::setLogHook(PolicyLogHook hook) { m_logHook = hook; }
 
-PolicyAction PolicyEngine::evaluatePolicy(uint8_t& channelType, uint8_t& channelId,
-                                          uint32_t& frameId, uint8_t* data, uint16_t& length,
-                                          uint32_t nowMs)
+PolicyAction PolicyEngine::evaluatePolicy(
+    uint8_t& channelType,
+    uint8_t& channelId,
+    uint32_t& frameId,
+    uint8_t* data,
+    uint16_t& length,
+    uint32_t nowMs)
 {
     GatewayPolicy* policy = findPolicy(channelType, channelId, frameId);
     if (policy == nullptr)
@@ -110,12 +114,9 @@ PolicyAction PolicyEngine::evaluatePolicy(uint8_t& channelType, uint8_t& channel
             channelId   = policy->redirectChannelId;
             frameId     = policy->redirectFrameId;
             return PolicyAction::ALLOW;
-        case PolicyAction::RATE_LIMIT:
-            m_denyCount++;
-            return PolicyAction::DENY;
+        case PolicyAction::RATE_LIMIT: m_denyCount++; return PolicyAction::DENY;
         case PolicyAction::ALLOW:
-        default:
-            return PolicyAction::ALLOW;
+        default:                       return PolicyAction::ALLOW;
     }
 }
 
@@ -123,8 +124,7 @@ void PolicyEngine::mainFunction(uint32_t nowMs)
 {
     for (auto& policy : m_policies)
     {
-        if (((nowMs - policy.lastRateResetTimeMs) >= 1000U)
-            || (nowMs < policy.lastRateResetTimeMs))
+        if (((nowMs - policy.lastRateResetTimeMs) >= 1000U) || (nowMs < policy.lastRateResetTimeMs))
         {
             policy.lastRateResetTimeMs = nowMs;
             policy.currentRate         = 0U;

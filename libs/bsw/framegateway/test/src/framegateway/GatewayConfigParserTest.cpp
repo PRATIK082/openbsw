@@ -8,9 +8,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "framegateway/GatewayConfigParser.h"
 #include "framegateway/DiagLink.h"
 #include "framegateway/FrameGateway.h"
-#include "framegateway/GatewayConfigParser.h"
 #include "framegateway/GatewayPolicy.h"
 #include "framegateway/XcpServer.h"
 
@@ -56,8 +56,8 @@ TEST(GatewayConfigParserTest, parses_full_config)
     ::framegateway::PolicyEngine policy;
 
     std::string error;
-    ASSERT_TRUE(::framegateway::GatewayConfigParser::parse(CONFIG, frames, diag, xcp, policy,
-                                                           error))
+    ASSERT_TRUE(
+        ::framegateway::GatewayConfigParser::parse(CONFIG, frames, diag, xcp, policy, error))
         << error;
     EXPECT_EQ(1U, frames.getFrameCount());
     EXPECT_NE(nullptr, frames.findFrame(0U, 0U, 1280U));
@@ -76,8 +76,8 @@ TEST(GatewayConfigParserTest, rejects_bad_config)
     ::framegateway::PolicyEngine policy;
 
     std::string error;
-    EXPECT_FALSE(::framegateway::GatewayConfigParser::parse("{broken", frames, diag, xcp,
-                                                            policy, error));
+    EXPECT_FALSE(
+        ::framegateway::GatewayConfigParser::parse("{broken", frames, diag, xcp, policy, error));
     EXPECT_FALSE(error.empty());
 
     error.clear();
@@ -88,8 +88,12 @@ TEST(GatewayConfigParserTest, rejects_bad_config)
 
     error.clear();
     EXPECT_FALSE(::framegateway::GatewayConfigParser::parse(
-        R"({"gatewayPolicies": [{"frameId": 1, "action": "BOGUS"}]})", frames, diag, xcp,
-        policy, error));
+        R"({"gatewayPolicies": [{"frameId": 1, "action": "BOGUS"}]})",
+        frames,
+        diag,
+        xcp,
+        policy,
+        error));
     EXPECT_FALSE(error.empty());
 }
 

@@ -44,14 +44,14 @@ void CommStateManager::registerChannel(uint8_t channelType, uint8_t channelId)
         return;
     }
     ChannelState state{};
-    state.channelType = channelType;
-    state.channelId   = channelId;
-    state.state       = CommState::ACTIVE;
+    state.channelType    = channelType;
+    state.channelId      = channelId;
+    state.state          = CommState::ACTIVE;
     m_channelStates[key] = state;
 }
 
-void CommStateManager::updateChannelState(uint8_t channelType, uint8_t channelId,
-                                          CommState newState, uint32_t nowMs)
+void CommStateManager::updateChannelState(
+    uint8_t channelType, uint8_t channelId, CommState newState, uint32_t nowMs)
 {
     ChannelState* channel = findChannel(channelType, channelId);
     if (channel == nullptr)
@@ -60,7 +60,7 @@ void CommStateManager::updateChannelState(uint8_t channelType, uint8_t channelId
     }
     if (channel->state != newState)
     {
-        channel->state                = newState;
+        channel->state                 = newState;
         channel->lastStateChangeTimeMs = nowMs;
         if (channel->stateChangeCallback)
         {
@@ -112,8 +112,8 @@ void CommStateManager::reportError(uint8_t channelType, uint8_t channelId, uint3
     }
 }
 
-void CommStateManager::setStateChangeCallback(uint8_t channelType, uint8_t channelId,
-                                              std::function<void(CommState)> cb)
+void CommStateManager::setStateChangeCallback(
+    uint8_t channelType, uint8_t channelId, std::function<void(CommState)> cb)
 {
     ChannelState* channel = findChannel(channelType, channelId);
     if (channel != nullptr)
@@ -122,8 +122,8 @@ void CommStateManager::setStateChangeCallback(uint8_t channelType, uint8_t chann
     }
 }
 
-void CommStateManager::setRecoveryConfig(uint8_t channelType, uint8_t channelId, bool autoRecovery,
-                                         uint32_t recoveryTimeMs)
+void CommStateManager::setRecoveryConfig(
+    uint8_t channelType, uint8_t channelId, bool autoRecovery, uint32_t recoveryTimeMs)
 {
     ChannelState* channel = findChannel(channelType, channelId);
     if (channel != nullptr)
@@ -165,8 +165,7 @@ ChannelState* CommStateManager::findChannel(uint8_t channelType, uint8_t channel
     return (it != m_channelStates.end()) ? &it->second : nullptr;
 }
 
-ChannelState const* CommStateManager::findChannel(uint8_t channelType,
-                                                            uint8_t channelId) const
+ChannelState const* CommStateManager::findChannel(uint8_t channelType, uint8_t channelId) const
 {
     auto it = m_channelStates.find(Key(channelType, channelId));
     return (it != m_channelStates.end()) ? &it->second : nullptr;

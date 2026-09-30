@@ -28,7 +28,7 @@ using namespace ::testing;
     frame.frameLength = 64U;
     frame.action      = action;
     ::framegateway::PduInFrame p1{};
-    p1.pduId = 1001U;
+    p1.pduId  = 1001U;
     p1.length = 12U;
     ::framegateway::PduInFrame p2{};
     p2.pduId           = 1002U;
@@ -52,7 +52,8 @@ TEST(FrameGatewayTest, route_only)
 
     std::vector<std::tuple<uint8_t, uint8_t, uint32_t, uint16_t>> sent;
     gateway.setTxSender(
-        [&sent](uint8_t type, uint8_t ch, uint32_t id, uint16_t len, uint8_t const*) {
+        [&sent](uint8_t type, uint8_t ch, uint32_t id, uint16_t len, uint8_t const*)
+        {
             sent.emplace_back(type, ch, id, len);
             return true;
         });
@@ -82,14 +83,15 @@ TEST(FrameGatewayTest, both_action)
     gateway.init({makeFrame(0x500U, ::framegateway::GatewayAction::BOTH)});
 
     std::vector<uint32_t> sunk;
-    gateway.setPduSink([&sunk](uint32_t pduId, uint16_t, uint8_t const*) {
-        sunk.push_back(pduId);
-    });
+    gateway.setPduSink([&sunk](uint32_t pduId, uint16_t, uint8_t const*)
+                       { sunk.push_back(pduId); });
     uint32_t txCount = 0U;
-    gateway.setTxSender([&txCount](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) {
-        txCount++;
-        return true;
-    });
+    gateway.setTxSender(
+        [&txCount](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*)
+        {
+            txCount++;
+            return true;
+        });
     ::framegateway::GatewayDestination dest{};
     gateway.registerPduRoute(1001U, {dest});
 
@@ -146,14 +148,15 @@ TEST(FrameGatewayTest, tp_handoff)
     gateway.setMaxSingleFramePayload(16U);
 
     uint32_t tpCalls = 0U;
-    gateway.setTpForwarder([&tpCalls](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) {
-        tpCalls++;
-    });
+    gateway.setTpForwarder([&tpCalls](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*)
+                           { tpCalls++; });
     uint32_t routed = 0U;
-    gateway.setTxSender([&routed](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) {
-        routed++;
-        return true;
-    });
+    gateway.setTxSender(
+        [&routed](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*)
+        {
+            routed++;
+            return true;
+        });
     ::framegateway::GatewayDestination dest{};
     gateway.registerPduRoute(1001U, {dest}); // 12 B: direct
     gateway.registerPduRoute(1002U, {dest}); // 20 B: TP
@@ -174,10 +177,12 @@ TEST(FrameGatewayTest, pack_and_transmit)
     gateway.init({makeFrame(0x500U, ::framegateway::GatewayAction::ROUTE_ONLY)});
 
     std::vector<uint8_t> txData;
-    gateway.setTxSender([&txData](uint8_t, uint8_t, uint32_t, uint16_t len, uint8_t const* data) {
-        txData.assign(data, data + len);
-        return true;
-    });
+    gateway.setTxSender(
+        [&txData](uint8_t, uint8_t, uint32_t, uint16_t len, uint8_t const* data)
+        {
+            txData.assign(data, data + len);
+            return true;
+        });
 
     uint8_t p1[12U] = {0xAAU};
     uint8_t p3[32U] = {0xBBU};

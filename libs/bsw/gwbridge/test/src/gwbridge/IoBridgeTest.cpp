@@ -31,8 +31,9 @@ TEST(IoBridgeTest, push_and_read)
     ASSERT_EQ(11U, message.size());
     EXPECT_EQ(0x100U, TestBridge::readBigEndian32(message.data()));
     EXPECT_EQ(3U, TestBridge::readBigEndian32(message.data() + 4U));
-    EXPECT_THAT(std::vector<uint8_t>(message.data() + 8U, message.data() + 11U),
-                ElementsAre(0xAAU, 0xBBU, 0xCCU));
+    EXPECT_THAT(
+        std::vector<uint8_t>(message.data() + 8U, message.data() + 11U),
+        ElementsAre(0xAAU, 0xBBU, 0xCCU));
     bridge.rxReader().release();
     EXPECT_TRUE(bridge.rxReader().peek().empty());
 }
@@ -63,12 +64,13 @@ TEST(IoBridgeTest, drain_tx)
     slot[9U] = 0x22U;
     bridge.txWriter().commit();
 
-    uint32_t seenId    = 0U;
-    uint16_t seenLen   = 0U;
-    uint8_t seen0      = 0U;
-    uint8_t seen1      = 0U;
+    uint32_t seenId     = 0U;
+    uint16_t seenLen    = 0U;
+    uint8_t seen0       = 0U;
+    uint8_t seen1       = 0U;
     bool const accepted = bridge.drainTxFrame(
-        [&seenId, &seenLen, &seen0, &seen1](uint32_t id, uint16_t len, uint8_t const* data) {
+        [&seenId, &seenLen, &seen0, &seen1](uint32_t id, uint16_t len, uint8_t const* data)
+        {
             seenId  = id;
             seenLen = len;
             seen0   = data[0];

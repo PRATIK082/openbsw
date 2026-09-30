@@ -42,10 +42,10 @@ struct CommStackConfig
 {
     /// Existing CAN stack config; nullptr disables the CAN path.
     ::canstack::CanStackConfig const* canConfig = nullptr;
-    LinHwInterface* linHw       = nullptr;
-    uint8_t linChannelId        = 0U;
-    uint32_t linBaudrate        = 19200U;
-    EthTransportIf* ethTransport = nullptr;
+    LinHwInterface* linHw                       = nullptr;
+    uint8_t linChannelId                        = 0U;
+    uint32_t linBaudrate                        = 19200U;
+    EthTransportIf* ethTransport                = nullptr;
     EthIpduConfig ethConfig{};
 };
 
@@ -96,8 +96,8 @@ private:
     // ::async::RunnableType
     void execute() override;
 
-    bool dispatchToChannel(uint8_t channelType, uint32_t channelId, std::string const& signal,
-                           double value);
+    bool dispatchToChannel(
+        uint8_t channelType, uint32_t channelId, std::string const& signal, double value);
     void onLinFrameReceived(uint8_t channelId, uint8_t pid, uint8_t* data, uint8_t dlc);
     void onEthPduReceived(uint32_t pduId, uint16_t length, uint8_t const* data);
 

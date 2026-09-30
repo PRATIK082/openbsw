@@ -34,9 +34,9 @@ void SignalGateway::shutdown()
 
 void SignalGateway::registerRoutingRule(SignalRoutingRule const& rule)
 {
-    SignalRoutingRule stored = rule;
+    SignalRoutingRule stored          = rule;
     // Arm the rate limiter so the first update passes immediately.
-    stored.lastTxTimeMs = 0U - stored.minIntervalMs;
+    stored.lastTxTimeMs               = 0U - stored.minIntervalMs;
     m_routingTable[stored.signalName] = stored;
 }
 

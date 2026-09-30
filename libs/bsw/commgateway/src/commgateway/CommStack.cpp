@@ -41,8 +41,8 @@ void CommStack::configure(CommStackConfig const& config, ::async::ContextType co
 
 bool CommStack::loadGatewayRules(std::string const& jsonText, std::string& error)
 {
-    return GatewayConfigParser::parse(jsonText, m_signalGateway, m_timeoutMonitor,
-                                      m_commStateManager, error);
+    return GatewayConfigParser::parse(
+        jsonText, m_signalGateway, m_timeoutMonitor, m_commStateManager, error);
 }
 
 void CommStack::registerEthSignalMapping(uint32_t pduId, std::string const& signalName)
@@ -84,24 +84,20 @@ void CommStack::init()
     {
         m_linChannel.init(m_config.linHw, m_config.linChannelId);
         m_linChannel.registerUpperLayerCallback(
-            [this](uint8_t channelId, uint8_t pid, uint8_t* data, uint8_t dlc) {
-                onLinFrameReceived(channelId, pid, data, dlc);
-            });
+            [this](uint8_t channelId, uint8_t pid, uint8_t* data, uint8_t dlc)
+            { onLinFrameReceived(channelId, pid, data, dlc); });
     }
     if (m_config.ethTransport != nullptr)
     {
         m_ethIpdu.init(m_config.ethConfig, m_config.ethTransport);
-        m_ethIpdu.registerPduCallback(
-            [this](uint32_t pduId, uint16_t length, uint8_t const* data) {
-                onEthPduReceived(pduId, length, data);
-            });
+        m_ethIpdu.registerPduCallback([this](uint32_t pduId, uint16_t length, uint8_t const* data)
+                                      { onEthPduReceived(pduId, length, data); });
     }
 
     m_signalGateway.init(&m_canInterface.getSignalDatabase());
-    m_signalGateway.setChannelSender([this](uint8_t channelType, uint32_t channelId,
-                                            std::string const& signal, double value) {
-        return dispatchToChannel(channelType, channelId, signal, value);
-    });
+    m_signalGateway.setChannelSender(
+        [this](uint8_t channelType, uint32_t channelId, std::string const& signal, double value)
+        { return dispatchToChannel(channelType, channelId, signal, value); });
     m_timeoutMonitor.init();
     TxConfirmationMgr::getInstance().init();
     m_commStateManager.init();
@@ -114,8 +110,8 @@ void CommStack::init()
 
 void CommStack::run()
 {
-    ::async::scheduleAtFixedRate(m_context, *this, m_timeout, COMMSTACK_RUN_PERIOD_MS,
-                                 ::async::TimeUnit::MILLISECONDS);
+    ::async::scheduleAtFixedRate(
+        m_context, *this, m_timeout, COMMSTACK_RUN_PERIOD_MS, ::async::TimeUnit::MILLISECONDS);
     transitionDone();
 }
 
@@ -152,8 +148,8 @@ void CommStack::execute()
     m_stats.gatewayDropCount = m_signalGateway.getDropCount();
 }
 
-bool CommStack::dispatchToChannel(uint8_t channelType, uint32_t channelId,
-                                  std::string const& signal, double value)
+bool CommStack::dispatchToChannel(
+    uint8_t channelType, uint32_t channelId, std::string const& signal, double value)
 {
     if (channelType == CHANNEL_TYPE_CAN)
     {
@@ -163,9 +159,9 @@ bool CommStack::dispatchToChannel(uint8_t channelType, uint32_t channelId,
         {
             return false;
         }
-        ::canstack::FrameConfig const* frame = m_canInterface.getSignalDatabase()
-                                                   .getFrameByChannelAndId(signalConfig->channelId,
-                                                                           signalConfig->frameId);
+        ::canstack::FrameConfig const* frame
+            = m_canInterface.getSignalDatabase().getFrameByChannelAndId(
+                signalConfig->channelId, signalConfig->frameId);
         if (frame == nullptr)
         {
             return false;
@@ -173,8 +169,8 @@ bool CommStack::dispatchToChannel(uint8_t channelType, uint32_t channelId,
         uint8_t data[8U] = {0U};
         m_canInterface.getSignalDatabase().packSignal(data, *signalConfig, value);
         m_stats.txFrameCount++;
-        return m_canInterface.sendFrame(static_cast<uint8_t>(channelId), signalConfig->frameId,
-                                        frame->dlc, data);
+        return m_canInterface.sendFrame(
+            static_cast<uint8_t>(channelId), signalConfig->frameId, frame->dlc, data);
     }
     if (channelType == CHANNEL_TYPE_LIN)
     {
@@ -210,8 +206,7 @@ void CommStack::onLinFrameReceived(uint8_t channelId, uint8_t pid, uint8_t* data
     m_stats.rxFrameCount++;
     m_timeoutMonitor.notifyFrameRx(channelId, pid, m_timeMs);
     LinFrameConfig const* frame = m_linChannel.findFrame(pid);
-    if ((frame == nullptr) || frame->associatedSignal.empty() || (data == nullptr)
-        || (dlc == 0U))
+    if ((frame == nullptr) || frame->associatedSignal.empty() || (data == nullptr) || (dlc == 0U))
     {
         return;
     }

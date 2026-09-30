@@ -26,14 +26,14 @@ namespace commgateway
 struct TimeoutConfig
 {
     std::string signalName;
-    uint32_t timeoutMs   = 0U;
+    uint32_t timeoutMs    = 0U;
     uint32_t lastRxTimeMs = 0U;
     /// true = frame-level (channelId + frameId), false = signal-level.
-    bool isFrameTimeout  = false;
-    uint8_t channelId    = 0U;
-    uint32_t frameId     = 0U;
+    bool isFrameTimeout   = false;
+    uint8_t channelId     = 0U;
+    uint32_t frameId      = 0U;
     std::function<void()> timeoutCallback;
-    bool expired         = false;
+    bool expired = false;
 };
 
 /**
@@ -52,10 +52,10 @@ public:
     void shutdown();
     void clear();
 
-    void registerSignalTimeout(std::string const& signalName, uint32_t timeoutMs,
-                               std::function<void()> callback);
-    void registerFrameTimeout(uint8_t channelId, uint32_t frameId, uint32_t timeoutMs,
-                              std::function<void()> callback);
+    void registerSignalTimeout(
+        std::string const& signalName, uint32_t timeoutMs, std::function<void()> callback);
+    void registerFrameTimeout(
+        uint8_t channelId, uint32_t frameId, uint32_t timeoutMs, std::function<void()> callback);
     void notifyRxActivity(std::string const& signalName, uint32_t nowMs);
     void notifyFrameRx(uint8_t channelId, uint32_t frameId, uint32_t nowMs);
 

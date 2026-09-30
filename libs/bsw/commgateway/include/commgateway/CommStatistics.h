@@ -22,11 +22,11 @@ namespace commgateway
 /// Cross-protocol communication counters exposed for diagnostics.
 struct CommStatistics
 {
-    uint32_t rxFrameCount    = 0U;
-    uint32_t txFrameCount    = 0U;
-    uint32_t rxErrorCount    = 0U;
-    uint32_t txErrorCount    = 0U;
-    uint32_t timeoutCount    = 0U;
+    uint32_t rxFrameCount     = 0U;
+    uint32_t txFrameCount     = 0U;
+    uint32_t rxErrorCount     = 0U;
+    uint32_t txErrorCount     = 0U;
+    uint32_t timeoutCount     = 0U;
     uint32_t gatewayDropCount = 0U;
 
     void reset();
