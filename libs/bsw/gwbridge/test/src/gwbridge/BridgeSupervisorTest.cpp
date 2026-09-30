@@ -95,10 +95,10 @@ TEST(BridgeSupervisorTest, end_to_end)
     config.channels.push_back(ch1);
     config.routes.push_back(route);
 
-    auto& supervisor = ::gwbridge::BridgeSupervisor::getInstance();
+    TestSupervisor supervisor;
     supervisor.configure(config, ::async::CONTEXT_INVALID);
     ASSERT_TRUE(supervisor.isConfigured());
-    static_cast<TestSupervisor&>(supervisor).publicInit();
+    supervisor.publicInit();
     ASSERT_TRUE(supervisor.getRouterBridge().isInitialized());
 
     uint8_t const payload[8U] = {8U, 7U, 6U, 5U, 4U, 3U, 2U, 1U};
@@ -116,7 +116,7 @@ TEST(BridgeSupervisorTest, end_to_end)
     }
     EXPECT_EQ(1U, supervisor.getRoutedCount());
 
-    static_cast<TestSupervisor&>(supervisor).publicShutdown();
+    supervisor.publicShutdown();
 }
 
 } // namespace
