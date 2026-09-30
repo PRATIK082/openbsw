@@ -339,7 +339,7 @@ uint8_t* XcpServer::resolveAddress(uint32_t address, uint16_t length)
     return nullptr;
 }
 
-void XcpServer::sendDaqDto(uint8_t daqListId, std::vector<uint8_t> const& dto)
+void XcpServer::sendDaqDto(uint8_t /* daqListId */, std::vector<uint8_t> const& dto)
 {
     if (m_txHandler && !dto.empty())
     {
