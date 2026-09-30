@@ -22,8 +22,7 @@ namespace logger = ::util::logger;
 
 CanHwMcp2515::CanHwMcp2515(IMcp2515Bus& bus, uint32_t const oscillatorHz)
 : m_bus(bus), m_oscillatorHz(oscillatorHz)
-{
-}
+{}
 
 bool CanHwMcp2515::init(uint8_t const channelId, uint32_t const baudrate)
 {
@@ -89,8 +88,8 @@ bool CanHwMcp2515::transmit(
         return false;
     }
 
-    uint8_t const buffer = (mailboxId == 0U) ? 0U : 1U;
-    uint8_t const ctrlReg = (buffer == 0U) ? REG_TXB0CTRL : REG_TXB1CTRL;
+    uint8_t const buffer    = (mailboxId == 0U) ? 0U : 1U;
+    uint8_t const ctrlReg   = (buffer == 0U) ? REG_TXB0CTRL : REG_TXB1CTRL;
     uint8_t const loadInstr = INSTR_LOAD_TX_BUFFER + (buffer * 2U);
 
     uint8_t ctrl = 0U;
@@ -121,7 +120,7 @@ bool CanHwMcp2515::transmit(
     bufferBytes[ID_REGISTER_COUNT] = static_cast<uint8_t>(dlc & DLC_MASK);
     for (uint8_t i = 0U; i < DATA_PER_BUFFER; ++i)
     {
-        uint8_t const byte = (i < dlc) ? data[i] : 0U;
+        uint8_t const byte                      = (i < dlc) ? data[i] : 0U;
         bufferBytes[ID_REGISTER_COUNT + 1U + i] = byte;
     }
 
@@ -153,7 +152,7 @@ bool CanHwMcp2515::transmit(
 
 void CanHwMcp2515::registerRxCallback(uint8_t const mailboxId, RxCallback cb)
 {
-    uint8_t const buffer = (mailboxId < RX_BUFFER_COUNT) ? mailboxId : (RX_BUFFER_COUNT - 1U);
+    uint8_t const buffer  = (mailboxId < RX_BUFFER_COUNT) ? mailboxId : (RX_BUFFER_COUNT - 1U);
     m_rxCallbacks[buffer] = std::move(cb);
 }
 
@@ -238,7 +237,8 @@ bool CanHwMcp2515::computeBaudConfig(
     }
 
     static uint8_t const TQ_PER_BIT_CANDIDATES[] = {16U, 12U, 10U, 9U, 8U, 7U, 6U, 5U};
-    static uint8_t const CANDIDATE_COUNT = sizeof(TQ_PER_BIT_CANDIDATES) / sizeof(TQ_PER_BIT_CANDIDATES[0]);
+    static uint8_t const CANDIDATE_COUNT
+        = sizeof(TQ_PER_BIT_CANDIDATES) / sizeof(TQ_PER_BIT_CANDIDATES[0]);
 
     for (uint8_t i = 0U; i < CANDIDATE_COUNT; ++i)
     {
@@ -270,7 +270,7 @@ bool CanHwMcp2515::computeBaudConfig(
             ps1 = static_cast<uint8_t>(tqPerBit - 4U);
         }
 
-        cnf1 = static_cast<uint8_t>(brp);              // SJW = 1
+        cnf1 = static_cast<uint8_t>(brp);                        // SJW = 1
         cnf2 = static_cast<uint8_t>(0x80U | ((ps1 - 1U) << 3U)); // BTLMODE, PS1, PROP = 1
         cnf3 = static_cast<uint8_t>(ps2 - 1U);
 
@@ -284,7 +284,7 @@ void CanHwMcp2515::dispatchRxBuffer(uint8_t const bufferIndex)
 {
     uint8_t const rxBase = ((bufferIndex == 0U) ? REG_RXB0CTRL : REG_RXB1CTRL) + SIDH_OFFSET;
     uint8_t rxBytes[FRAME_REG_COUNT] = {};
-    uint8_t const txBytes[2] = {INSTR_READ, rxBase};
+    uint8_t const txBytes[2]         = {INSTR_READ, rxBase};
 
     if (!m_bus.transfer(txBytes, sizeof(txBytes), rxBytes, sizeof(rxBytes)))
     {
@@ -296,8 +296,7 @@ void CanHwMcp2515::dispatchRxBuffer(uint8_t const bufferIndex)
     {
         frameId = (static_cast<uint32_t>(rxBytes[0]) << 21)
                   | (static_cast<uint32_t>((rxBytes[1] & SIDL_EID17_16_MASK) >> 6U) << 16)
-                  | (static_cast<uint32_t>(rxBytes[2]) << 8)
-                  | static_cast<uint32_t>(rxBytes[3]);
+                  | (static_cast<uint32_t>(rxBytes[2]) << 8) | static_cast<uint32_t>(rxBytes[3]);
     }
     else
     {

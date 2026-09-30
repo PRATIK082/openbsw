@@ -30,18 +30,20 @@ struct TpLoop
     {
         a.init(4U, 4095U);
         b.init(4U, 4095U);
-        a.setTxSender([this](uint8_t t, uint8_t c, uint32_t id, uint16_t len, uint8_t const* d) {
-            b.onTransportFrameReceived(t, c, id, len, d, 0U);
-            return true;
-        });
-        b.setTxSender([this](uint8_t t, uint8_t c, uint32_t id, uint16_t len, uint8_t const* d) {
-            a.onTransportFrameReceived(t, c, id, len, d, 0U); // flow control back to A
-            return true;
-        });
-        b.setPduCallback(
-            [this](uint8_t t, uint8_t c, uint32_t id, uint16_t len, uint8_t const* d) {
-                received.emplace_back(t, c, id, std::vector<uint8_t>(d, d + len));
+        a.setTxSender(
+            [this](uint8_t t, uint8_t c, uint32_t id, uint16_t len, uint8_t const* d)
+            {
+                b.onTransportFrameReceived(t, c, id, len, d, 0U);
+                return true;
             });
+        b.setTxSender(
+            [this](uint8_t t, uint8_t c, uint32_t id, uint16_t len, uint8_t const* d)
+            {
+                a.onTransportFrameReceived(t, c, id, len, d, 0U); // flow control back to A
+                return true;
+            });
+        b.setPduCallback([this](uint8_t t, uint8_t c, uint32_t id, uint16_t len, uint8_t const* d)
+                         { received.emplace_back(t, c, id, std::vector<uint8_t>(d, d + len)); });
     }
 };
 
@@ -102,14 +104,10 @@ TEST(TpGatewayTest, bad_sequence_aborts)
 {
     ::framegateway::TpGateway gateway;
     gateway.init(4U, 4095U);
-    gateway.setTxSender([](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) {
-        return true;
-    });
+    gateway.setTxSender([](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) { return true; });
     bool delivered = false;
-    gateway.setPduCallback(
-        [&delivered](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) {
-            delivered = true;
-        });
+    gateway.setPduCallback([&delivered](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*)
+                           { delivered = true; });
 
     uint8_t ff[8U] = {0x10U, 0x14U, 1U, 2U, 3U, 4U, 5U, 6U}; // FF, 20 bytes
     gateway.onTransportFrameReceived(0U, 0U, 0x7E0U, 8U, ff, 0U);
@@ -129,9 +127,7 @@ TEST(TpGatewayTest, reassembly_timeout)
 {
     ::framegateway::TpGateway gateway;
     gateway.init(4U, 4095U);
-    gateway.setTxSender([](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) {
-        return true;
-    });
+    gateway.setTxSender([](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) { return true; });
 
     uint8_t ff[8U] = {0x10U, 0x14U, 1U, 2U, 3U, 4U, 5U, 6U};
     gateway.onTransportFrameReceived(0U, 0U, 0x7E0U, 8U, ff, 0U);

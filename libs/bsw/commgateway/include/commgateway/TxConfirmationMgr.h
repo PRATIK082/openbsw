@@ -25,14 +25,14 @@ namespace commgateway
 /// One tracked transmission awaiting hardware confirmation.
 struct TxConfirmationEntry
 {
-    uint64_t txId            = 0U;
+    uint64_t txId = 0U;
     std::string signalName;
-    uint8_t channelId        = 0U;
-    uint32_t frameId         = 0U;
-    uint32_t txTimeMs        = 0U;
-    uint32_t timeoutMs       = 1000U;
+    uint8_t channelId  = 0U;
+    uint32_t frameId   = 0U;
+    uint32_t txTimeMs  = 0U;
+    uint32_t timeoutMs = 1000U;
     std::function<void(bool success)> confirmationCallback;
-    bool isConfirmed         = false;
+    bool isConfirmed = false;
 };
 
 /**
@@ -51,10 +51,17 @@ public:
     void shutdown();
     void clear();
 
-    uint64_t registerTx(std::string const& signalName, uint8_t channelId,
-                        std::function<void(bool)> callback, uint32_t timeoutMs = 1000U);
-    uint64_t registerTx(std::string const& signalName, uint8_t channelId, uint32_t frameId,
-                        std::function<void(bool)> callback, uint32_t timeoutMs = 1000U);
+    uint64_t registerTx(
+        std::string const& signalName,
+        uint8_t channelId,
+        std::function<void(bool)> callback,
+        uint32_t timeoutMs = 1000U);
+    uint64_t registerTx(
+        std::string const& signalName,
+        uint8_t channelId,
+        uint32_t frameId,
+        std::function<void(bool)> callback,
+        uint32_t timeoutMs = 1000U);
     void notifyConfirmation(uint64_t txId, bool success);
 
     /// Fails expired entries with success = false; call every millisecond.
@@ -67,10 +74,10 @@ private:
     TxConfirmationMgr() = default;
 
     std::map<uint64_t, TxConfirmationEntry> m_pendingTxs;
-    uint64_t m_nextTxId     = 1U;
-    uint32_t m_timeoutCount = 0U;
+    uint64_t m_nextTxId      = 1U;
+    uint32_t m_timeoutCount  = 0U;
     uint32_t m_currentTimeMs = 0U;
-    bool m_initialized      = false;
+    bool m_initialized       = false;
 };
 
 } // namespace commgateway

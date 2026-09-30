@@ -44,14 +44,12 @@ void CanRouter::onFrameReceived(
             continue;
         }
 
-        bool const frameLevel
-            = (rule.transform == nullptr)
-              && std::all_of(
-                  rule.outputDestinations.begin(),
-                  rule.outputDestinations.end(),
-                  [frameId](std::pair<uint8_t, uint32_t> const& destination) {
-                      return destination.second == frameId;
-                  });
+        bool const frameLevel = (rule.transform == nullptr)
+                                && std::all_of(
+                                    rule.outputDestinations.begin(),
+                                    rule.outputDestinations.end(),
+                                    [frameId](std::pair<uint8_t, uint32_t> const& destination)
+                                    { return destination.second == frameId; });
 
         if (frameLevel)
         {
@@ -92,8 +90,7 @@ void CanRouter::forwardSignalLevel(
     FrameConfig const* inputFrame = m_signalDb->getFrameByChannelAndId(inputChannel, inputFrameId);
     if (inputFrame == nullptr)
     {
-        logger::Logger::debug(
-            logger::CANSTACK, "Router: input frame 0x%lx unknown", inputFrameId);
+        logger::Logger::debug(logger::CANSTACK, "Router: input frame 0x%lx unknown", inputFrameId);
         return;
     }
 

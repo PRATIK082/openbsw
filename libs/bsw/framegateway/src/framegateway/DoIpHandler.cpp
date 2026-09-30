@@ -46,18 +46,18 @@ void writeBigEndian32(uint8_t* data, uint32_t value)
     data[3] = static_cast<uint8_t>(value & 0xFFU);
 }
 
-uint8_t const DOIP_HEADER_SIZE       = 8U;
-uint8_t const DOIP_PROTOCOL_VERSION  = 0x02U;
+uint8_t const DOIP_HEADER_SIZE      = 8U;
+uint8_t const DOIP_PROTOCOL_VERSION = 0x02U;
 
 } // namespace
 
 void DoIpHandler::init(DoIpConfig const& config)
 {
-    m_config       = config;
+    m_config        = config;
     m_routingActive = false;
-    m_rxCount      = 0U;
-    m_txCount      = 0U;
-    m_initialized  = true;
+    m_rxCount       = 0U;
+    m_txCount       = 0U;
+    m_initialized   = true;
 }
 
 void DoIpHandler::shutdown()
@@ -98,8 +98,8 @@ void DoIpHandler::onDoIpMessageReceived(uint8_t const* data, uint16_t length)
     }
 }
 
-bool DoIpHandler::sendDoIpMessage(uint16_t payloadType, uint8_t const* payload,
-                                  uint16_t payloadLength)
+bool DoIpHandler::sendDoIpMessage(
+    uint16_t payloadType, uint8_t const* payload, uint16_t payloadLength)
 {
     if (!m_initialized || !m_txSender || ((payload == nullptr) && (payloadLength > 0U)))
     {
@@ -122,8 +122,8 @@ bool DoIpHandler::sendDoIpMessage(uint16_t payloadType, uint8_t const* payload,
     return true;
 }
 
-bool DoIpHandler::sendUdsMessage(uint16_t sourceAddress, uint16_t targetAddress,
-                                 uint8_t const* udsData, uint16_t udsLength)
+bool DoIpHandler::sendUdsMessage(
+    uint16_t sourceAddress, uint16_t targetAddress, uint8_t const* udsData, uint16_t udsLength)
 {
     if ((udsData == nullptr) && (udsLength > 0U))
     {
@@ -136,8 +136,8 @@ bool DoIpHandler::sendUdsMessage(uint16_t sourceAddress, uint16_t targetAddress,
     {
         (void)std::memcpy(payload.data() + 4U, udsData, udsLength);
     }
-    return sendDoIpMessage(DOIP_PAYLOAD_UDS_MESSAGE, payload.data(),
-                           static_cast<uint16_t>(payload.size()));
+    return sendDoIpMessage(
+        DOIP_PAYLOAD_UDS_MESSAGE, payload.data(), static_cast<uint16_t>(payload.size()));
 }
 
 void DoIpHandler::setTxSender(DoIpTxSender sender) { m_txSender = sender; }
@@ -160,16 +160,16 @@ bool DoIpHandler::handleRoutingActivation(uint8_t const* payload, uint16_t paylo
     }
     // Accept any source address; echo it back with success code 0x00.
     uint8_t response[9U] = {0U};
-    response[0] = payload[0]; // source address high
-    response[1] = payload[1]; // source address low
-    response[2] = 0x00U;      // activation type echo (default)
-    response[3] = 0x00U;
-    response[4] = 0x00U;
-    response[5] = 0x00U;
-    response[6] = 0x00U;
-    response[7] = 0x00U;
-    response[8] = 0x00U; // response code: success
-    m_routingActive = true;
+    response[0]          = payload[0]; // source address high
+    response[1]          = payload[1]; // source address low
+    response[2]          = 0x00U;      // activation type echo (default)
+    response[3]          = 0x00U;
+    response[4]          = 0x00U;
+    response[5]          = 0x00U;
+    response[6]          = 0x00U;
+    response[7]          = 0x00U;
+    response[8]          = 0x00U; // response code: success
+    m_routingActive      = true;
     return sendDoIpMessage(DOIP_PAYLOAD_ROUTING_ACTIVATION_RES, response, sizeof(response));
 }
 
@@ -181,8 +181,8 @@ bool DoIpHandler::handleUdsMessage(uint8_t const* payload, uint16_t payloadLengt
     }
     uint16_t const sourceAddress = readBigEndian16(payload);
     uint16_t const targetAddress = readBigEndian16(payload + 2U);
-    m_udsCallback(sourceAddress, targetAddress, static_cast<uint16_t>(payloadLength - 4U),
-                  payload + 4U);
+    m_udsCallback(
+        sourceAddress, targetAddress, static_cast<uint16_t>(payloadLength - 4U), payload + 4U);
     return true;
 }
 

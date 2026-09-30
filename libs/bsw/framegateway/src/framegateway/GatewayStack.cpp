@@ -21,20 +21,20 @@ namespace framegateway
 
 void GatewayStatistics::reset()
 {
-    framesReceived       = 0U;
-    framesTransmitted    = 0U;
-    framesDropped        = 0U;
-    pdusExtracted        = 0U;
-    pdusRouted           = 0U;
-    pdusDropped          = 0U;
-    tpSessionsActive     = 0U;
-    tpSegmentationErrors = 0U;
-    tpReassemblyTimeouts = 0U;
-    diagRequestsReceived = 0U;
-    diagResponsesSent    = 0U;
-    diagSessionTimeouts  = 0U;
-    xcpCommandsReceived  = 0U;
-    xcpDaqListsTriggered = 0U;
+    framesReceived        = 0U;
+    framesTransmitted     = 0U;
+    framesDropped         = 0U;
+    pdusExtracted         = 0U;
+    pdusRouted            = 0U;
+    pdusDropped           = 0U;
+    tpSessionsActive      = 0U;
+    tpSegmentationErrors  = 0U;
+    tpReassemblyTimeouts  = 0U;
+    diagRequestsReceived  = 0U;
+    diagResponsesSent     = 0U;
+    diagSessionTimeouts   = 0U;
+    xcpCommandsReceived   = 0U;
+    xcpDaqListsTriggered  = 0U;
     xcpMemoryAccessErrors = 0U;
 }
 
@@ -58,12 +58,12 @@ void GatewayStack::configure(GatewayStackConfig const& config, ::async::ContextT
 
 bool GatewayStack::loadConfig(std::string const& jsonText, std::string& error)
 {
-    return GatewayConfigParser::parse(jsonText, m_frameGateway, m_diagLink, m_xcpServer,
-                                      m_policyEngine, error);
+    return GatewayConfigParser::parse(
+        jsonText, m_frameGateway, m_diagLink, m_xcpServer, m_policyEngine, error);
 }
 
-void GatewayStack::onFrameReceived(uint8_t channelType, uint8_t channelId, uint32_t frameId,
-                                   uint16_t length, uint8_t const* data)
+void GatewayStack::onFrameReceived(
+    uint8_t channelType, uint8_t channelId, uint32_t frameId, uint16_t length, uint8_t const* data)
 {
     m_stats.framesReceived++;
     uint32_t const routedBefore    = m_frameGateway.getRoutedPduCount();
@@ -75,9 +75,8 @@ void GatewayStack::onFrameReceived(uint8_t channelType, uint8_t channelId, uint3
     m_stats.framesDropped += m_frameGateway.getDroppedFrameCount() - droppedBefore;
 }
 
-void GatewayStack::onTransportFrameReceived(uint8_t channelType, uint8_t channelId,
-                                            uint32_t frameId, uint16_t length,
-                                            uint8_t const* data)
+void GatewayStack::onTransportFrameReceived(
+    uint8_t channelType, uint8_t channelId, uint32_t frameId, uint16_t length, uint8_t const* data)
 {
     m_stats.framesReceived++;
     m_tpGateway.onTransportFrameReceived(channelType, channelId, frameId, length, data, m_timeMs);
@@ -91,10 +90,12 @@ void GatewayStack::setTxSender(FrameTxSender sender)
     m_tpGateway.setTxSender(sender);
     m_diagLink.setTxSender(sender);
     m_xcpServer.setTransportHandler(
-        [sender](uint8_t channelType, uint8_t channelId, uint32_t frameId, uint16_t length,
-                 uint8_t const* data) {
-            (void)sender(channelType, channelId, frameId, length, data);
-        });
+        [sender](
+            uint8_t channelType,
+            uint8_t channelId,
+            uint32_t frameId,
+            uint16_t length,
+            uint8_t const* data) { (void)sender(channelType, channelId, frameId, length, data); });
 }
 
 void GatewayStack::setUdsHandler(UdsHandler handler) { m_diagLink.setUdsHandler(handler); }
@@ -133,11 +134,16 @@ void GatewayStack::init()
     }
     m_frameGateway.init(m_config.frameTable);
     m_frameGateway.setPolicyEngine(&m_policyEngine);
-    m_frameGateway.setTpForwarder([this](uint8_t channelType, uint8_t channelId, uint32_t frameId,
-                                         uint16_t length, uint8_t const* data) {
-        m_tpGateway.onTransportFrameReceived(channelType, channelId, frameId, length, data,
-                                             m_timeMs);
-    });
+    m_frameGateway.setTpForwarder(
+        [this](
+            uint8_t channelType,
+            uint8_t channelId,
+            uint32_t frameId,
+            uint16_t length,
+            uint8_t const* data) {
+            m_tpGateway.onTransportFrameReceived(
+                channelType, channelId, frameId, length, data, m_timeMs);
+        });
     for (auto const& policy : m_config.policies)
     {
         m_policyEngine.addPolicy(policy);
@@ -154,8 +160,8 @@ void GatewayStack::init()
 
 void GatewayStack::run()
 {
-    ::async::scheduleAtFixedRate(m_context, *this, m_timeout, GATEWAYSTACK_RUN_PERIOD_MS,
-                                 ::async::TimeUnit::MILLISECONDS);
+    ::async::scheduleAtFixedRate(
+        m_context, *this, m_timeout, GATEWAYSTACK_RUN_PERIOD_MS, ::async::TimeUnit::MILLISECONDS);
     transitionDone();
 }
 
@@ -178,14 +184,14 @@ void GatewayStack::execute()
     m_xcpServer.mainFunction(m_timeMs);
     m_policyEngine.mainFunction(m_timeMs);
 
-    m_stats.tpSessionsActive     = static_cast<uint32_t>(m_tpGateway.getActiveSessionCount());
-    m_stats.tpSegmentationErrors = m_tpGateway.getSegmentationErrorCount();
-    m_stats.tpReassemblyTimeouts = m_tpGateway.getReassemblyTimeoutCount();
-    m_stats.diagRequestsReceived = m_diagLink.getRequestCount();
-    m_stats.diagResponsesSent    = m_diagLink.getResponseCount();
-    m_stats.diagSessionTimeouts  = m_diagLink.getSessionTimeoutCount();
-    m_stats.xcpCommandsReceived  = m_xcpServer.getCommandCount();
-    m_stats.xcpDaqListsTriggered = m_xcpServer.getDaqTriggerCount();
+    m_stats.tpSessionsActive      = static_cast<uint32_t>(m_tpGateway.getActiveSessionCount());
+    m_stats.tpSegmentationErrors  = m_tpGateway.getSegmentationErrorCount();
+    m_stats.tpReassemblyTimeouts  = m_tpGateway.getReassemblyTimeoutCount();
+    m_stats.diagRequestsReceived  = m_diagLink.getRequestCount();
+    m_stats.diagResponsesSent     = m_diagLink.getResponseCount();
+    m_stats.diagSessionTimeouts   = m_diagLink.getSessionTimeoutCount();
+    m_stats.xcpCommandsReceived   = m_xcpServer.getCommandCount();
+    m_stats.xcpDaqListsTriggered  = m_xcpServer.getDaqTriggerCount();
     m_stats.xcpMemoryAccessErrors = m_xcpServer.getMemoryErrorCount();
 }
 

@@ -25,10 +25,10 @@ namespace framegateway
 /// One PDU packed inside a frame at a fixed byte offset.
 struct PduInFrame
 {
-    uint32_t pduId           = 0U;
-    uint16_t startByteOffset = 0U;
-    uint16_t length          = 0U;
-    bool isVariableLength    = false;
+    uint32_t pduId            = 0U;
+    uint16_t startByteOffset  = 0U;
+    uint16_t length           = 0U;
+    bool isVariableLength     = false;
     /// Byte offset (relative to PDU start) holding the length, if variable.
     uint8_t lengthFieldOffset = 0U;
 };
@@ -56,24 +56,32 @@ public:
      * \return false when a layout entry exceeds frameSize or a PDU is
      * shorter than its layout length.
      */
-    static bool packMultiPdu(uint8_t* frameBuffer, uint16_t frameSize,
-                             std::vector<PduInFrame> const& pduLayout,
-                             PduDataMap const& pduData);
+    static bool packMultiPdu(
+        uint8_t* frameBuffer,
+        uint16_t frameSize,
+        std::vector<PduInFrame> const& pduLayout,
+        PduDataMap const& pduData);
 
     /// Extracts PDU views (aliasing frameData) for every in-range entry.
-    static PduDataMap unpackMultiPdu(uint8_t const* frameData, uint16_t frameSize,
-                                     std::vector<PduInFrame> const& pduLayout);
+    static PduDataMap unpackMultiPdu(
+        uint8_t const* frameData, uint16_t frameSize, std::vector<PduInFrame> const& pduLayout);
 
     /**
      * Reads the length byte of a variable-length PDU.
      * \return length byte clamped to maxPduLength, 0 when out of range.
      */
-    static uint16_t extractVariableLengthPdu(uint8_t const* pduData, uint16_t pduAvailable,
-                                             uint8_t lengthFieldOffset, uint16_t maxPduLength);
+    static uint16_t extractVariableLengthPdu(
+        uint8_t const* pduData,
+        uint16_t pduAvailable,
+        uint8_t lengthFieldOffset,
+        uint16_t maxPduLength);
 
     /// Fills [usedLength, totalLength) with paddingValue; no-op when used >= total.
-    static void applyPadding(uint8_t* frameBuffer, uint16_t usedLength, uint16_t totalLength,
-                             uint8_t paddingValue = 0xFFU);
+    static void applyPadding(
+        uint8_t* frameBuffer,
+        uint16_t usedLength,
+        uint16_t totalLength,
+        uint8_t paddingValue = 0xFFU);
 };
 
 } // namespace framegateway

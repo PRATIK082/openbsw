@@ -82,17 +82,14 @@ void CanHwTransceiverAdapter::shutdown()
 }
 
 bool CanHwTransceiverAdapter::transmit(
-    uint8_t const /*mailboxId*/,
-    uint32_t const frameId,
-    uint8_t const dlc,
-    uint8_t const* data)
+    uint8_t const /*mailboxId*/, uint32_t const frameId, uint8_t const dlc, uint8_t const* data)
 {
     if (!m_initialized)
     {
         return false;
     }
 
-    bool const isExtended = (frameId > CanFrame::MAX_BASE_ID);
+    bool const isExtended      = (frameId > CanFrame::MAX_BASE_ID);
     uint32_t const qualifiedId = ::can::CanId::id(frameId, isExtended);
 
     ::can::CANFrame frame(qualifiedId, data, dlc, isExtended);

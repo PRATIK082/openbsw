@@ -25,24 +25,24 @@ namespace framegateway
 {
 
 /// XCP command codes (subset of ASAM MCD-1 XCP).
-static uint8_t const XCP_CMD_CONNECT       = 0xFFU;
-static uint8_t const XCP_CMD_DISCONNECT    = 0xFEU;
-static uint8_t const XCP_CMD_GET_STATUS    = 0xFDU;
-static uint8_t const XCP_CMD_GET_ID        = 0xFAU;
-static uint8_t const XCP_CMD_SET_MTA       = 0xF6U;
-static uint8_t const XCP_CMD_UPLOAD        = 0xF5U;
-static uint8_t const XCP_CMD_DOWNLOAD      = 0xF0U;
-static uint8_t const XCP_CMD_BUILD_CHECKSUM = 0xF3U;
-static uint8_t const XCP_CMD_SET_DAQ_PTR   = 0xE2U;
-static uint8_t const XCP_CMD_WRITE_DAQ     = 0xE1U;
-static uint8_t const XCP_CMD_START_STOP_DAQ = 0xDEU;
+static uint8_t const XCP_CMD_CONNECT          = 0xFFU;
+static uint8_t const XCP_CMD_DISCONNECT       = 0xFEU;
+static uint8_t const XCP_CMD_GET_STATUS       = 0xFDU;
+static uint8_t const XCP_CMD_GET_ID           = 0xFAU;
+static uint8_t const XCP_CMD_SET_MTA          = 0xF6U;
+static uint8_t const XCP_CMD_UPLOAD           = 0xF5U;
+static uint8_t const XCP_CMD_DOWNLOAD         = 0xF0U;
+static uint8_t const XCP_CMD_BUILD_CHECKSUM   = 0xF3U;
+static uint8_t const XCP_CMD_SET_DAQ_PTR      = 0xE2U;
+static uint8_t const XCP_CMD_WRITE_DAQ        = 0xE1U;
+static uint8_t const XCP_CMD_START_STOP_DAQ   = 0xDEU;
 static uint8_t const XCP_CMD_START_STOP_SYNCH = 0xDDU;
 
 /// XCP positive response PID and generic error code (simplified CTO format:
 // PID 0xFF, return code, payload...).
-static uint8_t const XCP_RES_OK    = 0x00U;
-static uint8_t const XCP_ERR_CMD_UNKNOWN = 0x20U;
-static uint8_t const XCP_ERR_OUT_OF_RANGE = 0x22U;
+static uint8_t const XCP_RES_OK            = 0x00U;
+static uint8_t const XCP_ERR_CMD_UNKNOWN   = 0x20U;
+static uint8_t const XCP_ERR_OUT_OF_RANGE  = 0x22U;
 static uint8_t const XCP_ERR_ACCESS_DENIED = 0x25U;
 
 /// One DAQ list: cyclic or event-triggered measurement elements.
@@ -52,9 +52,9 @@ struct XcpDaqList
     /// (memory address, length) elements sampled in order.
     std::vector<std::pair<uint32_t, uint16_t>> elements;
     /// Cycle period; 0 = event-triggered only.
-    uint32_t cycleTimeMs     = 0U;
+    uint32_t cycleTimeMs       = 0U;
     uint32_t lastTriggerTimeMs = 0U;
-    bool isRunning           = false;
+    bool isRunning             = false;
 };
 
 /// Simulated ECU memory region backing MTA accesses.
@@ -62,7 +62,7 @@ struct XcpMemoryRegion
 {
     uint32_t baseAddress = 0U;
     std::vector<uint8_t> data;
-    bool writable        = false;
+    bool writable = false;
 };
 
 /// DAQ DTO transmit hook: (daqListId, length, data).
@@ -88,8 +88,8 @@ public:
     void shutdown();
     void clear();
 
-    void onXcpCommandReceived(uint8_t const* cmd, uint16_t length, uint8_t* response,
-                              uint16_t& responseLength);
+    void onXcpCommandReceived(
+        uint8_t const* cmd, uint16_t length, uint8_t* response, uint16_t& responseLength);
 
     bool readMemory(uint32_t address, uint16_t length, uint8_t* data) const;
     bool writeMemory(uint32_t address, uint16_t length, uint8_t const* data);
@@ -120,13 +120,13 @@ private:
     uint32_t m_currentMtaAddress = 0U;
     bool m_isConnected           = false;
     XcpTransportHandler m_txHandler;
-    uint8_t m_daqChannelType = 0U;
-    uint8_t m_daqChannelId   = 0U;
-    uint32_t m_daqFrameId    = 0U;
-    uint32_t m_commandCount  = 0U;
-    uint32_t m_daqTriggerCount = 0U;
+    uint8_t m_daqChannelType    = 0U;
+    uint8_t m_daqChannelId      = 0U;
+    uint32_t m_daqFrameId       = 0U;
+    uint32_t m_commandCount     = 0U;
+    uint32_t m_daqTriggerCount  = 0U;
     uint32_t m_memoryErrorCount = 0U;
-    bool m_initialized       = false;
+    bool m_initialized          = false;
 };
 
 } // namespace framegateway

@@ -89,19 +89,14 @@ uint16_t xcpDataTypeSize(XcpDataType type)
     switch (type)
     {
         case XcpDataType::UINT8:
-        case XcpDataType::INT8:
-            return 1U;
+        case XcpDataType::INT8:    return 1U;
         case XcpDataType::UINT16:
-        case XcpDataType::INT16:
-            return 2U;
+        case XcpDataType::INT16:   return 2U;
         case XcpDataType::UINT32:
         case XcpDataType::INT32:
-        case XcpDataType::FLOAT32:
-            return 4U;
-        case XcpDataType::FLOAT64:
-            return 8U;
-        default:
-            return 0U;
+        case XcpDataType::FLOAT32: return 4U;
+        case XcpDataType::FLOAT64: return 8U;
+        default:                   return 0U;
     }
 }
 

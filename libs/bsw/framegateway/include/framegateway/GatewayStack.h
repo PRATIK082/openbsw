@@ -39,21 +39,21 @@ static uint32_t const GATEWAYSTACK_RUN_PERIOD_MS = 1U;
 /// Cross-layer gateway counters exposed for diagnostics/monitoring.
 struct GatewayStatistics
 {
-    uint32_t framesReceived    = 0U;
-    uint32_t framesTransmitted = 0U;
-    uint32_t framesDropped     = 0U;
-    uint32_t pdusExtracted     = 0U;
-    uint32_t pdusRouted        = 0U;
-    uint32_t pdusDropped       = 0U;
-    uint32_t tpSessionsActive       = 0U;
-    uint32_t tpSegmentationErrors   = 0U;
-    uint32_t tpReassemblyTimeouts   = 0U;
-    uint32_t diagRequestsReceived   = 0U;
-    uint32_t diagResponsesSent      = 0U;
-    uint32_t diagSessionTimeouts    = 0U;
-    uint32_t xcpCommandsReceived    = 0U;
-    uint32_t xcpDaqListsTriggered   = 0U;
-    uint32_t xcpMemoryAccessErrors  = 0U;
+    uint32_t framesReceived        = 0U;
+    uint32_t framesTransmitted     = 0U;
+    uint32_t framesDropped         = 0U;
+    uint32_t pdusExtracted         = 0U;
+    uint32_t pdusRouted            = 0U;
+    uint32_t pdusDropped           = 0U;
+    uint32_t tpSessionsActive      = 0U;
+    uint32_t tpSegmentationErrors  = 0U;
+    uint32_t tpReassemblyTimeouts  = 0U;
+    uint32_t diagRequestsReceived  = 0U;
+    uint32_t diagResponsesSent     = 0U;
+    uint32_t diagSessionTimeouts   = 0U;
+    uint32_t xcpCommandsReceived   = 0U;
+    uint32_t xcpDaqListsTriggered  = 0U;
+    uint32_t xcpMemoryAccessErrors = 0U;
 
     void reset();
 };
@@ -96,11 +96,19 @@ public:
     bool loadConfig(std::string const& jsonText, std::string& error);
 
     /// Lower-layer entry point: (channelType, channelId, frameId, length, data).
-    void onFrameReceived(uint8_t channelType, uint8_t channelId, uint32_t frameId,
-                         uint16_t length, uint8_t const* data);
+    void onFrameReceived(
+        uint8_t channelType,
+        uint8_t channelId,
+        uint32_t frameId,
+        uint16_t length,
+        uint8_t const* data);
     /// Lower-layer TP entry point (raw transport frames).
-    void onTransportFrameReceived(uint8_t channelType, uint8_t channelId, uint32_t frameId,
-                                  uint16_t length, uint8_t const* data);
+    void onTransportFrameReceived(
+        uint8_t channelType,
+        uint8_t channelId,
+        uint32_t frameId,
+        uint16_t length,
+        uint8_t const* data);
 
     void setTxSender(FrameTxSender sender);
     void setUdsHandler(UdsHandler handler);

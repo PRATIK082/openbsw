@@ -25,20 +25,20 @@ namespace framegateway
 /// One diagnostic session (physical or functional addressing).
 struct DiagSession
 {
-    uint8_t channelType = 0U; // 0=CAN, 1=LIN, 2=ETH
-    uint8_t channelId   = 0U;
-    uint32_t requestFrameId  = 0U;
-    uint32_t responseFrameId = 0U;
+    uint8_t channelType         = 0U; // 0=CAN, 1=LIN, 2=ETH
+    uint8_t channelId           = 0U;
+    uint32_t requestFrameId     = 0U;
+    uint32_t responseFrameId    = 0U;
     /// Byte offset when multiplexed inside a multi-PDU frame.
-    uint16_t pduOffset       = 0U;
-    bool isActive            = true;
-    uint32_t sessionTimeoutMs = 5000U;
+    uint16_t pduOffset          = 0U;
+    bool isActive               = true;
+    uint32_t sessionTimeoutMs   = 5000U;
     uint32_t lastActivityTimeMs = 0U;
-    bool hasActivity         = false;
+    bool hasActivity            = false;
 };
 
 /// UDS service handler: (requestLength, request, responseOut, responseLengthInOut).
-using UdsHandler = std::function<void(uint16_t, uint8_t const*, uint8_t*, uint16_t&)>;
+using UdsHandler   = std::function<void(uint16_t, uint8_t const*, uint8_t*, uint16_t&)>;
 /// Diagnostic frame transmit hook, same shape as FrameTxSender.
 using DiagTxSender = std::function<bool(uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*)>;
 
@@ -59,10 +59,14 @@ public:
     void shutdown();
     void clear();
 
-    void onDiagnosticPduReceived(uint32_t pduId, uint16_t length, uint8_t const* data,
-                                 uint32_t nowMs);
-    void sendDiagnosticResponse(uint8_t channelType, uint8_t channelId, uint32_t frameId,
-                                uint16_t length, uint8_t const* data);
+    void
+    onDiagnosticPduReceived(uint32_t pduId, uint16_t length, uint8_t const* data, uint32_t nowMs);
+    void sendDiagnosticResponse(
+        uint8_t channelType,
+        uint8_t channelId,
+        uint32_t frameId,
+        uint16_t length,
+        uint8_t const* data);
 
     void setUdsHandler(UdsHandler handler);
     void setTxSender(DiagTxSender sender);

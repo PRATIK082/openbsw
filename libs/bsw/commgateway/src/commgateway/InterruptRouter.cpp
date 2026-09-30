@@ -28,7 +28,10 @@ void InterruptRouter::registerHandler(InterruptSource source, std::function<void
     m_handlers[source] = handler;
 }
 
-bool InterruptRouter::removeHandler(InterruptSource source) { return m_handlers.erase(source) > 0U; }
+bool InterruptRouter::removeHandler(InterruptSource source)
+{
+    return m_handlers.erase(source) > 0U;
+}
 
 void InterruptRouter::clear() { m_handlers.clear(); }
 
@@ -42,13 +45,21 @@ void InterruptRouter::onInterrupt(InterruptSource source)
 }
 
 void InterruptRouter::onCan0RxIsr() { getInstance().onInterrupt(InterruptSource::CAN0_RX); }
+
 void InterruptRouter::onCan0TxIsr() { getInstance().onInterrupt(InterruptSource::CAN0_TX); }
+
 void InterruptRouter::onCan0ErrorIsr() { getInstance().onInterrupt(InterruptSource::CAN0_ERROR); }
+
 void InterruptRouter::onLin0RxIsr() { getInstance().onInterrupt(InterruptSource::LIN0_RX); }
+
 void InterruptRouter::onLin0TxIsr() { getInstance().onInterrupt(InterruptSource::LIN0_TX); }
+
 void InterruptRouter::onLin0ErrorIsr() { getInstance().onInterrupt(InterruptSource::LIN0_ERROR); }
+
 void InterruptRouter::onEth0RxIsr() { getInstance().onInterrupt(InterruptSource::ETH0_RX); }
+
 void InterruptRouter::onEth0TxIsr() { getInstance().onInterrupt(InterruptSource::ETH0_TX); }
+
 void InterruptRouter::onEth0ErrorIsr() { getInstance().onInterrupt(InterruptSource::ETH0_ERROR); }
 
 size_t InterruptRouter::getHandlerCount() const { return m_handlers.size(); }

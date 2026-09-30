@@ -38,7 +38,7 @@ struct GatewayPolicy
     uint32_t frameId    = 0U;
     uint8_t channelType = 0U;
     uint8_t channelId   = 0U;
-    PolicyAction action  = PolicyAction::ALLOW;
+    PolicyAction action = PolicyAction::ALLOW;
     /**
      * Match predicate: true = the rule applies to this frame, false = the
      * rule is skipped (frame allowed). Null = always applies.
@@ -48,12 +48,12 @@ struct GatewayPolicy
     /// In-place frame modifier for TRANSFORM. Null = no modification.
     std::function<void(uint8_t*, uint16_t)> transform;
     /// Redirect target for REDIRECT (channelType, channelId, frameId).
-    uint32_t redirectFrameId   = 0U;
-    uint8_t redirectChannelType = 0U;
-    uint8_t redirectChannelId   = 0U;
+    uint32_t redirectFrameId     = 0U;
+    uint8_t redirectChannelType  = 0U;
+    uint8_t redirectChannelId    = 0U;
     /// Rate budget for RATE_LIMIT; 0 = deny everything after the first per window.
-    uint32_t maxRatePerSec = 0U;
-    uint32_t currentRate   = 0U;
+    uint32_t maxRatePerSec       = 0U;
+    uint32_t currentRate         = 0U;
     uint32_t lastRateResetTimeMs = 0U;
 };
 
@@ -81,8 +81,13 @@ public:
      * \return verdict; for REDIRECT channelType/channelId/frameId carry the
      * new key, for DENY the frame must be dropped.
      */
-    PolicyAction evaluatePolicy(uint8_t& channelType, uint8_t& channelId, uint32_t& frameId,
-                                uint8_t* data, uint16_t& length, uint32_t nowMs);
+    PolicyAction evaluatePolicy(
+        uint8_t& channelType,
+        uint8_t& channelId,
+        uint32_t& frameId,
+        uint8_t* data,
+        uint16_t& length,
+        uint32_t nowMs);
 
     /// Resets rate-limit windows; call every millisecond.
     void mainFunction(uint32_t nowMs);

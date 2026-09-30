@@ -33,7 +33,7 @@ using SignalTransform = std::function<double(double)>;
 /// One routing rule: input channel + frame id to output destinations.
 struct RoutingRule
 {
-    uint8_t inputChannel = 0U;
+    uint8_t inputChannel  = 0U;
     uint32_t inputFrameId = 0U;
     /// (output channel, output frame id) pairs
     std::vector<std::pair<uint8_t, uint32_t>> outputDestinations;
@@ -80,11 +80,13 @@ public:
     size_t getRuleCount() const;
 
 private:
-    void forwardFrameLevel(
-        RoutingRule const& rule, uint8_t dlc, uint8_t const* data);
+    void forwardFrameLevel(RoutingRule const& rule, uint8_t dlc, uint8_t const* data);
 
     void forwardSignalLevel(
-        RoutingRule const& rule, uint8_t inputChannel, uint32_t inputFrameId, uint8_t dlc,
+        RoutingRule const& rule,
+        uint8_t inputChannel,
+        uint32_t inputFrameId,
+        uint8_t dlc,
         uint8_t const* data);
 
     std::vector<RoutingRule> m_routingTable;

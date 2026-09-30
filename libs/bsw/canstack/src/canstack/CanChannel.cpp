@@ -43,25 +43,22 @@ bool CanChannel::init(CanChannelConfig const& config)
         MailboxConfig mailbox{};
         mailbox.mailboxId = i;
         mailbox.acceptAll = true;
-        mailbox.frameId    = 0U;
+        mailbox.frameId   = 0U;
         m_mailboxes.push_back(mailbox);
 
         // Every mailbox forwards into the upper layer callback with the
         // channel id attached.
         uint8_t const channelId = config.channelId;
         config.hwDriver->registerRxCallback(
-            i, [this, channelId](uint32_t frameId, uint8_t dlc, uint8_t const* data) {
-                onFrameReceivedForChannel(channelId, frameId, dlc, data);
-            });
+            i,
+            [this, channelId](uint32_t frameId, uint8_t dlc, uint8_t const* data)
+            { onFrameReceivedForChannel(channelId, frameId, dlc, data); });
     }
 
     m_nextTxMailbox = 0U;
 
     logger::Logger::debug(
-        logger::CANSTACK,
-        "Channel %u up with %u mailboxes",
-        config.channelId,
-        config.maxMailboxes);
+        logger::CANSTACK, "Channel %u up with %u mailboxes", config.channelId, config.maxMailboxes);
 
     return true;
 }
@@ -98,7 +95,7 @@ bool CanChannel::transmitFrame(uint32_t const frameId, uint8_t const dlc, uint8_
     }
 
     uint8_t const mailboxId = m_nextTxMailbox;
-    m_nextTxMailbox = static_cast<uint8_t>((m_nextTxMailbox + 1U) % m_mailboxes.size());
+    m_nextTxMailbox         = static_cast<uint8_t>((m_nextTxMailbox + 1U) % m_mailboxes.size());
 
     return m_config.hwDriver->transmit(mailboxId, frameId, dlc, data);
 }

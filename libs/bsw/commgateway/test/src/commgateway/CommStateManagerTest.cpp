@@ -34,22 +34,26 @@ TEST(CommStateManagerTest, error_transitions)
     {
         states.reportError(::commgateway::CHANNEL_TYPE_CAN, 0U);
     }
-    EXPECT_EQ(::commgateway::CommState::ACTIVE,
-              states.getChannelState(::commgateway::CHANNEL_TYPE_CAN, 0U));
+    EXPECT_EQ(
+        ::commgateway::CommState::ACTIVE,
+        states.getChannelState(::commgateway::CHANNEL_TYPE_CAN, 0U));
     states.reportError(::commgateway::CHANNEL_TYPE_CAN, 0U);
-    EXPECT_EQ(::commgateway::CommState::BUS_OFF,
-              states.getChannelState(::commgateway::CHANNEL_TYPE_CAN, 0U));
+    EXPECT_EQ(
+        ::commgateway::CommState::BUS_OFF,
+        states.getChannelState(::commgateway::CHANNEL_TYPE_CAN, 0U));
 
     for (uint32_t i = 0U; i <= ::commgateway::COMM_LIN_PASSIVE_THRESHOLD; ++i)
     {
         states.reportError(::commgateway::CHANNEL_TYPE_LIN, 0U);
     }
-    EXPECT_EQ(::commgateway::CommState::PASSIVE,
-              states.getChannelState(::commgateway::CHANNEL_TYPE_LIN, 0U));
+    EXPECT_EQ(
+        ::commgateway::CommState::PASSIVE,
+        states.getChannelState(::commgateway::CHANNEL_TYPE_LIN, 0U));
 
     states.reportError(::commgateway::CHANNEL_TYPE_ETH, 0U);
-    EXPECT_EQ(::commgateway::CommState::COMM_FAILURE,
-              states.getChannelState(::commgateway::CHANNEL_TYPE_ETH, 0U));
+    EXPECT_EQ(
+        ::commgateway::CommState::COMM_FAILURE,
+        states.getChannelState(::commgateway::CHANNEL_TYPE_ETH, 0U));
 }
 
 /**
@@ -63,19 +67,23 @@ TEST(CommStateManagerTest, auto_recovery)
     states.setRecoveryConfig(::commgateway::CHANNEL_TYPE_CAN, 1U, true, 1000U);
 
     ::commgateway::CommState lastSeen = ::commgateway::CommState::UNINIT;
-    states.setStateChangeCallback(::commgateway::CHANNEL_TYPE_CAN, 1U,
-                                  [&lastSeen](::commgateway::CommState s) { lastSeen = s; });
+    states.setStateChangeCallback(
+        ::commgateway::CHANNEL_TYPE_CAN,
+        1U,
+        [&lastSeen](::commgateway::CommState s) { lastSeen = s; });
 
-    states.updateChannelState(::commgateway::CHANNEL_TYPE_CAN, 1U,
-                              ::commgateway::CommState::BUS_OFF, 0U);
+    states.updateChannelState(
+        ::commgateway::CHANNEL_TYPE_CAN, 1U, ::commgateway::CommState::BUS_OFF, 0U);
     EXPECT_EQ(::commgateway::CommState::BUS_OFF, lastSeen);
 
     states.mainFunction(999U);
-    EXPECT_EQ(::commgateway::CommState::BUS_OFF,
-              states.getChannelState(::commgateway::CHANNEL_TYPE_CAN, 1U));
+    EXPECT_EQ(
+        ::commgateway::CommState::BUS_OFF,
+        states.getChannelState(::commgateway::CHANNEL_TYPE_CAN, 1U));
     states.mainFunction(1000U);
-    EXPECT_EQ(::commgateway::CommState::ACTIVE,
-              states.getChannelState(::commgateway::CHANNEL_TYPE_CAN, 1U));
+    EXPECT_EQ(
+        ::commgateway::CommState::ACTIVE,
+        states.getChannelState(::commgateway::CHANNEL_TYPE_CAN, 1U));
     EXPECT_EQ(::commgateway::CommState::ACTIVE, lastSeen);
 }
 

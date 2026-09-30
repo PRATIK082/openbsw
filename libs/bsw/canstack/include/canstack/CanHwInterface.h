@@ -71,8 +71,7 @@ public:
      * \param data payload bytes
      * \return true if the frame was accepted by the controller
      */
-    virtual bool transmit(
-        uint8_t mailboxId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
+    virtual bool transmit(uint8_t mailboxId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
         = 0;
 
     /**

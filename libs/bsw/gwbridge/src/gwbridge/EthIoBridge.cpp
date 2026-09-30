@@ -19,19 +19,16 @@ namespace gwbridge
 
 void EthIoBridge::bind(::commgateway::EthIpduManager& manager)
 {
-    manager.registerPduCallback(
-        [this](uint32_t pduId, uint16_t length, uint8_t const* data) {
-            onPduReceived(pduId, length, data);
-        });
+    manager.registerPduCallback([this](uint32_t pduId, uint16_t length, uint8_t const* data)
+                                { onPduReceived(pduId, length, data); });
 }
 
 uint32_t EthIoBridge::pumpTx(::commgateway::EthIpduManager& manager)
 {
     uint32_t sent = 0U;
-    while (m_bridge.drainTxFrame(
-        [&manager, &sent](uint32_t messageId, uint16_t length, uint8_t const* data) {
-            return manager.transmitPdu(messageId, length, data);
-        }))
+    while (
+        m_bridge.drainTxFrame([&manager](uint32_t messageId, uint16_t length, uint8_t const* data)
+                              { return manager.transmitPdu(messageId, length, data); }))
     {
         sent++;
     }

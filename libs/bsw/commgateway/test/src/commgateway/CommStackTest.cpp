@@ -23,7 +23,9 @@ class FakeLinHw : public ::commgateway::LinHwInterface
 {
 public:
     bool init(uint8_t, uint32_t) override { return true; }
+
     void shutdown() override {}
+
     bool transmitFrame(uint8_t pid, uint8_t* data, uint8_t dlc) override
     {
         txPids.push_back(pid);
@@ -33,10 +35,15 @@ public:
         }
         return true;
     }
+
     void registerRxCallback(uint8_t, RxCallback cb) override { rxCb = cb; }
+
     void registerTxDoneCallback(TxDoneCallback) override {}
+
     void mainFunction() override {}
+
     void enterSleepMode() override {}
+
     void wakeup() override {}
 
     RxCallback rxCb;
@@ -48,6 +55,7 @@ class TestCommStack : public ::commgateway::CommStack
 {
 public:
     void publicInit() { init(); }
+
     void publicShutdown() { shutdown(); }
 };
 
@@ -60,10 +68,10 @@ TEST(CommStackTest, lin_to_eth_gateway_path)
     ::commgateway::EthLoopbackChannel ethTransport;
 
     ::commgateway::CommStackConfig config{};
-    config.canConfig    = nullptr;
-    config.linHw        = &linHw;
-    config.linChannelId = 0U;
-    config.ethTransport = &ethTransport;
+    config.canConfig              = nullptr;
+    config.linHw                  = &linHw;
+    config.linChannelId           = 0U;
+    config.ethTransport           = &ethTransport;
     config.ethConfig.primaryPduId = 4096U;
 
     auto& stack = ::commgateway::CommStack::getInstance();
@@ -81,7 +89,8 @@ TEST(CommStackTest, lin_to_eth_gateway_path)
     ASSERT_TRUE(stack.loadGatewayRules(
         R"({"signalRouting": [{"signalName": "EngineSpeed",
             "destinations": [{"channelType": 2, "channelId": 0}]}]})",
-        error)) << error;
+        error))
+        << error;
     stack.registerEthSignalMapping(4096U, "EthMirror"); // no rule: rx sink, no re-tx loop
 
     uint8_t data[4U] = {100U, 0U, 0U, 0U};
@@ -103,8 +112,8 @@ TEST(CommStackTest, gateway_dispatch_to_lin)
     ::commgateway::EthLoopbackChannel ethTransport;
 
     ::commgateway::CommStackConfig config{};
-    config.linHw        = &linHw;
-    config.ethTransport = &ethTransport;
+    config.linHw                  = &linHw;
+    config.ethTransport           = &ethTransport;
     config.ethConfig.primaryPduId = 1U;
 
     auto& stack = ::commgateway::CommStack::getInstance();
@@ -121,7 +130,8 @@ TEST(CommStackTest, gateway_dispatch_to_lin)
     ASSERT_TRUE(stack.loadGatewayRules(
         R"({"signalRouting": [{"signalName": "WindowSwitch_Status",
             "destinations": [{"channelType": 1, "channelId": 0}]}]})",
-        error)) << error;
+        error))
+        << error;
 
     stack.getSignalGateway().onSignalUpdate("WindowSwitch_Status", 3.0, 0U);
     ASSERT_EQ(1U, linHw.txPids.size());

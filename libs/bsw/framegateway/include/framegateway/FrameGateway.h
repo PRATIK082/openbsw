@@ -37,9 +37,9 @@ enum class GatewayAction : uint8_t
 /// Frame layout: one bus frame carrying 1..N PDUs.
 struct FrameConfig
 {
-    uint32_t frameId    = 0U;
-    uint8_t channelType = 0U; // 0=CAN, 1=LIN, 2=ETH
-    uint8_t channelId   = 0U;
+    uint32_t frameId     = 0U;
+    uint8_t channelType  = 0U; // 0=CAN, 1=LIN, 2=ETH
+    uint8_t channelId    = 0U;
     uint16_t frameLength = 8U; // total payload (8 classic CAN .. 64 CAN FD .. 1500 ETH)
     std::vector<PduInFrame> pdus;
     GatewayAction action = GatewayAction::ROUTE_ONLY;
@@ -56,9 +56,9 @@ struct GatewayDestination
 /// Frame transmit hook: (channelType, channelId, frameId, length, data) -> accepted.
 using FrameTxSender = std::function<bool(uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*)>;
 /// Extracted PDU sink (signal path): (pduId, length, data).
-using PduSink = std::function<void(uint32_t, uint16_t, uint8_t const*)>;
+using PduSink       = std::function<void(uint32_t, uint16_t, uint8_t const*)>;
 /// Large-PDU handoff to a transport protocol: (channelType, channelId, frameId, length, data).
-using TpForwarder = std::function<void(uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*)>;
+using TpForwarder   = std::function<void(uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*)>;
 
 /**
  * Frame/PDU-level router.
@@ -78,8 +78,12 @@ public:
     void shutdown();
     void clear();
 
-    void onFrameReceived(uint8_t channelType, uint8_t channelId, uint32_t frameId,
-                         uint16_t length, uint8_t const* data);
+    void onFrameReceived(
+        uint8_t channelType,
+        uint8_t channelId,
+        uint32_t frameId,
+        uint16_t length,
+        uint8_t const* data);
     void extractPdus(FrameConfig const& frame, uint8_t const* frameData, uint16_t length);
     void routePdu(uint32_t pduId, uint16_t length, uint8_t const* data);
 
@@ -111,12 +115,12 @@ private:
     FrameTxSender m_txSender;
     PduSink m_pduSink;
     TpForwarder m_tpForwarder;
-    PolicyEngine* m_policy = nullptr;
+    PolicyEngine* m_policy           = nullptr;
     uint16_t m_maxSingleFramePayload = 64U;
-    uint32_t m_routedPduCount    = 0U;
-    uint32_t m_extractedPduCount = 0U;
-    uint32_t m_droppedFrameCount = 0U;
-    bool m_initialized           = false;
+    uint32_t m_routedPduCount        = 0U;
+    uint32_t m_extractedPduCount     = 0U;
+    uint32_t m_droppedFrameCount     = 0U;
+    bool m_initialized               = false;
 };
 
 } // namespace framegateway

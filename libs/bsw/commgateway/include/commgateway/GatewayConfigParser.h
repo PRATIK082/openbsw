@@ -36,9 +36,12 @@ public:
      * Applies the JSON rules to the gateway modules.
      * \return false and fills error on malformed input.
      */
-    static bool parse(std::string const& jsonText, SignalGateway& gateway,
-                      TimeoutMonitor& timeoutMonitor, CommStateManager& stateManager,
-                      std::string& error);
+    static bool parse(
+        std::string const& jsonText,
+        SignalGateway& gateway,
+        TimeoutMonitor& timeoutMonitor,
+        CommStateManager& stateManager,
+        std::string& error);
 };
 
 } // namespace commgateway

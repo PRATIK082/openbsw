@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "commgateway/EthChannel.h"
 #include "commgateway/EthIpdu.h"
+#include "commgateway/EthChannel.h"
 
 #include <gmock/gmock.h>
 
@@ -37,10 +37,8 @@ TEST(EthIpduTest, transmit_and_loopback_rx)
     ASSERT_TRUE(manager.isInitialized());
 
     std::vector<std::tuple<uint32_t, uint16_t>> received;
-    manager.registerPduCallback(
-        [&received](uint32_t pduId, uint16_t length, uint8_t const*) {
-            received.emplace_back(pduId, length);
-        });
+    manager.registerPduCallback([&received](uint32_t pduId, uint16_t length, uint8_t const*)
+                                { received.emplace_back(pduId, length); });
 
     uint8_t const data[4U] = {1U, 2U, 3U, 4U};
     EXPECT_TRUE(manager.transmitPdu(4096U, 4U, data));
@@ -69,9 +67,8 @@ TEST(EthIpduTest, port_mapping)
     manager.registerPduMapping(5000U, 200U);
 
     std::vector<uint32_t> received;
-    manager.registerPduCallback([&received](uint32_t pduId, uint16_t, uint8_t const*) {
-        received.push_back(pduId);
-    });
+    manager.registerPduCallback([&received](uint32_t pduId, uint16_t, uint8_t const*)
+                                { received.push_back(pduId); });
 
     uint8_t const data[1U] = {0U};
     transport.injectRx(0U, 5000U, data, 1U);

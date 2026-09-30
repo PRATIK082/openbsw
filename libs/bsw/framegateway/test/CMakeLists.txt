@@ -12,11 +12,7 @@ add_executable(
 
 target_include_directories(framegatewayTest PUBLIC include)
 
-target_link_libraries(
-    framegatewayTest
-    PRIVATE framegateway
-            asyncMock
-            asyncMockImpl
-            gmock_main)
+target_link_libraries(framegatewayTest PRIVATE framegateway asyncMock
+                                               asyncMockImpl gmock_main)
 
 gtest_discover_tests(framegatewayTest PROPERTIES LABELS "framegatewayTest")

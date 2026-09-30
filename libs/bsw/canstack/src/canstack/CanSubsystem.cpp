@@ -27,8 +27,8 @@ CanSubsystem& CanSubsystem::getInstance()
 
 void CanSubsystem::configure(CanStackConfig const& config, ::async::ContextType const context)
 {
-    m_config    = config;
-    m_context   = context;
+    m_config     = config;
+    m_context    = context;
     m_configured = true;
 }
 
@@ -62,11 +62,7 @@ void CanSubsystem::run()
     }
 
     ::async::scheduleAtFixedRate(
-        m_context,
-        *this,
-        m_timeout,
-        CANSTACK_RUN_PERIOD_MS,
-        ::async::TimeUnit::MILLISECONDS);
+        m_context, *this, m_timeout, CANSTACK_RUN_PERIOD_MS, ::async::TimeUnit::MILLISECONDS);
 
     logger::Logger::info(logger::CANSTACK, "CAN subsystem running");
 

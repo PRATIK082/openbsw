@@ -31,8 +31,8 @@ void TimeoutMonitor::clear()
     m_timeoutCount = 0U;
 }
 
-void TimeoutMonitor::registerSignalTimeout(std::string const& signalName, uint32_t timeoutMs,
-                                           std::function<void()> callback)
+void TimeoutMonitor::registerSignalTimeout(
+    std::string const& signalName, uint32_t timeoutMs, std::function<void()> callback)
 {
     TimeoutConfig entry{};
     entry.signalName      = signalName;
@@ -42,8 +42,8 @@ void TimeoutMonitor::registerSignalTimeout(std::string const& signalName, uint32
     m_timeoutTable.push_back(entry);
 }
 
-void TimeoutMonitor::registerFrameTimeout(uint8_t channelId, uint32_t frameId, uint32_t timeoutMs,
-                                          std::function<void()> callback)
+void TimeoutMonitor::registerFrameTimeout(
+    uint8_t channelId, uint32_t frameId, uint32_t timeoutMs, std::function<void()> callback)
 {
     TimeoutConfig entry{};
     entry.channelId       = channelId;

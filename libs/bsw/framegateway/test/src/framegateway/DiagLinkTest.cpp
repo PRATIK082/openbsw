@@ -39,17 +39,20 @@ TEST(DiagLinkTest, request_response)
 
     std::vector<std::tuple<uint8_t, uint8_t, uint32_t, uint16_t>> sent;
     link.setTxSender(
-        [&sent](uint8_t t, uint8_t c, uint32_t id, uint16_t len, uint8_t const*) {
+        [&sent](uint8_t t, uint8_t c, uint32_t id, uint16_t len, uint8_t const*)
+        {
             sent.emplace_back(t, c, id, len);
             return true;
         });
-    link.setUdsHandler([](uint16_t reqLen, uint8_t const* req, uint8_t* resp, uint16_t& respLen) {
-        respLen = (reqLen < respLen) ? reqLen : respLen;
-        for (uint16_t i = 0U; i < respLen; ++i)
+    link.setUdsHandler(
+        [](uint16_t reqLen, uint8_t const* req, uint8_t* resp, uint16_t& respLen)
         {
-            resp[i] = static_cast<uint8_t>(req[i] + 0x40U); // positive response mock
-        }
-    });
+            respLen = (reqLen < respLen) ? reqLen : respLen;
+            for (uint16_t i = 0U; i < respLen; ++i)
+            {
+                resp[i] = static_cast<uint8_t>(req[i] + 0x40U); // positive response mock
+            }
+        });
 
     uint8_t const request[3U] = {0x22U, 0xF1U, 0x90U};
     link.onDiagnosticPduReceived(0x7E0U, 3U, request, 0U);
@@ -67,9 +70,7 @@ TEST(DiagLinkTest, ignores_unknown_and_inactive)
 {
     ::framegateway::DiagLink link;
     link.init({makeSession()});
-    link.setUdsHandler([](uint16_t, uint8_t const*, uint8_t*, uint16_t& respLen) {
-        respLen = 0U;
-    });
+    link.setUdsHandler([](uint16_t, uint8_t const*, uint8_t*, uint16_t& respLen) { respLen = 0U; });
 
     uint8_t const request[1U] = {0x10U};
     link.onDiagnosticPduReceived(0x7DFU, 1U, request, 0U); // unknown
@@ -87,12 +88,8 @@ TEST(DiagLinkTest, session_timeout)
     session.sessionTimeoutMs            = 100U;
     ::framegateway::DiagLink link;
     link.init({session});
-    link.setUdsHandler([](uint16_t, uint8_t const*, uint8_t*, uint16_t& respLen) {
-        respLen = 1U;
-    });
-    link.setTxSender([](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) {
-        return true;
-    });
+    link.setUdsHandler([](uint16_t, uint8_t const*, uint8_t*, uint16_t& respLen) { respLen = 1U; });
+    link.setTxSender([](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) { return true; });
 
     uint8_t const request[1U] = {0x3EU};
     link.onDiagnosticPduReceived(0x7E0U, 1U, request, 0U);
