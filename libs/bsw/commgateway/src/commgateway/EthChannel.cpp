@@ -17,8 +17,8 @@
 namespace commgateway
 {
 
-bool EthLoopbackChannel::send(uint32_t destIp, uint16_t destPort, uint16_t srcPort,
-                              uint8_t const* data, uint16_t length)
+bool EthLoopbackChannel::send(
+    uint32_t destIp, uint16_t destPort, uint16_t srcPort, uint8_t const* data, uint16_t length)
 {
     if (data == nullptr)
     {
@@ -32,16 +32,19 @@ bool EthLoopbackChannel::send(uint32_t destIp, uint16_t destPort, uint16_t srcPo
     m_txLog.push_back(datagram);
     if (m_loopback && m_rxCallback)
     {
-        m_rxCallback(destIp, srcPort, datagram.payload.data(),
-                     static_cast<uint16_t>(datagram.payload.size()));
+        m_rxCallback(
+            destIp,
+            srcPort,
+            datagram.payload.data(),
+            static_cast<uint16_t>(datagram.payload.size()));
     }
     return true;
 }
 
 void EthLoopbackChannel::registerRxCallback(RxCallback cb) { m_rxCallback = cb; }
 
-void EthLoopbackChannel::injectRx(uint32_t srcIp, uint16_t srcPort, uint8_t const* data,
-                                  uint16_t length)
+void EthLoopbackChannel::injectRx(
+    uint32_t srcIp, uint16_t srcPort, uint8_t const* data, uint16_t length)
 {
     if (m_rxCallback && (data != nullptr))
     {

@@ -17,6 +17,7 @@ target_include_directories(canstack PUBLIC include)
 
 target_link_libraries(canstack PUBLIC async cpp2can lifecycle util)
 
-if (BUILD_EXECUTABLE STREQUAL "referenceApp" AND BUILD_TARGET_PLATFORM STREQUAL "POSIX")
+if (BUILD_EXECUTABLE STREQUAL "referenceApp" AND BUILD_TARGET_PLATFORM STREQUAL
+                                                 "POSIX")
     target_compile_definitions(canstack PUBLIC CANSTACK_WITH_SOCKETCAN=1)
 endif ()

@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "commgateway/CommStateManager.h"
 #include "commgateway/GatewayConfigParser.h"
+#include "commgateway/CommStateManager.h"
 #include "commgateway/SignalGateway.h"
 #include "commgateway/TimeoutMonitor.h"
 
@@ -77,8 +77,8 @@ TEST(GatewayConfigParserTest, rejects_malformed_input)
     states.init();
 
     std::string error;
-    EXPECT_FALSE(::commgateway::GatewayConfigParser::parse("{not json", gateway, timeouts, states,
-                                                           error));
+    EXPECT_FALSE(
+        ::commgateway::GatewayConfigParser::parse("{not json", gateway, timeouts, states, error));
     EXPECT_FALSE(error.empty());
 
     error.clear();

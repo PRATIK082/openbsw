@@ -94,9 +94,8 @@ void CanTxScheduler::mainFunction()
         bool const alreadyProcessed = std::any_of(
             m_txSignals.begin(),
             m_txSignals.begin() + static_cast<std::ptrdiff_t>(i),
-            [this, &entry = m_txSignals[i]](TxSignalEntry const& other) {
-                return (other.channelId == entry.channelId) && (other.frameId == entry.frameId);
-            });
+            [&entry = m_txSignals[i]](TxSignalEntry const& other)
+            { return (other.channelId == entry.channelId) && (other.frameId == entry.frameId); });
         if (alreadyProcessed)
         {
             continue;
@@ -178,7 +177,7 @@ void CanTxScheduler::processFrameGroup(uint8_t const channelId, uint32_t const f
 
     // Resolve the multiplexer switch value of the frame, if one is registered.
     double switchValue = 0.0;
-    bool hasSwitch = false;
+    bool hasSwitch     = false;
     for (auto const& signal : frame->signals)
     {
         if (!signal.isMultiplexerSwitch)

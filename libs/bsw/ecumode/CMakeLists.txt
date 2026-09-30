@@ -8,7 +8,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-add_library(ecumode src/ecumode/EcuMode.cpp src/ecumode/CommStateManagerPhase5.cpp)
+add_library(ecumode src/ecumode/EcuMode.cpp
+                    src/ecumode/CommStateManagerPhase5.cpp)
 
 target_include_directories(ecumode PUBLIC include)
 

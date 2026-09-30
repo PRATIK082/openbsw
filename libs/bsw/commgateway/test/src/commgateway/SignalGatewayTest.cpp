@@ -32,7 +32,8 @@ TEST(SignalGatewayTest, basic_routing)
 
     std::vector<std::tuple<uint8_t, uint32_t, std::string, double>> sent;
     gateway.setChannelSender(
-        [&sent](uint8_t type, uint32_t id, std::string const& signal, double value) {
+        [&sent](uint8_t type, uint32_t id, std::string const& signal, double value)
+        {
             sent.emplace_back(type, id, signal, value);
             return true;
         });
@@ -41,9 +42,9 @@ TEST(SignalGatewayTest, basic_routing)
     EXPECT_TRUE(sent.empty());
 
     ::commgateway::SignalRoutingRule rule{};
-    rule.signalName   = "VehicleSpeed";
-    rule.destinations = {{::commgateway::CHANNEL_TYPE_LIN, 0U},
-                         {::commgateway::CHANNEL_TYPE_ETH, 0U}};
+    rule.signalName = "VehicleSpeed";
+    rule.destinations
+        = {{::commgateway::CHANNEL_TYPE_LIN, 0U}, {::commgateway::CHANNEL_TYPE_ETH, 0U}};
     gateway.registerRoutingRule(rule);
     EXPECT_EQ(1U, gateway.getRuleCount());
 
@@ -63,10 +64,12 @@ TEST(SignalGatewayTest, transform_and_nan_drop)
     gateway.init(nullptr);
 
     std::vector<double> sent;
-    gateway.setChannelSender([&sent](uint8_t, uint32_t, std::string const&, double value) {
-        sent.push_back(value);
-        return true;
-    });
+    gateway.setChannelSender(
+        [&sent](uint8_t, uint32_t, std::string const&, double value)
+        {
+            sent.push_back(value);
+            return true;
+        });
 
     ::commgateway::SignalRoutingRule scaled{};
     scaled.signalName   = "Scaled";
@@ -96,14 +99,16 @@ TEST(SignalGatewayTest, rate_limiting)
     gateway.init(nullptr);
 
     std::vector<double> sent;
-    gateway.setChannelSender([&sent](uint8_t, uint32_t, std::string const&, double value) {
-        sent.push_back(value);
-        return true;
-    });
+    gateway.setChannelSender(
+        [&sent](uint8_t, uint32_t, std::string const&, double value)
+        {
+            sent.push_back(value);
+            return true;
+        });
 
     ::commgateway::SignalRoutingRule rule{};
-    rule.signalName   = "Fast";
-    rule.destinations = {{0U, 0U}};
+    rule.signalName    = "Fast";
+    rule.destinations  = {{0U, 0U}};
     rule.minIntervalMs = 100U;
     gateway.registerRoutingRule(rule);
 

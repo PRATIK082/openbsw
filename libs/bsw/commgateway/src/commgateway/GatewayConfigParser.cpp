@@ -39,8 +39,8 @@ struct JsonValue
         OBJ
     };
 
-    Type type = Type::NUL;
-    bool boolean = false;
+    Type type     = Type::NUL;
+    bool boolean  = false;
     double number = 0.0;
     std::string str;
     std::vector<JsonValue> array;
@@ -219,11 +219,11 @@ private:
                 char e = m_text[m_pos++];
                 switch (e)
                 {
-                    case '"': out.str += '"'; break;
+                    case '"':  out.str += '"'; break;
                     case '\\': out.str += '\\'; break;
-                    case 'n': out.str += '\n'; break;
-                    case 't': out.str += '\t'; break;
-                    default: out.str += e; break;
+                    case 'n':  out.str += '\n'; break;
+                    case 't':  out.str += '\t'; break;
+                    default:   out.str += e; break;
                 }
                 continue;
             }
@@ -243,7 +243,7 @@ private:
             error = "invalid number";
             return false;
         }
-        m_pos   = static_cast<size_t>(end - m_text.c_str());
+        m_pos    = static_cast<size_t>(end - m_text.c_str());
         out.type = JsonValue::Type::NUM;
         return true;
     }
@@ -298,8 +298,8 @@ bool asUint(JsonValue const& value, uint32_t& out)
     return true;
 }
 
-bool parseRoutingRule(JsonValue const& entry, SignalGateway& gateway, TimeoutMonitor& timeouts,
-                      std::string& error)
+bool parseRoutingRule(
+    JsonValue const& entry, SignalGateway& gateway, TimeoutMonitor& timeouts, std::string& error)
 {
     JsonValue const* name = findMember(entry, "signalName");
     if ((name == nullptr) || (name->type != JsonValue::Type::STR))
@@ -343,8 +343,8 @@ bool parseRoutingRule(JsonValue const& entry, SignalGateway& gateway, TimeoutMon
             error = "transform of '" + rule.signalName + "' is not an object";
             return false;
         }
-        double scale  = 1.0;
-        double offset = 0.0;
+        double scale                 = 1.0;
+        double offset                = 0.0;
         JsonValue const* scaleValue  = findMember(*transform, "scale");
         JsonValue const* offsetValue = findMember(*transform, "offset");
         if ((scaleValue != nullptr) && (scaleValue->type == JsonValue::Type::NUM))
@@ -387,10 +387,10 @@ bool parseFrameTimeout(JsonValue const& entry, TimeoutMonitor& timeouts, std::st
     JsonValue const* id      = findMember(entry, "channelId");
     JsonValue const* frame   = findMember(entry, "frameId");
     JsonValue const* timeout = findMember(entry, "timeoutMs");
-    uint32_t channelType = 0U;
-    uint32_t channelId   = 0U;
-    uint32_t frameId     = 0U;
-    uint32_t timeoutMs   = 0U;
+    uint32_t channelType     = 0U;
+    uint32_t channelId       = 0U;
+    uint32_t frameId         = 0U;
+    uint32_t timeoutMs       = 0U;
     if ((type == nullptr) || !asUint(*type, channelType) || (id == nullptr)
         || !asUint(*id, channelId) || (frame == nullptr) || !asUint(*frame, frameId)
         || (timeout == nullptr) || !asUint(*timeout, timeoutMs))
@@ -415,7 +415,7 @@ bool parseChannelState(JsonValue const& entry, CommStateManager& states, std::st
         return false;
     }
     states.registerChannel(static_cast<uint8_t>(channelType), static_cast<uint8_t>(channelId));
-    JsonValue const* recovery = findMember(entry, "autoRecovery");
+    JsonValue const* recovery     = findMember(entry, "autoRecovery");
     JsonValue const* recoveryTime = findMember(entry, "recoveryTimeMs");
     uint32_t recoveryTimeMs       = 1000U;
     if ((recoveryTime != nullptr) && !asUint(*recoveryTime, recoveryTimeMs))
@@ -423,18 +423,24 @@ bool parseChannelState(JsonValue const& entry, CommStateManager& states, std::st
         error = "recoveryTimeMs is not a number";
         return false;
     }
-    bool autoRecovery = (recovery != nullptr) && (recovery->type == JsonValue::Type::BOOL)
-                        && recovery->boolean;
-    states.setRecoveryConfig(static_cast<uint8_t>(channelType), static_cast<uint8_t>(channelId),
-                             autoRecovery, recoveryTimeMs);
+    bool autoRecovery
+        = (recovery != nullptr) && (recovery->type == JsonValue::Type::BOOL) && recovery->boolean;
+    states.setRecoveryConfig(
+        static_cast<uint8_t>(channelType),
+        static_cast<uint8_t>(channelId),
+        autoRecovery,
+        recoveryTimeMs);
     return true;
 }
 
 } // namespace
 
-bool GatewayConfigParser::parse(std::string const& jsonText, SignalGateway& gateway,
-                                TimeoutMonitor& timeoutMonitor, CommStateManager& stateManager,
-                                std::string& error)
+bool GatewayConfigParser::parse(
+    std::string const& jsonText,
+    SignalGateway& gateway,
+    TimeoutMonitor& timeoutMonitor,
+    CommStateManager& stateManager,
+    std::string& error)
 {
     JsonParser parser(jsonText);
     JsonValue root{};

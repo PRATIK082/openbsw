@@ -42,11 +42,13 @@ static size_t const MESSAGE_HEADER_SIZE = 8U;
  * TX: txWriter() accepts framed PDUs as io::IWriter; drainTxFrame() pops
  * one message into a TxSink (usually bound to the channel transmit path).
  */
-template <size_t RX_CAPACITY, size_t RX_ELEMENT_SIZE, size_t TX_CAPACITY, size_t TX_ELEMENT_SIZE>
+template<size_t RX_CAPACITY, size_t RX_ELEMENT_SIZE, size_t TX_CAPACITY, size_t TX_ELEMENT_SIZE>
 class IoBridge
 {
 public:
-    IoBridge() : m_rxReader(m_rxQueue), m_rxWriter(m_rxQueue), m_txReader(m_txQueue), m_txWriter(m_txQueue) {}
+    IoBridge()
+    : m_rxReader(m_rxQueue), m_rxWriter(m_rxQueue), m_txReader(m_txQueue), m_txWriter(m_txQueue)
+    {}
 
     IoBridge(IoBridge const&)            = delete;
     IoBridge& operator=(IoBridge const&) = delete;
@@ -61,7 +63,7 @@ public:
         {
             return false;
         }
-        size_t const total = MESSAGE_HEADER_SIZE + length;
+        size_t const total        = MESSAGE_HEADER_SIZE + length;
         ::etl::span<uint8_t> slot = m_rxWriter.allocate(total);
         if (slot.size() != total)
         {
@@ -94,11 +96,10 @@ public:
         {
             uint32_t const messageId = readBigEndian32(message.data());
             uint32_t const length    = readBigEndian32(message.data() + 4U);
-            if ((length <= 0xFFFFU)
-                && ((MESSAGE_HEADER_SIZE + length) <= message.size()) && sink)
+            if ((length <= 0xFFFFU) && ((MESSAGE_HEADER_SIZE + length) <= message.size()) && sink)
             {
-                accepted = sink(messageId, static_cast<uint16_t>(length),
-                                message.data() + MESSAGE_HEADER_SIZE);
+                accepted = sink(
+                    messageId, static_cast<uint16_t>(length), message.data() + MESSAGE_HEADER_SIZE);
             }
         }
         m_txReader.release();
@@ -110,8 +111,11 @@ public:
     }
 
     ::io::IReader& rxReader() { return m_rxReader; }
+
     ::io::IWriter& txWriter() { return m_txWriter; }
+
     uint32_t getRxDropCount() const { return m_rxDropCount; }
+
     uint32_t getTxDropCount() const { return m_txDropCount; }
 
     static void writeBigEndian32(uint8_t* out, uint32_t value)
@@ -131,10 +135,10 @@ public:
 private:
     ::io::MemoryQueue<RX_CAPACITY, RX_ELEMENT_SIZE> m_rxQueue;
     ::io::MemoryQueue<TX_CAPACITY, TX_ELEMENT_SIZE> m_txQueue;
-    ::io::MemoryQueueReader< ::io::MemoryQueue<RX_CAPACITY, RX_ELEMENT_SIZE>> m_rxReader;
-    ::io::MemoryQueueWriter< ::io::MemoryQueue<RX_CAPACITY, RX_ELEMENT_SIZE>> m_rxWriter;
-    ::io::MemoryQueueReader< ::io::MemoryQueue<TX_CAPACITY, TX_ELEMENT_SIZE>> m_txReader;
-    ::io::MemoryQueueWriter< ::io::MemoryQueue<TX_CAPACITY, TX_ELEMENT_SIZE>> m_txWriter;
+    ::io::MemoryQueueReader<::io::MemoryQueue<RX_CAPACITY, RX_ELEMENT_SIZE>> m_rxReader;
+    ::io::MemoryQueueWriter<::io::MemoryQueue<RX_CAPACITY, RX_ELEMENT_SIZE>> m_rxWriter;
+    ::io::MemoryQueueReader<::io::MemoryQueue<TX_CAPACITY, TX_ELEMENT_SIZE>> m_txReader;
+    ::io::MemoryQueueWriter<::io::MemoryQueue<TX_CAPACITY, TX_ELEMENT_SIZE>> m_txWriter;
     uint32_t m_rxDropCount = 0U;
     uint32_t m_txDropCount = 0U;
 };

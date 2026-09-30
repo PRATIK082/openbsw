@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "canstack/TestUtils.h"
 #include "canstack/CanChannel.h"
+#include "canstack/TestUtils.h"
 
 #include <gmock/gmock.h>
 
@@ -24,9 +24,9 @@ TEST(CanChannelTest, init_rejects_invalid_config)
 {
     ::canstack::CanChannel channel;
     ::canstack::CanChannelConfig config{};
-    config.channelId   = 0U;
+    config.channelId    = 0U;
     config.hwDriver     = nullptr;
-    config.baudrate    = 500000U;
+    config.baudrate     = 500000U;
     config.maxMailboxes = 0U;
 
     EXPECT_FALSE(channel.init(config));
@@ -76,9 +76,9 @@ TEST(CanChannelTest, transmit_cycles_mailboxes)
     ::canstack::CanHwStub hw; // no loopback: only tx logging
     ::canstack::CanChannel channel;
     ::canstack::CanChannelConfig config{};
-    config.channelId   = 0U;
+    config.channelId    = 0U;
     config.hwDriver     = &hw;
-    config.baudrate    = 500000U;
+    config.baudrate     = 500000U;
     config.maxMailboxes = 3U;
     (void)channel.init(config);
 

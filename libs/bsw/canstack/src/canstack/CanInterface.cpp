@@ -63,7 +63,9 @@ bool CanInterface::init(CanStackConfig const& config)
         if (!channel.init(config.channelConfigs[i]))
         {
             logger::Logger::error(
-                logger::CANSTACK, "Channel %u failed to come up", config.channelConfigs[i].channelId);
+                logger::CANSTACK,
+                "Channel %u failed to come up",
+                config.channelConfigs[i].channelId);
 
             // Tear down what was already built so the stack stays consistent.
             for (auto& builtChannel : m_channels)
@@ -75,26 +77,23 @@ bool CanInterface::init(CanStackConfig const& config)
         }
 
         channel.registerUpperLayerCallback(
-            [this](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data) {
-                onChannelFrameReceived(channelId, frameId, dlc, data);
-            });
+            [this](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
+            { onChannelFrameReceived(channelId, frameId, dlc, data); });
     }
 
     m_txScheduler.setDatabase(&m_signalDb);
     m_txScheduler.setTransmitFunction(
-        [this](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data) {
-            return sendFrame(channelId, frameId, dlc, data);
-        });
+        [this](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
+        { return sendFrame(channelId, frameId, dlc, data); });
 
     m_router.setDatabase(&m_signalDb);
     m_router.setTransmitFunction(
-        [this](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data) {
-            return sendFrame(channelId, frameId, dlc, data);
-        });
+        [this](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
+        { return sendFrame(channelId, frameId, dlc, data); });
 
     m_rxQueue.clear();
     m_rxDroppedCount = 0U;
-    m_initialized     = true;
+    m_initialized    = true;
 
     logger::Logger::info(
         logger::CANSTACK,
@@ -200,10 +199,7 @@ CanRouter& CanInterface::getRouter() { return m_router; }
 
 CanTxScheduler& CanInterface::getTxScheduler() { return m_txScheduler; }
 
-CanChannel* CanInterface::getChannel(uint8_t const channelId)
-{
-    return findChannel(channelId);
-}
+CanChannel* CanInterface::getChannel(uint8_t const channelId) { return findChannel(channelId); }
 
 size_t CanInterface::getChannelCount() const { return m_channels.size(); }
 
@@ -244,7 +240,7 @@ void CanInterface::processReceivedFrame(RxQueueItem const& item)
 
     // Resolve the multiplexer switch value of the frame.
     double switchValue = 0.0;
-    bool hasSwitch = false;
+    bool hasSwitch     = false;
     for (auto const& signal : frame->signals)
     {
         if (signal.isMultiplexerSwitch)

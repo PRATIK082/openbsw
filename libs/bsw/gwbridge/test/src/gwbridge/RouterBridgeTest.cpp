@@ -20,7 +20,7 @@ namespace
 {
 using namespace ::testing;
 
-using RawQueue = ::io::MemoryQueue<512U, 32U>;
+using RawQueue   = ::io::MemoryQueue<512U, 32U>;
 using TestBridge = ::gwbridge::IoBridge<512U, 32U, 512U, 32U>;
 
 void pushMessage(RawQueue::Writer& writer, uint32_t id, std::vector<uint8_t> const& payload)
@@ -75,11 +75,11 @@ TEST(RouterBridgeTest, routes_pdu)
     ASSERT_TRUE(bridge.addChannel(makeChannel(0U, 0x100U, 0x101U)));
     ASSERT_TRUE(bridge.addChannel(makeChannel(1U, 0x200U, 0x201U)));
     ::gwbridge::BridgeRoute route{};
-    route.srcChannel = 0U;
-    route.srcMessage = 0x100U;
+    route.srcChannel  = 0U;
+    route.srcMessage  = 0x100U;
     route.srcPduIndex = 0U;
-    route.dstChannel = 1U;
-    route.dstMessage = 0x201U;
+    route.dstChannel  = 1U;
+    route.dstMessage  = 0x201U;
     ASSERT_TRUE(bridge.addRoute(route));
 
     ::io::IReader* readers[2U] = {nullptr, nullptr};
@@ -90,8 +90,8 @@ TEST(RouterBridgeTest, routes_pdu)
     readers[1] = &rawReader1;
     writers[0] = &rawWriter0;
     writers[1] = &rawWriter1;
-    ASSERT_TRUE(bridge.init(::etl::span<::io::IReader*>(readers, 2U),
-                            ::etl::span<::io::IWriter*>(writers, 2U)));
+    ASSERT_TRUE(bridge.init(
+        ::etl::span<::io::IReader*>(readers, 2U), ::etl::span<::io::IWriter*>(writers, 2U)));
 
     pushMessage(rxWriter0, 0x100U, {1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U});
     ASSERT_TRUE(bridge.run());
@@ -129,8 +129,8 @@ TEST(RouterBridgeTest, unknown_message_errors)
 
     ::io::IReader* readers[2U] = {&rawReader0, &rawReader1};
     ::io::IWriter* writers[2U] = {&rawWriter0, &rawWriter1};
-    ASSERT_TRUE(bridge.init(::etl::span<::io::IReader*>(readers, 2U),
-                            ::etl::span<::io::IWriter*>(writers, 2U)));
+    ASSERT_TRUE(bridge.init(
+        ::etl::span<::io::IReader*>(readers, 2U), ::etl::span<::io::IWriter*>(writers, 2U)));
 
     pushMessage(rxWriter0, 0x999U, {0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U});
     EXPECT_FALSE(bridge.run());
@@ -163,8 +163,8 @@ TEST(RouterBridgeTest, rejects_bad_config)
     ::io::MemoryQueueWriter<RawQueue> rawWriter0(txQueue0);
     ::io::IReader* readers[2U] = {&rawReader0, nullptr};
     ::io::IWriter* writers[2U] = {&rawWriter0, nullptr};
-    EXPECT_FALSE(bridge.init(::etl::span<::io::IReader*>(readers, 2U),
-                             ::etl::span<::io::IWriter*>(writers, 2U)));
+    EXPECT_FALSE(bridge.init(
+        ::etl::span<::io::IReader*>(readers, 2U), ::etl::span<::io::IWriter*>(writers, 2U)));
     EXPECT_FALSE(bridge.isInitialized());
 }
 

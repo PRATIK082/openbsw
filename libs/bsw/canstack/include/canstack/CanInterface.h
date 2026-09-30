@@ -89,7 +89,8 @@ public:
     bool sendFrame(uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data);
 
     /// Registers a callback for received values of a signal.
-    void registerSignalCallback(std::string const& signalName, std::function<void(double)> callback);
+    void
+    registerSignalCallback(std::string const& signalName, std::function<void(double)> callback);
 
     /// Drives the transmit scheduler; call periodically (1 ms period).
     void mainFunctionTx();
@@ -117,7 +118,8 @@ private:
         uint8_t data[8U];
     };
 
-    void onChannelFrameReceived(uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data);
+    void
+    onChannelFrameReceived(uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data);
     void processReceivedFrame(RxQueueItem const& item);
     void notifySignal(SignalConfig const& signal, double value);
     CanChannel* findChannel(uint8_t channelId);
@@ -130,7 +132,7 @@ private:
     std::map<std::string, double> m_rxValues;
     std::deque<RxQueueItem> m_rxQueue;
     uint32_t m_rxDroppedCount = 0U;
-    bool m_initialized = false;
+    bool m_initialized        = false;
 };
 
 } // namespace canstack

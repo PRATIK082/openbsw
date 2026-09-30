@@ -89,7 +89,7 @@ struct BridgeRoute
  * routes are resolved at init(). Tables alias member storage, so a
  * RouterBridge must outlive its router use (same object — always true).
  */
-template <uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE = 512U>
+template<uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE = 512U>
 class RouterBridge
 {
 public:
@@ -112,16 +112,20 @@ public:
     bool run();
 
     size_t getChannelCount() const { return m_channels.size(); }
+
     size_t getRouteCount() const { return m_routes.size(); }
+
     uint32_t getErrorCount() const { return m_errorCount; }
+
     uint32_t getRoutedCount() const { return m_routedCount; }
+
     bool isInitialized() const { return m_initialized; }
 
 private:
     struct ChannelStorage
     {
-        uint8_t channelIndex       = 0U;
-        uint32_t firstPduId        = 0U;
+        uint8_t channelIndex = 0U;
+        uint32_t firstPduId  = 0U;
         std::vector<BridgeRxMessage> rxMessages;
         std::vector<BridgeTxMessage> txMessages;
         std::vector<::etl::be_uint32_t> rxMessageIds;
@@ -139,8 +143,8 @@ private:
     };
 
     bool resolveRoutes();
-    void onRoutingError(::routing::ErrorHandler::StatusCode status, uint8_t channelId,
-                        uint32_t messageId);
+    void onRoutingError(
+        ::routing::ErrorHandler::StatusCode status, uint8_t channelId, uint32_t messageId);
 
     std::vector<ChannelStorage> m_channels;
     std::vector<BridgeRoute> m_routes;
@@ -151,17 +155,17 @@ private:
     ::routing::Router<MAX_CHANNELS> m_router;
     ::io::IReader* m_readers[MAX_CHANNELS] = {};
     ::io::IWriter* m_writers[MAX_CHANNELS] = {};
-    uint32_t m_nextPduId     = 0U;
-    uint32_t m_errorCount    = 0U;
-    uint32_t m_routedCount   = 0U;
-    bool m_initialized       = false;
+    uint32_t m_nextPduId                   = 0U;
+    uint32_t m_errorCount                  = 0U;
+    uint32_t m_routedCount                 = 0U;
+    bool m_initialized                     = false;
 };
 
 // ---------------------------------------------------------------------------
 // Template implementation (header-only, like routing::Router itself).
 // ---------------------------------------------------------------------------
 
-template <uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
+template<uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
 bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::addChannel(BridgeChannelConfig const& config)
 {
     if (m_initialized || (config.channelIndex >= MAX_CHANNELS))
@@ -188,7 +192,7 @@ bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::addChannel(BridgeChannelConfig
     return true;
 }
 
-template <uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
+template<uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
 bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::addRoute(BridgeRoute const& route)
 {
     if (m_initialized)
@@ -199,12 +203,12 @@ bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::addRoute(BridgeRoute const& ro
     return true;
 }
 
-template <uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
+template<uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
 void RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::clear()
 {
     m_channels.clear();
     m_routes.clear();
-    m_routingTable         = ::routing::PduRoutingTable{};
+    m_routingTable = ::routing::PduRoutingTable{};
     m_destinations.clear();
     m_destinationOffsets.clear();
     m_outputMessageIds.clear();
@@ -219,9 +223,9 @@ void RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::clear()
     }
 }
 
-template <uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
-bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::init(::etl::span<::io::IReader*> readers,
-                                                       ::etl::span<::io::IWriter*> writers)
+template<uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
+bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::init(
+    ::etl::span<::io::IReader*> readers, ::etl::span<::io::IWriter*> writers)
 {
     if (m_initialized || m_channels.empty() || m_routes.empty())
     {
@@ -281,26 +285,30 @@ bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::init(::etl::span<::io::IReader
         storage.txTable.messageLengths = storage.txMessageLengths;
         storage.txTable.pduOffsets     = storage.txPduOffsets;
 
-        typename ::routing::ErrorHandler::Function errorFn
-            = ::routing::ErrorHandler::Function::create<RouterBridge,
-                                                        &RouterBridge::onRoutingError>(*this);
+        typename ::routing::ErrorHandler::Function errorFn = ::routing::ErrorHandler::Function::
+            create<RouterBridge, &RouterBridge::onRoutingError>(*this);
         storage.rxAdapter = std::unique_ptr<::routing::LegacyRxAdapter<RX_MAX_PDU_SIZE>>(
             new ::routing::LegacyRxAdapter<RX_MAX_PDU_SIZE>(
-                *readers[storage.channelIndex], storage.rxTable,
+                *readers[storage.channelIndex],
+                storage.rxTable,
                 ::routing::ErrorHandler(errorFn, storage.channelIndex)));
-        storage.txAdapter = std::unique_ptr<::routing::LegacyTxAdapter>(
-            new ::routing::LegacyTxAdapter(*writers[storage.channelIndex], storage.txTable,
-                                           ::routing::ErrorHandler(errorFn, storage.channelIndex)));
+        storage.txAdapter
+            = std::unique_ptr<::routing::LegacyTxAdapter>(new ::routing::LegacyTxAdapter(
+                *writers[storage.channelIndex],
+                storage.txTable,
+                ::routing::ErrorHandler(errorFn, storage.channelIndex)));
         m_readers[storage.channelIndex] = storage.rxAdapter.get();
         m_writers[storage.channelIndex] = storage.txAdapter.get();
     }
-    m_router.init(m_routingTable, ::etl::span<::io::IReader*>(m_readers, MAX_CHANNELS),
-                  ::etl::span<::io::IWriter*>(m_writers, MAX_CHANNELS));
+    m_router.init(
+        m_routingTable,
+        ::etl::span<::io::IReader*>(m_readers, MAX_CHANNELS),
+        ::etl::span<::io::IWriter*>(m_writers, MAX_CHANNELS));
     m_initialized = true;
     return true;
 }
 
-template <uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
+template<uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
 bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::resolveRoutes()
 {
     // Per-global-PDU route lists.
@@ -324,8 +332,8 @@ bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::resolveRoutes()
         {
             return false;
         }
-        uint32_t globalId  = src->firstPduId;
-        bool srcFound      = false;
+        uint32_t globalId = src->firstPduId;
+        bool srcFound     = false;
         for (auto const& message : src->rxMessages)
         {
             if (message.messageId == route.srcMessage)
@@ -350,8 +358,7 @@ bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::resolveRoutes()
             if (message.messageId == route.dstMessage)
             {
                 dstFound = true;
-                perPdu[globalId].push_back(
-                    std::make_pair(route.dstChannel, message.messageId));
+                perPdu[globalId].push_back(std::make_pair(route.dstChannel, message.messageId));
                 break;
             }
         }
@@ -379,7 +386,7 @@ bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::resolveRoutes()
     return true;
 }
 
-template <uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
+template<uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
 bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::run()
 {
     if (!m_initialized)
@@ -399,9 +406,10 @@ bool RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::run()
     return routed;
 }
 
-template <uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
+template<uint8_t MAX_CHANNELS, size_t RX_MAX_PDU_SIZE>
 void RouterBridge<MAX_CHANNELS, RX_MAX_PDU_SIZE>::onRoutingError(
-    ::routing::ErrorHandler::StatusCode /* status */, uint8_t /* channelId */,
+    ::routing::ErrorHandler::StatusCode /* status */,
+    uint8_t /* channelId */,
     uint32_t /* messageId */)
 {
     m_errorCount++;

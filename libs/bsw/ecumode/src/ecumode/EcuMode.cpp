@@ -18,8 +18,7 @@
 namespace ecumode
 {
 
-bool
-parseEcuMode(std::string const& text, EcuMode& mode)
+bool parseEcuMode(std::string const& text, EcuMode& mode)
 {
     if (text == "UNINIT")
     {
@@ -56,8 +55,7 @@ parseEcuMode(std::string const& text, EcuMode& mode)
     return true;
 }
 
-bool
-parseFrameFilterPolicy(std::string const& text, FrameFilterPolicy& policy)
+bool parseFrameFilterPolicy(std::string const& text, FrameFilterPolicy& policy)
 {
     if (text == "ALLOW")
     {

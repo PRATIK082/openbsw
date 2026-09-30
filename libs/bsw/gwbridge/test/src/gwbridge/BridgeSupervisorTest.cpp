@@ -24,6 +24,7 @@ class TestSupervisor : public ::gwbridge::BridgeSupervisor
 {
 public:
     void publicInit() { init(); }
+
     void publicShutdown() { shutdown(); }
 };
 
@@ -76,12 +77,12 @@ TEST(BridgeSupervisorTest, end_to_end)
     ch0.config = makeCanChannel(0U, 0x100U, 0x101U);
     ch0.reader = &bus0.bridge.rxReader();
     ch0.writer = &bus0.bridge.txWriter();
-    ch0.pumpTx  = [&bus0]() { return bus0.bridge.pumpTx(bus0.channel); };
+    ch0.pumpTx = [&bus0]() { return bus0.bridge.pumpTx(bus0.channel); };
     ::gwbridge::SupervisorChannel ch1{};
     ch1.config = makeCanChannel(1U, 0x200U, 0x201U);
     ch1.reader = &bus1.bridge.rxReader();
     ch1.writer = &bus1.bridge.txWriter();
-    ch1.pumpTx  = [&bus1]() { return bus1.bridge.pumpTx(bus1.channel); };
+    ch1.pumpTx = [&bus1]() { return bus1.bridge.pumpTx(bus1.channel); };
 
     ::gwbridge::BridgeRoute route{};
     route.srcChannel = 0U;

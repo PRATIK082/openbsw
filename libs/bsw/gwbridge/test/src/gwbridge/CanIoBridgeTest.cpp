@@ -27,7 +27,9 @@ class FakeLinHw : public ::commgateway::LinHwInterface
 {
 public:
     bool init(uint8_t, uint32_t) override { return true; }
+
     void shutdown() override {}
+
     bool transmitFrame(uint8_t pid, uint8_t* data, uint8_t dlc) override
     {
         txPids.push_back(pid);
@@ -38,10 +40,15 @@ public:
         }
         return true;
     }
+
     void registerRxCallback(uint8_t, RxCallback cb) override { rxCb = cb; }
+
     void registerTxDoneCallback(TxDoneCallback) override {}
+
     void mainFunction() override {}
+
     void enterSleepMode() override {}
+
     void wakeup() override {}
 
     RxCallback rxCb;

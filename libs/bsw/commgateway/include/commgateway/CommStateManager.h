@@ -35,10 +35,10 @@ enum class CommState : uint8_t
 /// Per-channel state with error budget and auto-recovery option.
 struct ChannelState
 {
-    uint8_t channelType = 0U;
-    uint8_t channelId   = 0U;
-    CommState state     = CommState::UNINIT;
-    uint32_t errorCounter       = 0U;
+    uint8_t channelType            = 0U;
+    uint8_t channelId              = 0U;
+    CommState state                = CommState::UNINIT;
+    uint32_t errorCounter          = 0U;
     uint32_t lastStateChangeTimeMs = 0U;
     std::function<void(CommState)> stateChangeCallback;
     bool autoRecovery       = false;
@@ -68,15 +68,15 @@ public:
     void clear();
 
     void registerChannel(uint8_t channelType, uint8_t channelId);
-    void updateChannelState(uint8_t channelType, uint8_t channelId, CommState newState,
-                            uint32_t nowMs = 0U);
+    void updateChannelState(
+        uint8_t channelType, uint8_t channelId, CommState newState, uint32_t nowMs = 0U);
     CommState getChannelState(uint8_t channelType, uint8_t channelId) const;
     void setGlobalState(CommState state, uint32_t nowMs = 0U);
     void reportError(uint8_t channelType, uint8_t channelId, uint32_t nowMs = 0U);
-    void setStateChangeCallback(uint8_t channelType, uint8_t channelId,
-                                std::function<void(CommState)> cb);
-    void setRecoveryConfig(uint8_t channelType, uint8_t channelId, bool autoRecovery,
-                           uint32_t recoveryTimeMs);
+    void setStateChangeCallback(
+        uint8_t channelType, uint8_t channelId, std::function<void(CommState)> cb);
+    void setRecoveryConfig(
+        uint8_t channelType, uint8_t channelId, bool autoRecovery, uint32_t recoveryTimeMs);
 
     /// Auto-recovery handling; call every millisecond.
     void mainFunction(uint32_t nowMs);

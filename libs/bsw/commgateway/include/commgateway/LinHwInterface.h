@@ -40,15 +40,15 @@ public:
     LinHwInterface(LinHwInterface const&)            = delete;
     LinHwInterface& operator=(LinHwInterface const&) = delete;
 
-    virtual bool init(uint8_t channelId, uint32_t baudrate) = 0;
-    virtual void shutdown()                                 = 0;
+    virtual bool init(uint8_t channelId, uint32_t baudrate)             = 0;
+    virtual void shutdown()                                             = 0;
     virtual bool transmitFrame(uint8_t pid, uint8_t* data, uint8_t dlc) = 0;
-    virtual void registerRxCallback(uint8_t pid, RxCallback cb)        = 0;
-    virtual void registerTxDoneCallback(TxDoneCallback cb)             = 0;
+    virtual void registerRxCallback(uint8_t pid, RxCallback cb)         = 0;
+    virtual void registerTxDoneCallback(TxDoneCallback cb)              = 0;
     /// Master mode schedule tick; slave drivers may leave it empty.
-    virtual void mainFunction() = 0;
-    virtual void enterSleepMode() = 0;
-    virtual void wakeup()         = 0;
+    virtual void mainFunction()                                         = 0;
+    virtual void enterSleepMode()                                       = 0;
+    virtual void wakeup()                                               = 0;
 
 protected:
     LinHwInterface() = default;

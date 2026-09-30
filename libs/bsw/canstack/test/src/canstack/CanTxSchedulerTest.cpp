@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "canstack/TestUtils.h"
 #include "canstack/CanTxScheduler.h"
+#include "canstack/TestUtils.h"
 
 #include <gmock/gmock.h>
 
@@ -35,13 +35,15 @@ class SchedulerEnv
 public:
     SchedulerEnv()
     {
-        db.loadFrameTable(::canstack::testutils::DEMO_FRAMES, ::canstack::testutils::DEMO_FRAME_COUNT);
+        db.loadFrameTable(
+            ::canstack::testutils::DEMO_FRAMES, ::canstack::testutils::DEMO_FRAME_COUNT);
         db.loadSignalTable(
             ::canstack::testutils::DEMO_SIGNALS, ::canstack::testutils::DEMO_SIGNAL_COUNT);
 
         scheduler.setDatabase(&db);
         scheduler.setTransmitFunction(
-            [this](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data) {
+            [this](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
+            {
                 TxRecord record;
                 record.channelId = channelId;
                 record.frameId   = frameId;
@@ -60,8 +62,7 @@ public:
     std::vector<TxRecord> tx;
 };
 
-::canstack::TxSignalEntry makeEntry(
-    std::string const& name, uint32_t frameId, uint32_t cycleTimeMs)
+::canstack::TxSignalEntry makeEntry(std::string const& name, uint32_t frameId, uint32_t cycleTimeMs)
 {
     ::canstack::TxSignalEntry entry;
     entry.signalName  = name;
@@ -117,11 +118,11 @@ TEST(CanTxSchedulerTest, frame_is_packed_completely)
     ASSERT_GE(env.tx.size(), 1U);
 
     // First transmission (t=10): EngineSpeed=1000 raw 4000; VehicleSpeed=123 raw 246.
-    TxRecord const& first = env.tx.front();
+    TxRecord const& first    = env.tx.front();
     FrameConfig const* frame = env.db.getFrameByChannelAndId(0U, 0x100U);
     ASSERT_NE(nullptr, frame);
 
-    double const engineValue = env.db.unpackSignal(first.data.data(), frame->signals[0]);
+    double const engineValue  = env.db.unpackSignal(first.data.data(), frame->signals[0]);
     double const vehicleValue = env.db.unpackSignal(first.data.data(), frame->signals[1]);
     EXPECT_DOUBLE_EQ(1000.0, engineValue);
     EXPECT_DOUBLE_EQ(123.0, vehicleValue);

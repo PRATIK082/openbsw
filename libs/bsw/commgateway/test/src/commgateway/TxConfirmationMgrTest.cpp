@@ -25,13 +25,16 @@ TEST(TxConfirmationMgrTest, confirm_success)
     mgr.init();
     mgr.clear();
 
-    bool called   = false;
-    bool reported = false;
-    uint64_t const txId
-        = mgr.registerTx("Speed", 0U, [&called, &reported](bool success) {
-              called   = true;
-              reported = success;
-          });
+    bool called         = false;
+    bool reported       = false;
+    uint64_t const txId = mgr.registerTx(
+        "Speed",
+        0U,
+        [&called, &reported](bool success)
+        {
+            called   = true;
+            reported = success;
+        });
     EXPECT_EQ(1U, mgr.getPendingCount());
 
     mgr.notifyConfirmation(txId, true);
@@ -39,7 +42,7 @@ TEST(TxConfirmationMgrTest, confirm_success)
     EXPECT_TRUE(reported);
     EXPECT_EQ(0U, mgr.getPendingCount());
 
-    mgr.notifyConfirmation(txId, true); // duplicate: no-op, no crash
+    mgr.notifyConfirmation(txId, true);    // duplicate: no-op, no crash
     mgr.notifyConfirmation(0xDEADU, true); // unknown id: no-op
 }
 
@@ -55,10 +58,15 @@ TEST(TxConfirmationMgrTest, timeout_fails)
     bool called   = false;
     bool reported = true;
     mgr.mainFunction(0U);
-    (void)mgr.registerTx("Speed", 0U, [&called, &reported](bool success) {
-        called   = true;
-        reported = success;
-    }, 100U);
+    (void)mgr.registerTx(
+        "Speed",
+        0U,
+        [&called, &reported](bool success)
+        {
+            called   = true;
+            reported = success;
+        },
+        100U);
 
     mgr.mainFunction(99U);
     EXPECT_FALSE(called);

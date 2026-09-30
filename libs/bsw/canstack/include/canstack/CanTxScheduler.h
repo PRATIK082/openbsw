@@ -29,15 +29,15 @@ namespace canstack
 struct TxSignalEntry
 {
     std::string signalName;
-    uint32_t frameId = 0U;
-    uint8_t channelId = 0U;
+    uint32_t frameId     = 0U;
+    uint8_t channelId    = 0U;
     uint32_t cycleTimeMs = 0U;
     /// Managed by the scheduler: last transmission time in ms.
-    uint32_t lastTxTime = 0U;
+    uint32_t lastTxTime  = 0U;
     /// Callback to get the current value; when unset, setSignalValue() values are used.
     std::function<double()> valueProvider;
     /// Value set via setSignalValue(); used when no valueProvider is registered.
-    double pendingValue = 0.0;
+    double pendingValue  = 0.0;
     bool hasPendingValue = false;
 };
 

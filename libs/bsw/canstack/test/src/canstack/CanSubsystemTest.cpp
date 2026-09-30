@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "canstack/TestUtils.h"
 #include "canstack/CanSubsystem.h"
+#include "canstack/TestUtils.h"
 
 #include <async/AsyncMock.h>
 #include <gmock/gmock.h>
@@ -43,11 +43,11 @@ public:
 
     ::canstack::CanStackConfig config{};
     config.channelConfigs = channels;
-    config.channelCount    = 1U;
-    config.frameTable      = ::canstack::testutils::DEMO_FRAMES;
-    config.frameCount      = ::canstack::testutils::DEMO_FRAME_COUNT;
-    config.signalTable     = ::canstack::testutils::DEMO_SIGNALS;
-    config.signalCount     = ::canstack::testutils::DEMO_SIGNAL_COUNT;
+    config.channelCount   = 1U;
+    config.frameTable     = ::canstack::testutils::DEMO_FRAMES;
+    config.frameCount     = ::canstack::testutils::DEMO_FRAME_COUNT;
+    config.signalTable    = ::canstack::testutils::DEMO_SIGNALS;
+    config.signalCount    = ::canstack::testutils::DEMO_SIGNAL_COUNT;
     return config;
 }
 
@@ -123,11 +123,11 @@ TEST(CanSubsystemTest, run_schedules_periodic_main_functions)
         scheduleAtFixedRate(
             3U, _, _, ::canstack::CANSTACK_RUN_PERIOD_MS, ::async::TimeUnit::MILLISECONDS))
         .WillOnce(Invoke([&scheduled](
-                            ::async::ContextType,
-                            ::async::RunnableType& runnable,
-                            ::async::TimeoutType&,
-                            uint32_t,
-                            ::async::TimeUnitType) { scheduled = &runnable; }));
+                             ::async::ContextType,
+                             ::async::RunnableType& runnable,
+                             ::async::TimeoutType&,
+                             uint32_t,
+                             ::async::TimeUnitType) { scheduled = &runnable; }));
 
     subsystem.run();
 
@@ -151,9 +151,7 @@ TEST(CanSubsystemTest, run_schedules_periodic_main_functions)
  */
 TEST(CanSubsystemTest, singleton_instance)
 {
-    EXPECT_EQ(
-        &::canstack::CanSubsystem::getInstance(),
-        &::canstack::CanSubsystem::getInstance());
+    EXPECT_EQ(&::canstack::CanSubsystem::getInstance(), &::canstack::CanSubsystem::getInstance());
 }
 
 } // namespace

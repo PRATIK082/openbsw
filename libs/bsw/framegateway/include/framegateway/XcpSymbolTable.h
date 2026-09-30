@@ -39,8 +39,8 @@ enum class XcpDataType : uint8_t
 struct XcpSymbol
 {
     std::string name;
-    uint32_t address = 0U;
-    uint16_t length  = 0U;
+    uint32_t address     = 0U;
+    uint16_t length      = 0U;
     XcpDataType dataType = XcpDataType::UINT8;
     bool isCalibration   = false;
     double min           = 0.0;

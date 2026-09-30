@@ -42,8 +42,9 @@ public:
 
     EthLoopbackChannel() = default;
 
-    bool send(uint32_t destIp, uint16_t destPort, uint16_t srcPort, uint8_t const* data,
-              uint16_t length) override;
+    bool
+    send(uint32_t destIp, uint16_t destPort, uint16_t srcPort, uint8_t const* data, uint16_t length)
+        override;
     void registerRxCallback(RxCallback cb) override;
 
     void injectRx(uint32_t srcIp, uint16_t srcPort, uint8_t const* data, uint16_t length);

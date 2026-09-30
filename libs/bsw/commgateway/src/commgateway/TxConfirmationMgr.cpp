@@ -37,25 +37,31 @@ void TxConfirmationMgr::clear()
     m_timeoutCount = 0U;
 }
 
-uint64_t TxConfirmationMgr::registerTx(std::string const& signalName, uint8_t channelId,
-                                       std::function<void(bool)> callback, uint32_t timeoutMs)
+uint64_t TxConfirmationMgr::registerTx(
+    std::string const& signalName,
+    uint8_t channelId,
+    std::function<void(bool)> callback,
+    uint32_t timeoutMs)
 {
     return registerTx(signalName, channelId, 0U, callback, timeoutMs);
 }
 
-uint64_t TxConfirmationMgr::registerTx(std::string const& signalName, uint8_t channelId,
-                                       uint32_t frameId, std::function<void(bool)> callback,
-                                       uint32_t timeoutMs)
+uint64_t TxConfirmationMgr::registerTx(
+    std::string const& signalName,
+    uint8_t channelId,
+    uint32_t frameId,
+    std::function<void(bool)> callback,
+    uint32_t timeoutMs)
 {
     TxConfirmationEntry entry{};
-    entry.txId                  = m_nextTxId++;
-    entry.signalName            = signalName;
-    entry.channelId             = channelId;
-    entry.frameId               = frameId;
-    entry.txTimeMs              = m_currentTimeMs;
-    entry.timeoutMs             = timeoutMs;
-    entry.confirmationCallback  = callback;
-    m_pendingTxs[entry.txId] = entry;
+    entry.txId                 = m_nextTxId++;
+    entry.signalName           = signalName;
+    entry.channelId            = channelId;
+    entry.frameId              = frameId;
+    entry.txTimeMs             = m_currentTimeMs;
+    entry.timeoutMs            = timeoutMs;
+    entry.confirmationCallback = callback;
+    m_pendingTxs[entry.txId]   = entry;
     return entry.txId;
 }
 
@@ -84,8 +90,7 @@ void TxConfirmationMgr::mainFunction(uint32_t nowMs)
     m_currentTimeMs = nowMs;
     for (auto it = m_pendingTxs.begin(); it != m_pendingTxs.end();)
     {
-        if (((nowMs - it->second.txTimeMs) >= it->second.timeoutMs)
-            && (it->second.timeoutMs > 0U))
+        if (((nowMs - it->second.txTimeMs) >= it->second.timeoutMs) && (it->second.timeoutMs > 0U))
         {
             TxConfirmationEntry entry = it->second;
             it                        = m_pendingTxs.erase(it);

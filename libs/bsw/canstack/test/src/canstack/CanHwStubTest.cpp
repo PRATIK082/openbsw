@@ -65,9 +65,9 @@ TEST(CanHwStubTest, no_loopback_by_default)
     (void)hw.init(1U, 250000U);
 
     std::vector<uint32_t> received;
-    hw.registerRxCallback(0U, [&received](uint32_t frameId, uint8_t, uint8_t const*) {
-        received.push_back(frameId);
-    });
+    hw.registerRxCallback(
+        0U,
+        [&received](uint32_t frameId, uint8_t, uint8_t const*) { received.push_back(frameId); });
 
     uint8_t const data[1] = {0U};
     (void)hw.transmit(0U, 0x200U, 1U, data);
@@ -86,11 +86,14 @@ TEST(CanHwStubTest, loopback_dispatches_from_main_function)
     (void)hw.init(0U, 500000U);
 
     std::vector<uint32_t> received;
-    hw.registerRxCallback(0U, [&received](uint32_t frameId, uint8_t dlc, uint8_t const* data) {
-        EXPECT_EQ(2U, dlc);
-        EXPECT_EQ(0xABU, data[0]);
-        received.push_back(frameId);
-    });
+    hw.registerRxCallback(
+        0U,
+        [&received](uint32_t frameId, uint8_t dlc, uint8_t const* data)
+        {
+            EXPECT_EQ(2U, dlc);
+            EXPECT_EQ(0xABU, data[0]);
+            received.push_back(frameId);
+        });
 
     uint8_t const data[2] = {0xABU, 0xCDU};
     (void)hw.transmit(0U, 0x300U, 2U, data);
@@ -113,12 +116,10 @@ TEST(CanHwStubTest, injected_frames_deliver_to_lowest_mailbox)
 
     uint32_t receivedM0 = 0U;
     uint32_t receivedM1 = 0U;
-    hw.registerRxCallback(0U, [&receivedM0](uint32_t frameId, uint8_t, uint8_t const*) {
-        receivedM0 = frameId;
-    });
-    hw.registerRxCallback(1U, [&receivedM1](uint32_t frameId, uint8_t, uint8_t const*) {
-        receivedM1 = frameId;
-    });
+    hw.registerRxCallback(
+        0U, [&receivedM0](uint32_t frameId, uint8_t, uint8_t const*) { receivedM0 = frameId; });
+    hw.registerRxCallback(
+        1U, [&receivedM1](uint32_t frameId, uint8_t, uint8_t const*) { receivedM1 = frameId; });
 
     uint8_t const data[1] = {0x55U};
     hw.injectRxFrame(0x111U, 1U, data);
@@ -137,9 +138,8 @@ TEST(CanHwStubTest, mailbox_zero_registration_wins)
     (void)hw.init(0U, 500000U);
 
     uint32_t receivedM1 = 0U;
-    hw.registerRxCallback(1U, [&receivedM1](uint32_t frameId, uint8_t, uint8_t const*) {
-        receivedM1 = frameId;
-    });
+    hw.registerRxCallback(
+        1U, [&receivedM1](uint32_t frameId, uint8_t, uint8_t const*) { receivedM1 = frameId; });
 
     uint8_t const data[1] = {0x55U};
     hw.injectRxFrame(0x222U, 1U, data);

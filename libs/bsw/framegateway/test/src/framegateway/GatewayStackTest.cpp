@@ -23,6 +23,7 @@ class TestGatewayStack : public ::framegateway::GatewayStack
 {
 public:
     void publicInit() { init(); }
+
     void publicShutdown() { shutdown(); }
 };
 
@@ -54,7 +55,8 @@ TEST(GatewayStackTest, frame_to_pdu_path)
 
     std::vector<std::tuple<uint8_t, uint8_t, uint32_t, uint16_t>> sent;
     stack.setTxSender(
-        [&sent](uint8_t t, uint8_t c, uint32_t id, uint16_t len, uint8_t const*) {
+        [&sent](uint8_t t, uint8_t c, uint32_t id, uint16_t len, uint8_t const*)
+        {
             sent.emplace_back(t, c, id, len);
             return true;
         });
@@ -108,7 +110,8 @@ TEST(GatewayStackTest, load_config)
              "filter": "source != 0xF1"}
           ]
         })",
-        error)) << error;
+        error))
+        << error;
     EXPECT_NE(nullptr, stack.getFrameGateway().findFrame(0U, 0U, 1280U));
     EXPECT_EQ(1U, stack.getDiagLink().getSessionCount());
     EXPECT_EQ(1U, stack.getPolicyEngine().getPolicyCount());
@@ -133,9 +136,7 @@ TEST(GatewayStackTest, tp_path)
 
     bool delivered = false;
     stack.getTpGateway().setPduCallback(
-        [&delivered](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) {
-            delivered = true;
-        });
+        [&delivered](uint8_t, uint8_t, uint32_t, uint16_t, uint8_t const*) { delivered = true; });
 
     uint8_t sf[8U] = {0x03U, 0x22U, 0xF1U, 0x90U, 0U, 0U, 0U, 0U};
     stack.onTransportFrameReceived(0U, 0U, 0x7E0U, 8U, sf);

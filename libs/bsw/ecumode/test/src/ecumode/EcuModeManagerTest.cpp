@@ -21,9 +21,9 @@ namespace
 {
 using namespace ::testing;
 
-using EcuMode = ::ecumode::EcuMode;
+using EcuMode           = ::ecumode::EcuMode;
 using FrameFilterPolicy = ::ecumode::FrameFilterPolicy;
-using Manager = ::ecumode::CommStateManagerPhase5;
+using Manager           = ::ecumode::CommStateManagerPhase5;
 
 /**
  * \desc: Fixture resetting the singleton before and after each test.
@@ -31,20 +31,11 @@ using Manager = ::ecumode::CommStateManagerPhase5;
 class EcuModeManagerTest : public Test
 {
 protected:
-    void SetUp() override
-    {
-        manager().clear();
-    }
+    void SetUp() override { manager().clear(); }
 
-    void TearDown() override
-    {
-        manager().clear();
-    }
+    void TearDown() override { manager().clear(); }
 
-    static Manager& manager()
-    {
-        return Manager::getInstance();
-    }
+    static Manager& manager() { return Manager::getInstance(); }
 
     // Moves the manager into the given mode (applies the pending request).
     static void enterMode(Manager& mgr, EcuMode mode)
@@ -126,7 +117,7 @@ TEST_F(EcuModeManagerTest, initial_mode_uninit_and_default_allow)
  */
 TEST_F(EcuModeManagerTest, request_same_mode_is_noop)
 {
-    Manager& mgr = manager();
+    Manager& mgr           = manager();
     uint32_t callbackCalls = 0U;
     mgr.setModeChangeCallback([&callbackCalls](EcuMode, EcuMode) { callbackCalls++; });
 
@@ -156,15 +147,17 @@ TEST_F(EcuModeManagerTest, pending_mode_applied_only_after_main_function)
  */
 TEST_F(EcuModeManagerTest, mode_change_callback_fires_once_with_from_to)
 {
-    Manager& mgr = manager();
-    uint32_t calls = 0U;
+    Manager& mgr     = manager();
+    uint32_t calls   = 0U;
     EcuMode seenFrom = EcuMode::SLEEP;
-    EcuMode seenTo = EcuMode::SLEEP;
-    mgr.setModeChangeCallback([&calls, &seenFrom, &seenTo](EcuMode from, EcuMode to) {
-        calls++;
-        seenFrom = from;
-        seenTo = to;
-    });
+    EcuMode seenTo   = EcuMode::SLEEP;
+    mgr.setModeChangeCallback(
+        [&calls, &seenFrom, &seenTo](EcuMode from, EcuMode to)
+        {
+            calls++;
+            seenFrom = from;
+            seenTo   = to;
+        });
 
     mgr.requestEcuMode(EcuMode::NORMAL);
     mgr.mainFunction(1U);
@@ -270,13 +263,16 @@ TEST_F(EcuModeManagerTest, block_counter_increments_on_denials)
  */
 TEST_F(EcuModeManagerTest, action_handlers_run_and_unknown_skipped)
 {
-    Manager& mgr = manager();
+    Manager& mgr     = manager();
     uint32_t handled = 0U;
     EcuMode seenMode = EcuMode::UNINIT;
-    mgr.registerActionHandler("STOP_SIGNAL_GATEWAY", [&handled, &seenMode](EcuMode mode) {
-        handled++;
-        seenMode = mode;
-    });
+    mgr.registerActionHandler(
+        "STOP_SIGNAL_GATEWAY",
+        [&handled, &seenMode](EcuMode mode)
+        {
+            handled++;
+            seenMode = mode;
+        });
 
     std::vector<std::string> actions;
     actions.push_back("STOP_SIGNAL_GATEWAY");
@@ -364,13 +360,13 @@ TEST_F(EcuModeManagerTest, unknown_names_leave_state_unchanged)
 
     std::string error;
     std::string const badMode = "{\"modes\": {\"BOGUS\": {\"default\": \"ALLOW\"}}}";
-    bool ok = mgr.loadConfig(badMode, error);
+    bool ok                   = mgr.loadConfig(badMode, error);
     EXPECT_FALSE(ok);
     EXPECT_FALSE(error.empty());
 
     std::string error2;
     std::string const badPolicy = "{\"modes\": {\"NORMAL\": {\"default\": \"BOGUS\"}}}";
-    bool ok2 = mgr.loadConfig(badPolicy, error2);
+    bool ok2                    = mgr.loadConfig(badPolicy, error2);
     EXPECT_FALSE(ok2);
     EXPECT_FALSE(error2.empty());
 
@@ -418,11 +414,12 @@ TEST_F(EcuModeManagerTest, gateway_forwarding_pattern)
     enterMode(mgr, EcuMode::STANDBY);
 
     uint32_t forwardedRx = 0U;
-    uint32_t droppedRx = 0U;
+    uint32_t droppedRx   = 0U;
     uint32_t forwardedTx = 0U;
-    uint32_t blockedTx = 0U;
+    uint32_t blockedTx   = 0U;
 
-    auto forwardRx = [&mgr, &forwardedRx, &droppedRx](uint32_t frameId) {
+    auto forwardRx = [&mgr, &forwardedRx, &droppedRx](uint32_t frameId)
+    {
         if (!mgr.isFrameAllowed(frameId, 0U, false))
         {
             droppedRx++;
@@ -430,7 +427,8 @@ TEST_F(EcuModeManagerTest, gateway_forwarding_pattern)
         }
         forwardedRx++;
     };
-    auto forwardTx = [&mgr, &forwardedTx, &blockedTx](uint32_t frameId) {
+    auto forwardTx = [&mgr, &forwardedTx, &blockedTx](uint32_t frameId)
+    {
         if (!mgr.isFrameAllowed(frameId, 0U, true))
         {
             blockedTx++;

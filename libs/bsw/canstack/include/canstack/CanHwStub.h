@@ -73,8 +73,8 @@ private:
 
     void dispatch(RxItem const& item);
 
-    bool m_initialized = false;
-    bool m_loopback    = false;
+    bool m_initialized  = false;
+    bool m_loopback     = false;
     uint8_t m_channelId = 0U;
     uint32_t m_baudrate = 0U;
     /// Registered callbacks by mailbox id, kept in ascending mailbox order.

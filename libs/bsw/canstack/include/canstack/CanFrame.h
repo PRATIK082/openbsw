@@ -28,8 +28,8 @@ namespace canstack
 class CanFrame
 {
 public:
-    static uint8_t const MAX_DATA_LENGTH = 8U;
-    static uint32_t const MAX_BASE_ID    = 0x7FFU;
+    static uint8_t const MAX_DATA_LENGTH  = 8U;
+    static uint32_t const MAX_BASE_ID     = 0x7FFU;
     static uint32_t const MAX_EXTENDED_ID = 0x1FFFFFFFU;
 
     CanFrame();

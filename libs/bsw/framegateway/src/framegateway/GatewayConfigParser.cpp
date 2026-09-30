@@ -41,8 +41,8 @@ struct JsonValue
         OBJ
     };
 
-    Type type = Type::NUL;
-    bool boolean = false;
+    Type type     = Type::NUL;
+    bool boolean  = false;
     double number = 0.0;
     std::string str;
     std::vector<JsonValue> array;
@@ -221,11 +221,11 @@ private:
                 char e = m_text[m_pos++];
                 switch (e)
                 {
-                    case '"': out.str += '"'; break;
+                    case '"':  out.str += '"'; break;
                     case '\\': out.str += '\\'; break;
-                    case 'n': out.str += '\n'; break;
-                    case 't': out.str += '\t'; break;
-                    default: out.str += e; break;
+                    case 'n':  out.str += '\n'; break;
+                    case 't':  out.str += '\t'; break;
+                    default:   out.str += e; break;
                 }
                 continue;
             }
@@ -355,10 +355,10 @@ bool parsePolicyAction(std::string const& text, PolicyAction& out)
 }
 
 /// Builds a data[0] source filter from "source == 0xNN" / "source != 0xNN".
-bool parseSourceFilter(std::string const& text,
-                       std::function<bool(uint8_t const*, uint16_t)>& out, std::string& error)
+bool parseSourceFilter(
+    std::string const& text, std::function<bool(uint8_t const*, uint16_t)>& out, std::string& error)
 {
-    bool isEqual = (text.find("==") != std::string::npos);
+    bool isEqual    = (text.find("==") != std::string::npos);
     bool isNotEqual = (text.find("!=") != std::string::npos);
     if (!isEqual && !isNotEqual)
     {
@@ -374,15 +374,13 @@ bool parseSourceFilter(std::string const& text,
     uint8_t const value = static_cast<uint8_t>(std::strtoul(text.c_str() + pos, nullptr, 16));
     if (isEqual)
     {
-        out = [value](uint8_t const* data, uint16_t len) {
-            return (len > 0U) && (data[0] == value);
-        };
+        out = [value](uint8_t const* data, uint16_t len)
+        { return (len > 0U) && (data[0] == value); };
     }
     else
     {
-        out = [value](uint8_t const* data, uint16_t len) {
-            return (len > 0U) && (data[0] != value);
-        };
+        out = [value](uint8_t const* data, uint16_t len)
+        { return (len > 0U) && (data[0] != value); };
     }
     return true;
 }
@@ -415,10 +413,10 @@ bool parseFrameConfig(JsonValue const& entry, FrameConfig& out, std::string& err
         error = "frameLength is not a number";
         return false;
     }
-    out.frameId      = frameId;
-    out.channelType  = static_cast<uint8_t>(channelType);
-    out.channelId    = static_cast<uint8_t>(channelId);
-    out.frameLength  = static_cast<uint16_t>(frameLength);
+    out.frameId     = frameId;
+    out.channelType = static_cast<uint8_t>(channelType);
+    out.channelId   = static_cast<uint8_t>(channelId);
+    out.frameLength = static_cast<uint16_t>(frameLength);
     if ((action != nullptr))
     {
         if ((action->type != JsonValue::Type::STR) || !parseAction(action->str, out.action))
@@ -459,10 +457,10 @@ bool parseFrameConfig(JsonValue const& entry, FrameConfig& out, std::string& err
                 error = "lengthFieldOffset is not a number";
                 return false;
             }
-            layout.pduId            = pduId;
-            layout.startByteOffset  = static_cast<uint16_t>(offset);
-            layout.length           = static_cast<uint16_t>(pduLength);
-            layout.isVariableLength = (varLen != 0U);
+            layout.pduId             = pduId;
+            layout.startByteOffset   = static_cast<uint16_t>(offset);
+            layout.length            = static_cast<uint16_t>(pduLength);
+            layout.isVariableLength  = (varLen != 0U);
             layout.lengthFieldOffset = static_cast<uint8_t>(lenOff);
             out.pdus.push_back(layout);
         }
@@ -473,8 +471,8 @@ bool parseFrameConfig(JsonValue const& entry, FrameConfig& out, std::string& err
 bool parseDiagSession(JsonValue const& entry, DiagSession& out, std::string& error)
 {
     uint32_t type = 0U, chId = 0U, req = 0U, resp = 0U, offset = 0U, timeout = 5000U;
-    JsonValue const* t   = findMember(entry, "channelType");
-    JsonValue const* c   = findMember(entry, "channelId");
+    JsonValue const* t         = findMember(entry, "channelType");
+    JsonValue const* c         = findMember(entry, "channelId");
     JsonValue const* reqEntry  = findMember(entry, "requestFrameId");
     JsonValue const* respEntry = findMember(entry, "responseFrameId");
     if ((reqEntry == nullptr) || !asUint(*reqEntry, req) || (respEntry == nullptr)
@@ -505,12 +503,12 @@ bool parseDiagSession(JsonValue const& entry, DiagSession& out, std::string& err
         error = "sessionTimeoutMs is not a number";
         return false;
     }
-    out.channelType       = static_cast<uint8_t>(type);
-    out.channelId         = static_cast<uint8_t>(chId);
-    out.requestFrameId    = req;
-    out.responseFrameId   = resp;
-    out.pduOffset         = static_cast<uint16_t>(offset);
-    out.sessionTimeoutMs  = timeout;
+    out.channelType      = static_cast<uint8_t>(type);
+    out.channelId        = static_cast<uint8_t>(chId);
+    out.requestFrameId   = req;
+    out.responseFrameId  = resp;
+    out.pduOffset        = static_cast<uint16_t>(offset);
+    out.sessionTimeoutMs = timeout;
     return true;
 }
 
@@ -533,11 +531,11 @@ bool parseXcpSymbol(JsonValue const& entry, XcpSymbol& out, std::string& error)
         error = "xcpSymbols entry has invalid address/length/dataType";
         return false;
     }
-    out.name    = name->str;
-    out.address = address;
-    out.length  = static_cast<uint16_t>(length);
+    out.name             = name->str;
+    out.address          = address;
+    out.length           = static_cast<uint16_t>(length);
     JsonValue const* cal = findMember(entry, "isCalibration");
-    out.isCalibration = (cal != nullptr) && (cal->type == JsonValue::Type::BOOL) && cal->boolean;
+    out.isCalibration    = (cal != nullptr) && (cal->type == JsonValue::Type::BOOL) && cal->boolean;
     JsonValue const* minEntry = findMember(entry, "min");
     JsonValue const* maxEntry = findMember(entry, "max");
     if ((minEntry != nullptr) && (minEntry->type == JsonValue::Type::NUM))
@@ -579,9 +577,9 @@ bool parseGatewayPolicy(JsonValue const& entry, GatewayPolicy& out, std::string&
         error = "channelId is not a number";
         return false;
     }
-    out.frameId     = frameId;
-    out.channelType = static_cast<uint8_t>(type);
-    out.channelId   = static_cast<uint8_t>(chId);
+    out.frameId             = frameId;
+    out.channelType         = static_cast<uint8_t>(type);
+    out.channelId           = static_cast<uint8_t>(chId);
     JsonValue const* filter = findMember(entry, "filter");
     if ((filter != nullptr) && (filter->type == JsonValue::Type::STR))
     {
@@ -602,9 +600,13 @@ bool parseGatewayPolicy(JsonValue const& entry, GatewayPolicy& out, std::string&
 
 } // namespace
 
-bool GatewayConfigParser::parse(std::string const& jsonText, FrameGateway& frameGateway,
-                                DiagLink& diagLink, XcpServer& xcpServer, PolicyEngine& policyEngine,
-                                std::string& error)
+bool GatewayConfigParser::parse(
+    std::string const& jsonText,
+    FrameGateway& frameGateway,
+    DiagLink& diagLink,
+    XcpServer& xcpServer,
+    PolicyEngine& policyEngine,
+    std::string& error)
 {
     JsonParser parser(jsonText);
     JsonValue root{};

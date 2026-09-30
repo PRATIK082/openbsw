@@ -19,9 +19,11 @@
 namespace framegateway
 {
 
-bool PduAssembler::packMultiPdu(uint8_t* frameBuffer, uint16_t frameSize,
-                                std::vector<PduInFrame> const& pduLayout,
-                                PduDataMap const& pduData)
+bool PduAssembler::packMultiPdu(
+    uint8_t* frameBuffer,
+    uint16_t frameSize,
+    std::vector<PduInFrame> const& pduLayout,
+    PduDataMap const& pduData)
 {
     if (frameBuffer == nullptr)
     {
@@ -47,8 +49,8 @@ bool PduAssembler::packMultiPdu(uint8_t* frameBuffer, uint16_t frameSize,
     return true;
 }
 
-PduDataMap PduAssembler::unpackMultiPdu(uint8_t const* frameData, uint16_t frameSize,
-                                        std::vector<PduInFrame> const& pduLayout)
+PduDataMap PduAssembler::unpackMultiPdu(
+    uint8_t const* frameData, uint16_t frameSize, std::vector<PduInFrame> const& pduLayout)
 {
     PduDataMap result;
     if (frameData == nullptr)
@@ -66,8 +68,8 @@ PduDataMap PduAssembler::unpackMultiPdu(uint8_t const* frameData, uint16_t frame
     return result;
 }
 
-uint16_t PduAssembler::extractVariableLengthPdu(uint8_t const* pduData, uint16_t pduAvailable,
-                                                uint8_t lengthFieldOffset, uint16_t maxPduLength)
+uint16_t PduAssembler::extractVariableLengthPdu(
+    uint8_t const* pduData, uint16_t pduAvailable, uint8_t lengthFieldOffset, uint16_t maxPduLength)
 {
     if ((pduData == nullptr) || (lengthFieldOffset >= pduAvailable))
     {
@@ -77,8 +79,8 @@ uint16_t PduAssembler::extractVariableLengthPdu(uint8_t const* pduData, uint16_t
     return (length > maxPduLength) ? maxPduLength : length;
 }
 
-void PduAssembler::applyPadding(uint8_t* frameBuffer, uint16_t usedLength, uint16_t totalLength,
-                                uint8_t paddingValue)
+void PduAssembler::applyPadding(
+    uint8_t* frameBuffer, uint16_t usedLength, uint16_t totalLength, uint8_t paddingValue)
 {
     if ((frameBuffer == nullptr) || (usedLength >= totalLength))
     {

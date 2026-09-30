@@ -25,11 +25,12 @@ void CanHwStub::setLoopback(bool const enabled) { m_loopback = enabled; }
 
 bool CanHwStub::init(uint8_t const channelId, uint32_t const baudrate)
 {
-    m_channelId  = channelId;
-    m_baudrate   = baudrate;
+    m_channelId   = channelId;
+    m_baudrate    = baudrate;
     m_initialized = true;
 
-    logger::Logger::debug(logger::CANSTACK, "CanHwStub %u initialized with %lu baud", channelId, baudrate);
+    logger::Logger::debug(
+        logger::CANSTACK, "CanHwStub %u initialized with %lu baud", channelId, baudrate);
 
     return true;
 }
@@ -55,7 +56,7 @@ bool CanHwStub::transmit(
     {
         RxItem item;
         item.frameId = frameId;
-        item.dlc    = dlc;
+        item.dlc     = dlc;
         (void)memcpy(item.data, frame.getData(), static_cast<size_t>(dlc));
         m_rxQueue.push_back(item);
     }

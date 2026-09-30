@@ -22,7 +22,9 @@ class FakeLinHw : public ::commgateway::LinHwInterface
 {
 public:
     bool init(uint8_t, uint32_t) override { return true; }
+
     void shutdown() override {}
+
     bool transmitFrame(uint8_t pid, uint8_t* data, uint8_t dlc) override
     {
         txPids.push_back(pid);
@@ -33,10 +35,15 @@ public:
         }
         return true;
     }
+
     void registerRxCallback(uint8_t, RxCallback cb) override { rxCb = cb; }
+
     void registerTxDoneCallback(TxDoneCallback cb) override { txDoneCb = cb; }
+
     void mainFunction() override { mainFunctionCalls++; }
+
     void enterSleepMode() override {}
+
     void wakeup() override {}
 
     RxCallback rxCb;
@@ -83,9 +90,9 @@ TEST(LinChannelTest, schedule_and_cyclic_tick)
     ASSERT_TRUE(channel.isInitialized());
 
     ::commgateway::LinFrameConfig frame{};
-    frame.pid             = ::commgateway::LinChannel::computePid(0x20U);
-    frame.dlc             = 4U;
-    frame.scheduleTimeMs  = 100U;
+    frame.pid              = ::commgateway::LinChannel::computePid(0x20U);
+    frame.dlc              = 4U;
+    frame.scheduleTimeMs   = 100U;
     frame.associatedSignal = "EngineSpeed";
     channel.scheduleFrame(frame);
     EXPECT_NE(nullptr, channel.findFrame(frame.pid));
@@ -107,7 +114,8 @@ TEST(LinChannelTest, rx_forward_and_parity_error)
 
     std::vector<uint8_t> seen;
     channel.registerUpperLayerCallback(
-        [&seen](uint8_t channelId, uint8_t pid, uint8_t*, uint8_t) {
+        [&seen](uint8_t channelId, uint8_t pid, uint8_t*, uint8_t)
+        {
             seen.push_back(channelId);
             seen.push_back(pid);
         });

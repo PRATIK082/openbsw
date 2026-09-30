@@ -103,7 +103,7 @@ private:
     std::map<std::string, SignalRoutingRule> m_routingTable;
     std::queue<PendingSignal> m_pendingSignals;
     GatewayChannelSender m_sender;
-    bool m_initialized  = false;
+    bool m_initialized      = false;
     uint32_t m_dropCount    = 0U;
     uint32_t m_forwardCount = 0U;
 };

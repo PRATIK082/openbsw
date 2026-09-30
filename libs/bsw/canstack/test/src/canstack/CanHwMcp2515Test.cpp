@@ -100,7 +100,8 @@ public:
             case INSTR_LOAD_TX0:
             case INSTR_LOAD_TX1:
             {
-                uint8_t const base = (instruction == INSTR_LOAD_TX0) ? REG_TXB0_SIDH : REG_TXB1_SIDH;
+                uint8_t const base
+                    = (instruction == INSTR_LOAD_TX0) ? REG_TXB0_SIDH : REG_TXB1_SIDH;
                 std::vector<uint8_t> payload(txData + 1U, txData + txLen);
                 for (uint8_t i = 0U; i < payload.size(); ++i)
                 {
@@ -149,9 +150,9 @@ TEST(CanHwMcp2515Test, init_writes_baud_config_and_normal_mode)
     EXPECT_TRUE(driver.isInitialized());
     EXPECT_EQ(500000U, driver.getBaudrate());
 
-    EXPECT_EQ(0x00U, bus.registers[0x2AU]); // CNF1
-    EXPECT_EQ(0x90U, bus.registers[0x29U]); // CNF2
-    EXPECT_EQ(0x02U, bus.registers[0x28U]); // CNF3
+    EXPECT_EQ(0x00U, bus.registers[0x2AU]);         // CNF1
+    EXPECT_EQ(0x90U, bus.registers[0x29U]);         // CNF2
+    EXPECT_EQ(0x02U, bus.registers[0x28U]);         // CNF3
     EXPECT_EQ(0x00U, bus.registers[0x0FU] & 0xE0U); // normal mode
 }
 
@@ -201,7 +202,7 @@ TEST(CanHwMcp2515Test, transmit_extended_frame)
     ::canstack::CanHwMcp2515 driver(bus);
     (void)driver.init(0U, 500000U);
 
-    uint8_t const data[1] = {0x42U};
+    uint8_t const data[1]     = {0x42U};
     uint32_t const extendedId = 0x18ABCDEFU;
     EXPECT_TRUE(driver.transmit(0U, extendedId, 1U, data));
 
@@ -223,12 +224,14 @@ TEST(CanHwMcp2515Test, receive_standard_frame)
     ::canstack::CanHwMcp2515 driver(bus);
     (void)driver.init(0U, 500000U);
 
-    uint32_t receivedId = 0U;
-    uint8_t receivedDlc = 0U;
+    uint32_t receivedId     = 0U;
+    uint8_t receivedDlc     = 0U;
     uint8_t receivedData[8] = {};
     driver.registerRxCallback(
-        0U, [&receivedId, &receivedDlc, &receivedData](uint32_t id, uint8_t dlc, uint8_t const* data) {
-            receivedId   = id;
+        0U,
+        [&receivedId, &receivedDlc, &receivedData](uint32_t id, uint8_t dlc, uint8_t const* data)
+        {
+            receivedId  = id;
             receivedDlc = dlc;
             for (uint8_t i = 0U; i < dlc; ++i)
             {
@@ -258,17 +261,17 @@ TEST(CanHwMcp2515Test, receive_extended_frame)
     (void)driver.init(0U, 500000U);
 
     uint32_t receivedId = 0U;
-    driver.registerRxCallback(0U, [&receivedId](uint32_t id, uint8_t, uint8_t const*) {
-        receivedId = id;
-    });
+    driver.registerRxCallback(
+        0U, [&receivedId](uint32_t id, uint8_t, uint8_t const*) { receivedId = id; });
 
     uint32_t const extendedId = 0x1F234567U;
-    bus.loadRxBuffer0({static_cast<uint8_t>(extendedId >> 21),
-                      static_cast<uint8_t>((((extendedId >> 16) & 0x03U) << 6) | 0x08U),
-                      static_cast<uint8_t>((extendedId >> 8) & 0xFFU),
-                      static_cast<uint8_t>(extendedId & 0xFFU),
-                      1U,
-                      0x99U});
+    bus.loadRxBuffer0(
+        {static_cast<uint8_t>(extendedId >> 21),
+         static_cast<uint8_t>((((extendedId >> 16) & 0x03U) << 6) | 0x08U),
+         static_cast<uint8_t>((extendedId >> 8) & 0xFFU),
+         static_cast<uint8_t>(extendedId & 0xFFU),
+         1U,
+         0x99U});
 
     driver.mainFunction();
 

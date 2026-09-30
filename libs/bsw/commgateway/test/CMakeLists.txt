@@ -12,11 +12,7 @@ add_executable(
 
 target_include_directories(commgatewayTest PUBLIC include)
 
-target_link_libraries(
-    commgatewayTest
-    PRIVATE commgateway
-            asyncMock
-            asyncMockImpl
-            gmock_main)
+target_link_libraries(commgatewayTest PRIVATE commgateway asyncMock
+                                              asyncMockImpl gmock_main)
 
 gtest_discover_tests(commgatewayTest PROPERTIES LABELS "commgatewayTest")

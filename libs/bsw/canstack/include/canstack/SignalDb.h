@@ -30,21 +30,21 @@ struct SignalConfig
     std::string signalName;
     uint32_t frameId = 0U;
     uint8_t startBit = 0U;
-    uint8_t length = 0U;
+    uint8_t length   = 0U;
     /// true = Motorola / big endian bit numbering, false = Intel / little endian
-    bool isMotorola = false;
-    double factor = 1.0;
-    double offset = 0.0;
-    double min = 0.0;
-    double max = 0.0;
+    bool isMotorola  = false;
+    double factor    = 1.0;
+    double offset    = 0.0;
+    double min       = 0.0;
+    double max       = 0.0;
     std::string unit;
-    uint8_t channelId = 0U;
+    uint8_t channelId        = 0U;
     /// true for the multiplexer selector signal of a multiplexed frame
     bool isMultiplexerSwitch = false;
     /// multiplexer switch value the signal belongs to; -1 = unconditional signal
-    int16_t multiplexValue = -1;
+    int16_t multiplexValue   = -1;
     /// true for signed signals (DBC '@1-' / '@0-')
-    bool isSigned = false;
+    bool isSigned            = false;
 };
 
 /// DBC derived frame description.
@@ -52,7 +52,7 @@ struct FrameConfig
 {
     uint32_t frameId = 0U;
     std::string frameName;
-    uint8_t dlc = 0U;
+    uint8_t dlc       = 0U;
     uint8_t channelId = 0U;
     std::vector<SignalConfig> signals;
 };

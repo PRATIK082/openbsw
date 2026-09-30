@@ -71,15 +71,15 @@ void BridgeSupervisor::init()
             writers[channel.config.channelIndex] = channel.writer;
         }
     }
-    (void)m_routerBridge.init(::etl::span<::io::IReader*>(readers, 8U),
-                              ::etl::span<::io::IWriter*>(writers, 8U));
+    (void)m_routerBridge.init(
+        ::etl::span<::io::IReader*>(readers, 8U), ::etl::span<::io::IWriter*>(writers, 8U));
     transitionDone();
 }
 
 void BridgeSupervisor::run()
 {
-    ::async::scheduleAtFixedRate(m_context, *this, m_timeout, BRIDGE_SUPERVISOR_PERIOD_MS,
-                                 ::async::TimeUnit::MILLISECONDS);
+    ::async::scheduleAtFixedRate(
+        m_context, *this, m_timeout, BRIDGE_SUPERVISOR_PERIOD_MS, ::async::TimeUnit::MILLISECONDS);
     transitionDone();
 }
 

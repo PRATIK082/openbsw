@@ -43,8 +43,8 @@ void FrameGateway::clear()
     m_droppedFrameCount = 0U;
 }
 
-void FrameGateway::onFrameReceived(uint8_t channelType, uint8_t channelId, uint32_t frameId,
-                                   uint16_t length, uint8_t const* data)
+void FrameGateway::onFrameReceived(
+    uint8_t channelType, uint8_t channelId, uint32_t frameId, uint16_t length, uint8_t const* data)
 {
     if (!m_initialized || (data == nullptr))
     {
@@ -62,7 +62,11 @@ void FrameGateway::onFrameReceived(uint8_t channelType, uint8_t channelId, uint3
         // driven resets only when evaluatePolicy is called with wall time.
         // Pass 0 and rely on mainFunction() resets for window rollover.
         PolicyAction const verdict = m_policy->evaluatePolicy(
-            policyChannelType, policyChannelId, policyFrameId, frameBuffer.data(), policyLength,
+            policyChannelType,
+            policyChannelId,
+            policyFrameId,
+            frameBuffer.data(),
+            policyLength,
             0U);
         if (verdict == PolicyAction::DENY)
         {
@@ -98,7 +102,7 @@ void FrameGateway::extractPdus(FrameConfig const& frame, uint8_t const* frameDat
         {
             continue; // out-of-range layout entry
         }
-        uint16_t pduLength   = it->second.first;
+        uint16_t pduLength     = it->second.first;
         uint8_t const* pduData = it->second.second;
         if (entry.isVariableLength)
         {
@@ -107,8 +111,8 @@ void FrameGateway::extractPdus(FrameConfig const& frame, uint8_t const* frameDat
         }
         bool const consume = (frame.action == GatewayAction::EXTRACT_AND_SIGNAL)
                              || (frame.action == GatewayAction::BOTH);
-        bool const forward = (frame.action == GatewayAction::ROUTE_ONLY)
-                             || (frame.action == GatewayAction::BOTH);
+        bool const forward
+            = (frame.action == GatewayAction::ROUTE_ONLY) || (frame.action == GatewayAction::BOTH);
         if (consume)
         {
             m_extractedPduCount++;
@@ -121,8 +125,8 @@ void FrameGateway::extractPdus(FrameConfig const& frame, uint8_t const* frameDat
         {
             if ((m_tpForwarder) && (pduLength > m_maxSingleFramePayload))
             {
-                m_tpForwarder(frame.channelType, frame.channelId, frame.frameId, pduLength,
-                              pduData);
+                m_tpForwarder(
+                    frame.channelType, frame.channelId, frame.frameId, pduLength, pduData);
             }
             else
             {
@@ -141,15 +145,16 @@ void FrameGateway::routePdu(uint32_t pduId, uint16_t length, uint8_t const* data
     }
     for (auto const& destination : it->second)
     {
-        if (m_txSender(destination.channelType, destination.channelId, destination.frameId,
-                       length, data))
+        if (m_txSender(
+                destination.channelType, destination.channelId, destination.frameId, length, data))
         {
             m_routedPduCount++;
         }
     }
 }
 
-void FrameGateway::registerPduRoute(uint32_t pduId, std::vector<GatewayDestination> const& destinations)
+void FrameGateway::registerPduRoute(
+    uint32_t pduId, std::vector<GatewayDestination> const& destinations)
 {
     m_pduRoutes[pduId] = destinations;
 }
@@ -180,10 +185,10 @@ bool FrameGateway::packAndTransmit(uint8_t channelType, uint8_t channelId, uint3
         {
             continue;
         }
-        uint16_t const copyLength
-            = (it->second.size() > entry.length) ? entry.length
-                                                 : static_cast<uint16_t>(it->second.size());
-        pduData[entry.pduId] = std::make_pair(copyLength, it->second.data());
+        uint16_t const copyLength = (it->second.size() > entry.length)
+                                        ? entry.length
+                                        : static_cast<uint16_t>(it->second.size());
+        pduData[entry.pduId]      = std::make_pair(copyLength, it->second.data());
     }
     if (!PduAssembler::packMultiPdu(txBuffer.data(), frame->frameLength, frame->pdus, pduData))
     {
@@ -202,8 +207,8 @@ void FrameGateway::setPolicyEngine(PolicyEngine* policy) { m_policy = policy; }
 
 void FrameGateway::setMaxSingleFramePayload(uint16_t payload) { m_maxSingleFramePayload = payload; }
 
-FrameConfig const* FrameGateway::findFrame(uint8_t channelType, uint8_t channelId,
-                                           uint32_t frameId) const
+FrameConfig const*
+FrameGateway::findFrame(uint8_t channelType, uint8_t channelId, uint32_t frameId) const
 {
     auto it = m_frameTable.find(FrameKey(channelType, channelId, frameId));
     return (it != m_frameTable.end()) ? &it->second : nullptr;

@@ -68,7 +68,7 @@ private:
 
     ::can::ICanTransceiver& m_transceiver;
     ::can::MaskFilter m_filter;
-    bool m_initialized = false;
+    bool m_initialized  = false;
     uint8_t m_channelId = 0U;
     std::vector<RxCallback> m_rxCallbacks;
 };

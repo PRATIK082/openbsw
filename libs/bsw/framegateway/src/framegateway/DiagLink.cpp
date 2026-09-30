@@ -36,13 +36,13 @@ void DiagLink::shutdown()
 void DiagLink::clear()
 {
     m_diagSessions.clear();
-    m_requestCount         = 0U;
-    m_responseCount        = 0U;
-    m_sessionTimeoutCount  = 0U;
+    m_requestCount        = 0U;
+    m_responseCount       = 0U;
+    m_sessionTimeoutCount = 0U;
 }
 
-void DiagLink::onDiagnosticPduReceived(uint32_t pduId, uint16_t length, uint8_t const* data,
-                                       uint32_t nowMs)
+void DiagLink::onDiagnosticPduReceived(
+    uint32_t pduId, uint16_t length, uint8_t const* data, uint32_t nowMs)
 {
     if (!m_initialized || (data == nullptr) || (length == 0U))
     {
@@ -68,17 +68,21 @@ void DiagLink::onDiagnosticPduReceived(uint32_t pduId, uint16_t length, uint8_t 
         return;
     }
     uint8_t response[4096U] = {0U};
-    uint16_t responseLength  = sizeof(response);
+    uint16_t responseLength = sizeof(response);
     m_udsHandler(length, data, response, responseLength);
     if (responseLength > 0U)
     {
-        sendDiagnosticResponse(session->channelType, session->channelId, session->responseFrameId,
-                               responseLength, response);
+        sendDiagnosticResponse(
+            session->channelType,
+            session->channelId,
+            session->responseFrameId,
+            responseLength,
+            response);
     }
 }
 
-void DiagLink::sendDiagnosticResponse(uint8_t channelType, uint8_t channelId, uint32_t frameId,
-                                      uint16_t length, uint8_t const* data)
+void DiagLink::sendDiagnosticResponse(
+    uint8_t channelType, uint8_t channelId, uint32_t frameId, uint16_t length, uint8_t const* data)
 {
     if (!m_initialized || !m_txSender || (data == nullptr))
     {

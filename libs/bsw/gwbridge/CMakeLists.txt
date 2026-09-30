@@ -1,9 +1,6 @@
 add_library(
-    gwbridge
-    src/gwbridge/BridgeSupervisor.cpp
-    src/gwbridge/CanIoBridge.cpp
-    src/gwbridge/EthIoBridge.cpp
-    src/gwbridge/LinIoBridge.cpp)
+    gwbridge src/gwbridge/BridgeSupervisor.cpp src/gwbridge/CanIoBridge.cpp
+             src/gwbridge/EthIoBridge.cpp src/gwbridge/LinIoBridge.cpp)
 
 target_include_directories(gwbridge PUBLIC include)
 

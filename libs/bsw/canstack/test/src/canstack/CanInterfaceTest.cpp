@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "canstack/TestUtils.h"
 #include "canstack/CanInterface.h"
+#include "canstack/TestUtils.h"
 
 #include <gmock/gmock.h>
 
@@ -33,11 +33,11 @@ TEST(CanInterfaceTest, init_from_code_first_config)
 
     ::canstack::CanStackConfig config{};
     config.channelConfigs = channels;
-    config.channelCount    = 2U;
-    config.frameTable      = ::canstack::testutils::DEMO_FRAMES;
-    config.frameCount      = ::canstack::testutils::DEMO_FRAME_COUNT;
-    config.signalTable     = ::canstack::testutils::DEMO_SIGNALS;
-    config.signalCount     = ::canstack::testutils::DEMO_SIGNAL_COUNT;
+    config.channelCount   = 2U;
+    config.frameTable     = ::canstack::testutils::DEMO_FRAMES;
+    config.frameCount     = ::canstack::testutils::DEMO_FRAME_COUNT;
+    config.signalTable    = ::canstack::testutils::DEMO_SIGNALS;
+    config.signalCount    = ::canstack::testutils::DEMO_SIGNAL_COUNT;
 
     EXPECT_TRUE(stack.init(config));
     EXPECT_TRUE(stack.isInitialized());
@@ -66,7 +66,7 @@ TEST(CanInterfaceTest, send_frame_via_channel)
 
     ::canstack::CanStackConfig config{};
     config.channelConfigs = channels;
-    config.channelCount    = 1U;
+    config.channelCount   = 1U;
     ASSERT_TRUE(stack.init(config));
 
     uint8_t const data[2] = {0xCAU, 0xFEU};
@@ -92,11 +92,11 @@ TEST(CanInterfaceTest, receive_path_updates_signals_and_callbacks)
 
     ::canstack::CanStackConfig config{};
     config.channelConfigs = channels;
-    config.channelCount    = 1U;
-    config.frameTable      = ::canstack::testutils::DEMO_FRAMES;
-    config.frameCount      = ::canstack::testutils::DEMO_FRAME_COUNT;
-    config.signalTable     = ::canstack::testutils::DEMO_SIGNALS;
-    config.signalCount     = ::canstack::testutils::DEMO_SIGNAL_COUNT;
+    config.channelCount   = 1U;
+    config.frameTable     = ::canstack::testutils::DEMO_FRAMES;
+    config.frameCount     = ::canstack::testutils::DEMO_FRAME_COUNT;
+    config.signalTable    = ::canstack::testutils::DEMO_SIGNALS;
+    config.signalCount    = ::canstack::testutils::DEMO_SIGNAL_COUNT;
     ASSERT_TRUE(stack.init(config));
 
     double receivedSpeed = -1.0;
@@ -104,7 +104,7 @@ TEST(CanInterfaceTest, receive_path_updates_signals_and_callbacks)
         "VehicleSpeed", [&receivedSpeed](double value) { receivedSpeed = value; });
 
     // Build an EngineData frame: EngineSpeed = 1000 rpm, VehicleSpeed = 100 kph.
-    uint8_t data[8] = {};
+    uint8_t data[8]                      = {};
     ::canstack::SignalDatabase const& db = stack.getSignalDatabase();
     db.packSignal(data, *db.getSignalByName("EngineSpeed"), 1000.0);
     db.packSignal(data, *db.getSignalByName("VehicleSpeed"), 100.0);
@@ -134,18 +134,18 @@ TEST(CanInterfaceTest, send_signal_feeds_scheduler)
 
     ::canstack::CanStackConfig config{};
     config.channelConfigs = channels;
-    config.channelCount    = 1U;
-    config.frameTable      = ::canstack::testutils::DEMO_FRAMES;
-    config.frameCount      = ::canstack::testutils::DEMO_FRAME_COUNT;
-    config.signalTable     = ::canstack::testutils::DEMO_SIGNALS;
-    config.signalCount     = ::canstack::testutils::DEMO_SIGNAL_COUNT;
+    config.channelCount   = 1U;
+    config.frameTable     = ::canstack::testutils::DEMO_FRAMES;
+    config.frameCount     = ::canstack::testutils::DEMO_FRAME_COUNT;
+    config.signalTable    = ::canstack::testutils::DEMO_SIGNALS;
+    config.signalCount    = ::canstack::testutils::DEMO_SIGNAL_COUNT;
     ASSERT_TRUE(stack.init(config));
 
     ::canstack::TxSignalEntry entry;
-    entry.signalName  = "TargetSpeed";
-    entry.frameId     = 0x200U;
-    entry.channelId   = 0U;
-    entry.cycleTimeMs = 5U;
+    entry.signalName    = "TargetSpeed";
+    entry.frameId       = 0x200U;
+    entry.channelId     = 0U;
+    entry.cycleTimeMs   = 5U;
     entry.valueProvider = []() { return 300.0; };
     stack.getTxScheduler().registerSignal(entry);
 
@@ -181,11 +181,11 @@ TEST(CanInterfaceTest, value_provider_wins)
 
     ::canstack::CanStackConfig config{};
     config.channelConfigs = channels;
-    config.channelCount    = 1U;
-    config.signalTable     = ::canstack::testutils::DEMO_SIGNALS;
-    config.signalCount     = ::canstack::testutils::DEMO_SIGNAL_COUNT;
-    config.frameTable      = ::canstack::testutils::DEMO_FRAMES;
-    config.frameCount      = ::canstack::testutils::DEMO_FRAME_COUNT;
+    config.channelCount   = 1U;
+    config.signalTable    = ::canstack::testutils::DEMO_SIGNALS;
+    config.signalCount    = ::canstack::testutils::DEMO_SIGNAL_COUNT;
+    config.frameTable     = ::canstack::testutils::DEMO_FRAMES;
+    config.frameCount     = ::canstack::testutils::DEMO_FRAME_COUNT;
     ASSERT_TRUE(stack.init(config));
 
     ::canstack::TxSignalEntry entry;

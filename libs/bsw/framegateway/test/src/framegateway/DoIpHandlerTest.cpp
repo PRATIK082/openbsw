@@ -47,10 +47,12 @@ TEST(DoIpHandlerTest, routing_activation)
     handler.init(config);
 
     std::vector<std::vector<uint8_t>> sent;
-    handler.setTxSender([&sent](uint16_t len, uint8_t const* data) {
-        sent.emplace_back(data, data + len);
-        return true;
-    });
+    handler.setTxSender(
+        [&sent](uint16_t len, uint8_t const* data)
+        {
+            sent.emplace_back(data, data + len);
+            return true;
+        });
 
     EXPECT_FALSE(handler.isRoutingActive());
     std::vector<uint8_t> payload = {0x0EU, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
@@ -73,15 +75,13 @@ TEST(DoIpHandlerTest, uds_message_routing)
     handler.init(::framegateway::DoIpConfig{});
 
     std::vector<std::tuple<uint16_t, uint16_t, std::vector<uint8_t>>> uds;
-    handler.setUdsCallback(
-        [&uds](uint16_t sa, uint16_t ta, uint16_t len, uint8_t const* data) {
-            uds.emplace_back(sa, ta, std::vector<uint8_t>(data, data + len));
-        });
+    handler.setUdsCallback([&uds](uint16_t sa, uint16_t ta, uint16_t len, uint8_t const* data)
+                           { uds.emplace_back(sa, ta, std::vector<uint8_t>(data, data + len)); });
     handler.setTxSender([](uint16_t, uint8_t const*) { return true; });
 
     // Not active yet: ignored.
     std::vector<uint8_t> payload = {0x0EU, 0x00U, 0x10U, 0x00U, 0x22U};
-    std::vector<uint8_t> frame = makeDoIp(::framegateway::DOIP_PAYLOAD_UDS_MESSAGE, payload);
+    std::vector<uint8_t> frame   = makeDoIp(::framegateway::DOIP_PAYLOAD_UDS_MESSAGE, payload);
     handler.onDoIpMessageReceived(frame.data(), static_cast<uint16_t>(frame.size()));
     EXPECT_TRUE(uds.empty());
 
@@ -108,8 +108,8 @@ TEST(DoIpHandlerTest, rejects_malformed)
     uint8_t shortFrame[4U] = {0x02U, 0xFDU, 0x00U, 0x05U};
     handler.onDoIpMessageReceived(shortFrame, 4U);
 
-    std::vector<uint8_t> badVer = {0x01U, 0xFEU, 0x00U, 0x05U, 0U, 0U, 0U, 7U,
-                                   0U, 0U, 0U, 0U, 0U, 0U, 0U};
+    std::vector<uint8_t> badVer
+        = {0x01U, 0xFEU, 0x00U, 0x05U, 0U, 0U, 0U, 7U, 0U, 0U, 0U, 0U, 0U, 0U, 0U};
     handler.onDoIpMessageReceived(badVer.data(), static_cast<uint16_t>(badVer.size()));
 
     // Declared length longer than the datagram.
@@ -129,10 +129,12 @@ TEST(DoIpHandlerTest, send_uds_message)
     handler.init(::framegateway::DoIpConfig{});
 
     std::vector<uint8_t> sent;
-    handler.setTxSender([&sent](uint16_t len, uint8_t const* data) {
-        sent.assign(data, data + len);
-        return true;
-    });
+    handler.setTxSender(
+        [&sent](uint16_t len, uint8_t const* data)
+        {
+            sent.assign(data, data + len);
+            return true;
+        });
 
     uint8_t const uds[2U] = {0x3EU, 0x00U};
     ASSERT_TRUE(handler.sendUdsMessage(0x1000U, 0x0E00U, uds, 2U));

@@ -20,16 +20,16 @@ namespace gwbridge
 void CanIoBridge::bind(::canstack::CanChannel& channel)
 {
     channel.registerUpperLayerCallback(
-        [this](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data) {
-            onFrameReceived(channelId, frameId, dlc, data);
-        });
+        [this](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
+        { onFrameReceived(channelId, frameId, dlc, data); });
 }
 
 uint32_t CanIoBridge::pumpTx(::canstack::CanChannel& channel)
 {
     uint32_t sent = 0U;
     while (m_bridge.drainTxFrame(
-        [&channel, &sent](uint32_t messageId, uint16_t length, uint8_t const* data) {
+        [&channel](uint32_t messageId, uint16_t length, uint8_t const* data)
+        {
             if (length > 255U)
             {
                 return false;
@@ -43,8 +43,8 @@ uint32_t CanIoBridge::pumpTx(::canstack::CanChannel& channel)
     return sent;
 }
 
-void CanIoBridge::onFrameReceived(uint8_t /* channelId */, uint32_t frameId, uint8_t dlc,
-                                  uint8_t const* data)
+void CanIoBridge::onFrameReceived(
+    uint8_t /* channelId */, uint32_t frameId, uint8_t dlc, uint8_t const* data)
 {
     (void)m_bridge.pushRxFrame(frameId, data, dlc);
 }

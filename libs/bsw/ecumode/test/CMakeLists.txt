@@ -12,11 +12,7 @@ add_executable(ecumodeTest src/ecumode/EcuModeManagerTest.cpp)
 
 target_include_directories(ecumodeTest PUBLIC include)
 
-target_link_libraries(
-    ecumodeTest
-    PRIVATE ecumode
-            asyncMock
-            asyncMockImpl
-            gmock_main)
+target_link_libraries(ecumodeTest PRIVATE ecumode asyncMock asyncMockImpl
+                                          gmock_main)
 
 gtest_discover_tests(ecumodeTest PROPERTIES LABELS "ecumodeTest")

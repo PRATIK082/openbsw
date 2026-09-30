@@ -63,8 +63,8 @@ void XcpServer::clear()
     m_memoryErrorCount  = 0U;
 }
 
-void XcpServer::onXcpCommandReceived(uint8_t const* cmd, uint16_t length, uint8_t* response,
-                                     uint16_t& responseLength)
+void XcpServer::onXcpCommandReceived(
+    uint8_t const* cmd, uint16_t length, uint8_t* response, uint16_t& responseLength)
 {
     responseLength = 0U;
     if (!m_initialized || (cmd == nullptr) || (response == nullptr) || (length == 0U))
@@ -79,19 +79,15 @@ void XcpServer::onXcpCommandReceived(uint8_t const* cmd, uint16_t length, uint8_
 
     switch (command)
     {
-        case XCP_CMD_CONNECT:
-            m_isConnected = true;
-            break;
-        case XCP_CMD_DISCONNECT:
-            m_isConnected = false;
-            break;
+        case XCP_CMD_CONNECT:    m_isConnected = true; break;
+        case XCP_CMD_DISCONNECT: m_isConnected = false; break;
         case XCP_CMD_GET_STATUS:
             if (!m_isConnected)
             {
                 response[1] = XCP_ERR_ACCESS_DENIED;
                 break;
             }
-            response[2]  = m_isConnected ? 0x01U : 0x00U;
+            response[2]    = m_isConnected ? 0x01U : 0x00U;
             responseLength = 3U;
             break;
         case XCP_CMD_GET_ID:
@@ -122,7 +118,7 @@ void XcpServer::onXcpCommandReceived(uint8_t const* cmd, uint16_t length, uint8_
             uint8_t const count = cmd[1];
             if (!readMemory(m_currentMtaAddress, count, response + 2U))
             {
-                response[1]   = XCP_ERR_OUT_OF_RANGE;
+                response[1]    = XCP_ERR_OUT_OF_RANGE;
                 responseLength = 2U;
                 break;
             }
@@ -141,7 +137,7 @@ void XcpServer::onXcpCommandReceived(uint8_t const* cmd, uint16_t length, uint8_
             if ((static_cast<uint16_t>(2U + count) > length)
                 || !writeMemory(m_currentMtaAddress, count, cmd + 2U))
             {
-                response[1]   = XCP_ERR_OUT_OF_RANGE;
+                response[1]    = XCP_ERR_OUT_OF_RANGE;
                 responseLength = 2U;
                 break;
             }
@@ -162,7 +158,7 @@ void XcpServer::onXcpCommandReceived(uint8_t const* cmd, uint16_t length, uint8_
                 uint8_t byte = 0U;
                 if (!readMemory(m_currentMtaAddress + i, 1U, &byte))
                 {
-                    response[1]   = XCP_ERR_OUT_OF_RANGE;
+                    response[1]    = XCP_ERR_OUT_OF_RANGE;
                     responseLength = 2U;
                     break;
                 }
@@ -190,9 +186,7 @@ void XcpServer::onXcpCommandReceived(uint8_t const* cmd, uint16_t length, uint8_
                 response[1] = XCP_ERR_ACCESS_DENIED;
             }
             break;
-        default:
-            response[1] = XCP_ERR_CMD_UNKNOWN;
-            break;
+        default: response[1] = XCP_ERR_CMD_UNKNOWN; break;
     }
     (void)MAX_CTO_SIZE;
 }
@@ -330,8 +324,7 @@ uint8_t* XcpServer::resolveAddress(uint32_t address, uint16_t length)
     for (auto& region : m_memory)
     {
         if ((address >= region.baseAddress)
-            && ((address + length) <= (region.baseAddress + region.data.size()))
-            && region.writable)
+            && ((address + length) <= (region.baseAddress + region.data.size())) && region.writable)
         {
             return region.data.data() + (address - region.baseAddress);
         }
@@ -343,8 +336,12 @@ void XcpServer::sendDaqDto(uint8_t /* daqListId */, std::vector<uint8_t> const& 
 {
     if (m_txHandler && !dto.empty())
     {
-        m_txHandler(m_daqChannelType, m_daqChannelId, m_daqFrameId,
-                    static_cast<uint16_t>(dto.size()), dto.data());
+        m_txHandler(
+            m_daqChannelType,
+            m_daqChannelId,
+            m_daqFrameId,
+            static_cast<uint16_t>(dto.size()),
+            dto.data());
     }
 }
 

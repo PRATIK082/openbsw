@@ -69,7 +69,7 @@ TEST(PduAssemblerTest, pack_rejects_overflow)
 
     uint8_t shortPayload[4U] = {0U};
     ::framegateway::PduDataMap shortData;
-    shortData[1U] = {4U, shortPayload};
+    shortData[1U]                                    = {4U, shortPayload};
     std::vector<::framegateway::PduInFrame> okLayout = {makePdu(1U, 0U, 8U)};
     EXPECT_FALSE(::framegateway::PduAssembler::packMultiPdu(frame, 64U, okLayout, shortData));
 }
@@ -113,8 +113,7 @@ TEST(PduAssemblerTest, padding)
 {
     uint8_t frame[8U] = {1U, 2U, 3U, 4U, 0U, 0U, 0U, 0U};
     ::framegateway::PduAssembler::applyPadding(frame, 4U, 8U, 0xFFU);
-    EXPECT_THAT(frame,
-                ElementsAre(1U, 2U, 3U, 4U, 0xFFU, 0xFFU, 0xFFU, 0xFFU));
+    EXPECT_THAT(frame, ElementsAre(1U, 2U, 3U, 4U, 0xFFU, 0xFFU, 0xFFU, 0xFFU));
     ::framegateway::PduAssembler::applyPadding(frame, 8U, 8U, 0x00U);
     EXPECT_EQ(0xFFU, frame[7]);
 }

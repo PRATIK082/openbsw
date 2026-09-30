@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "canstack/TestUtils.h"
 #include "canstack/CanRouter.h"
+#include "canstack/TestUtils.h"
 
 #include <gmock/gmock.h>
 
@@ -41,7 +41,8 @@ TEST(CanRouterTest, frame_level_forwarding)
     std::vector<TxRecord> tx;
 
     router.setTransmitFunction(
-        [&tx](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data) {
+        [&tx](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
+        {
             TxRecord record;
             record.channelId = channelId;
             record.frameId   = frameId;
@@ -55,8 +56,8 @@ TEST(CanRouterTest, frame_level_forwarding)
         });
 
     ::canstack::RoutingRule rule;
-    rule.inputChannel  = 0U;
-    rule.inputFrameId = 0x100U;
+    rule.inputChannel       = 0U;
+    rule.inputFrameId       = 0x100U;
     rule.outputDestinations = {{1U, 0x100U}, {2U, 0x100U}};
     router.addRoutingRule(rule);
 
@@ -77,14 +78,16 @@ TEST(CanRouterTest, unmatched_frames_are_dropped)
 {
     ::canstack::CanRouter router;
     size_t txCount = 0U;
-    router.setTransmitFunction([&txCount](uint8_t, uint32_t, uint8_t, uint8_t const*) {
-        ++txCount;
-        return true;
-    });
+    router.setTransmitFunction(
+        [&txCount](uint8_t, uint32_t, uint8_t, uint8_t const*)
+        {
+            ++txCount;
+            return true;
+        });
 
     ::canstack::RoutingRule rule;
-    rule.inputChannel  = 0U;
-    rule.inputFrameId = 0x100U;
+    rule.inputChannel       = 0U;
+    rule.inputFrameId       = 0x100U;
     rule.outputDestinations = {{1U, 0x100U}};
     router.addRoutingRule(rule);
 
@@ -103,12 +106,25 @@ TEST(CanRouterTest, signal_level_gateway)
 {
     ::canstack::SignalDatabase db;
     db.loadFrameTable(::canstack::testutils::DEMO_FRAMES, ::canstack::testutils::DEMO_FRAME_COUNT);
-    db.loadSignalTable(::canstack::testutils::DEMO_SIGNALS, ::canstack::testutils::DEMO_SIGNAL_COUNT);
+    db.loadSignalTable(
+        ::canstack::testutils::DEMO_SIGNALS, ::canstack::testutils::DEMO_SIGNAL_COUNT);
 
     // Mirror layout on channel 1 with a different frame id.
     ::canstack::FrameTableEntry const mirroredFrames[] = {{0x500U, "EngineDataMirror", 8U, 1U}};
     ::canstack::SignalTableEntry const mirroredSignals[]
-        = {{"EngineSpeed", 0x500U, 7U, 16U, true, 0.25, 0.0, 0.0, 8000.0, "rpm", 1U, false, -1,
+        = {{"EngineSpeed",
+            0x500U,
+            7U,
+            16U,
+            true,
+            0.25,
+            0.0,
+            0.0,
+            8000.0,
+            "rpm",
+            1U,
+            false,
+            -1,
             false}};
     db.loadFrameTable(mirroredFrames, 1U);
     db.loadSignalTable(mirroredSignals, 1U);
@@ -118,7 +134,8 @@ TEST(CanRouterTest, signal_level_gateway)
 
     std::vector<TxRecord> tx;
     router.setTransmitFunction(
-        [&tx](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data) {
+        [&tx](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
+        {
             TxRecord record;
             record.channelId = channelId;
             record.frameId   = frameId;
@@ -132,8 +149,8 @@ TEST(CanRouterTest, signal_level_gateway)
         });
 
     ::canstack::RoutingRule rule;
-    rule.inputChannel  = 0U;
-    rule.inputFrameId = 0x100U;
+    rule.inputChannel       = 0U;
+    rule.inputFrameId       = 0x100U;
     rule.outputDestinations = {{1U, 0x500U}};
     router.addRoutingRule(rule);
 
@@ -161,12 +178,25 @@ TEST(CanRouterTest, transform_is_applied)
 {
     ::canstack::SignalDatabase db;
     db.loadFrameTable(::canstack::testutils::DEMO_FRAMES, ::canstack::testutils::DEMO_FRAME_COUNT);
-    db.loadSignalTable(::canstack::testutils::DEMO_SIGNALS, ::canstack::testutils::DEMO_SIGNAL_COUNT);
+    db.loadSignalTable(
+        ::canstack::testutils::DEMO_SIGNALS, ::canstack::testutils::DEMO_SIGNAL_COUNT);
 
     // Output frame with the same layout but different id on channel 1.
     ::canstack::FrameTableEntry const outputFrames[] = {{0x501U, "TargetDataOut", 8U, 1U}};
     ::canstack::SignalTableEntry const outputSignals[]
-        = {{"TargetSpeed", 0x501U, 0U, 16U, false, 0.1, 0.0, 0.0, 1000.0, "kph", 1U, false, -1,
+        = {{"TargetSpeed",
+            0x501U,
+            0U,
+            16U,
+            false,
+            0.1,
+            0.0,
+            0.0,
+            1000.0,
+            "kph",
+            1U,
+            false,
+            -1,
             false}};
     db.loadFrameTable(outputFrames, 1U);
     db.loadSignalTable(outputSignals, 1U);
@@ -176,7 +206,8 @@ TEST(CanRouterTest, transform_is_applied)
 
     std::vector<TxRecord> tx;
     router.setTransmitFunction(
-        [&tx](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data) {
+        [&tx](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
+        {
             TxRecord record;
             record.channelId = channelId;
             record.frameId   = frameId;
@@ -190,13 +221,13 @@ TEST(CanRouterTest, transform_is_applied)
         });
 
     ::canstack::RoutingRule rule;
-    rule.inputChannel  = 0U;
-    rule.inputFrameId = 0x200U;
+    rule.inputChannel       = 0U;
+    rule.inputFrameId       = 0x200U;
     rule.outputDestinations = {{1U, 0x501U}};
-    rule.transform = [](double value) { return value * 2.0; };
+    rule.transform          = [](double value) { return value * 2.0; };
     router.addRoutingRule(rule);
 
-    uint8_t data[8] = {};
+    uint8_t data[8]               = {};
     FrameConfig const* inputFrame = db.getFrameByChannelAndId(0U, 0x200U);
     ASSERT_NE(nullptr, inputFrame);
     db.packSignal(data, inputFrame->signals[0], 500.0);
@@ -217,11 +248,24 @@ TEST(CanRouterTest, nan_transform_drops_signal)
 {
     ::canstack::SignalDatabase db;
     db.loadFrameTable(::canstack::testutils::DEMO_FRAMES, ::canstack::testutils::DEMO_FRAME_COUNT);
-    db.loadSignalTable(::canstack::testutils::DEMO_SIGNALS, ::canstack::testutils::DEMO_SIGNAL_COUNT);
+    db.loadSignalTable(
+        ::canstack::testutils::DEMO_SIGNALS, ::canstack::testutils::DEMO_SIGNAL_COUNT);
 
     ::canstack::FrameTableEntry const outputFrames[] = {{0x502U, "TargetDataOut", 8U, 1U}};
     ::canstack::SignalTableEntry const outputSignals[]
-        = {{"TargetSpeed", 0x502U, 0U, 16U, false, 0.1, 0.0, 0.0, 1000.0, "kph", 1U, false, -1,
+        = {{"TargetSpeed",
+            0x502U,
+            0U,
+            16U,
+            false,
+            0.1,
+            0.0,
+            0.0,
+            1000.0,
+            "kph",
+            1U,
+            false,
+            -1,
             false}};
     db.loadFrameTable(outputFrames, 1U);
     db.loadSignalTable(outputSignals, 1U);
@@ -231,7 +275,8 @@ TEST(CanRouterTest, nan_transform_drops_signal)
 
     std::vector<TxRecord> tx;
     router.setTransmitFunction(
-        [&tx](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data) {
+        [&tx](uint8_t channelId, uint32_t frameId, uint8_t dlc, uint8_t const* data)
+        {
             TxRecord record;
             record.channelId = channelId;
             record.frameId   = frameId;
@@ -245,13 +290,13 @@ TEST(CanRouterTest, nan_transform_drops_signal)
         });
 
     ::canstack::RoutingRule rule;
-    rule.inputChannel  = 0U;
-    rule.inputFrameId = 0x200U;
+    rule.inputChannel       = 0U;
+    rule.inputFrameId       = 0x200U;
     rule.outputDestinations = {{1U, 0x502U}};
-    rule.transform = [](double) { return std::nan(""); };
+    rule.transform          = [](double) { return std::nan(""); };
     router.addRoutingRule(rule);
 
-    uint8_t data[8] = {};
+    uint8_t data[8]               = {};
     FrameConfig const* inputFrame = db.getFrameByChannelAndId(0U, 0x200U);
     ASSERT_NE(nullptr, inputFrame);
     db.packSignal(data, inputFrame->signals[0], 500.0);
@@ -273,7 +318,7 @@ TEST(CanRouterTest, clear_rules)
     ::canstack::CanRouter router;
 
     ::canstack::RoutingRule rule;
-    rule.inputChannel  = 0U;
+    rule.inputChannel = 0U;
     rule.inputFrameId = 0x100U;
     router.addRoutingRule(rule);
 

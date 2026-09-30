@@ -40,8 +40,7 @@ public:
      * \param rxLen number of bytes to shift in
      * \return true if the transfer succeeded
      */
-    virtual bool
-    transfer(uint8_t const* txData, uint8_t txLen, uint8_t* rxData, uint8_t rxLen) = 0;
+    virtual bool transfer(uint8_t const* txData, uint8_t txLen, uint8_t* rxData, uint8_t rxLen) = 0;
 };
 
 /**
@@ -83,12 +82,12 @@ public:
 
 private:
     // Instruction set (MCP2515 datasheet, instruction formats).
-    static uint8_t const INSTR_WRITE           = 0x02U;
+    static uint8_t const INSTR_WRITE          = 0x02U;
     static uint8_t const INSTR_READ           = 0x03U;
     static uint8_t const INSTR_BIT_MODIFY     = 0x05U;
     static uint8_t const INSTR_LOAD_TX_BUFFER = 0x40U; ///< base, +2 = TX buffer n SIDH
-    static uint8_t const INSTR_RTS             = 0x80U; ///< base, bit n = request buffer n
-    static uint8_t const INSTR_RESET           = 0xC0U;
+    static uint8_t const INSTR_RTS            = 0x80U; ///< base, bit n = request buffer n
+    static uint8_t const INSTR_RESET          = 0xC0U;
 
     // Register map (base addresses; buffer registers follow consecutively).
     static uint8_t const REG_CANCTRL  = 0x0FU;
@@ -105,18 +104,18 @@ private:
     static uint8_t const SIDH_OFFSET  = 1U;
 
     // CANCTRL/CANSTAT mode bits.
-    static uint8_t const MODE_NORMAL      = 0x00U;
-    static uint8_t const MODE_CONFIG      = 0x80U;
-    static uint8_t const MODE_MASK        = 0xE0U;
-    static uint8_t const MODE_POLL_TRIES  = 10U;
+    static uint8_t const MODE_NORMAL     = 0x00U;
+    static uint8_t const MODE_CONFIG     = 0x80U;
+    static uint8_t const MODE_MASK       = 0xE0U;
+    static uint8_t const MODE_POLL_TRIES = 10U;
 
     // RXBnCTRL: RXM bits 1..0 = 11b (receive any), BUKT bit 2 (rollover RXB0 -> RXB1).
     static uint8_t const RXB0CTRL_VALUE = 0x64U;
     static uint8_t const RXB1CTRL_VALUE = 0x60U;
 
     // CANINTE/CANINTF bits.
-    static uint8_t const INTE_RX0 = 0x01U;
-    static uint8_t const INTE_RX1 = 0x02U;
+    static uint8_t const INTE_RX0   = 0x01U;
+    static uint8_t const INTE_RX1   = 0x02U;
     static uint8_t const INTF_RX0IF = 0x01U;
     static uint8_t const INTF_RX1IF = 0x02U;
     static uint8_t const INTF_ERRIF = 0x04U;
@@ -125,13 +124,13 @@ private:
     // TXBnCTRL bit 3: TXREQ (transmission pending).
     static uint8_t const TXREQ_MASK = 0x08U;
 
-    static uint8_t const DLC_MASK    = 0x0FU;
-    static uint8_t const SIDL_EXIDE  = 0x08U;
+    static uint8_t const DLC_MASK           = 0x0FU;
+    static uint8_t const SIDL_EXIDE         = 0x08U;
     static uint8_t const SIDL_EID17_16_MASK = 0xC0U;
-    static uint8_t const SIDL_SID2_0_SHIFT   = 5U;
-    static uint8_t const DATA_PER_BUFFER      = 8U;
-    static uint8_t const ID_REGISTER_COUNT    = 4U; ///< SIDH, SIDL, EID8, EID0
-    static uint8_t const FRAME_REG_COUNT      = ID_REGISTER_COUNT + 1U + DATA_PER_BUFFER;
+    static uint8_t const SIDL_SID2_0_SHIFT  = 5U;
+    static uint8_t const DATA_PER_BUFFER    = 8U;
+    static uint8_t const ID_REGISTER_COUNT  = 4U; ///< SIDH, SIDL, EID8, EID0
+    static uint8_t const FRAME_REG_COUNT    = ID_REGISTER_COUNT + 1U + DATA_PER_BUFFER;
 
     bool writeRegister(uint8_t reg, uint8_t value);
     bool readRegister(uint8_t reg, uint8_t& value);
@@ -142,7 +141,7 @@ private:
 
     IMcp2515Bus& m_bus;
     uint32_t const m_oscillatorHz;
-    bool m_initialized = false;
+    bool m_initialized  = false;
     uint8_t m_channelId = 0U;
     uint32_t m_baudrate = 0U;
     RxCallback m_rxCallbacks[RX_BUFFER_COUNT];

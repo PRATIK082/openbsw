@@ -37,9 +37,13 @@ class PolicyEngine;
 class GatewayConfigParser
 {
 public:
-    static bool parse(std::string const& jsonText, FrameGateway& frameGateway,
-                      DiagLink& diagLink, XcpServer& xcpServer, PolicyEngine& policyEngine,
-                      std::string& error);
+    static bool parse(
+        std::string const& jsonText,
+        FrameGateway& frameGateway,
+        DiagLink& diagLink,
+        XcpServer& xcpServer,
+        PolicyEngine& policyEngine,
+        std::string& error);
 };
 
 } // namespace framegateway

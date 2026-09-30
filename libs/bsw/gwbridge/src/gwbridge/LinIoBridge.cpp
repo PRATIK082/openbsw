@@ -20,16 +20,16 @@ namespace gwbridge
 void LinIoBridge::bind(::commgateway::LinChannel& channel)
 {
     channel.registerUpperLayerCallback(
-        [this](uint8_t channelId, uint8_t pid, uint8_t* data, uint8_t dlc) {
-            onFrameReceived(channelId, pid, data, dlc);
-        });
+        [this](uint8_t channelId, uint8_t pid, uint8_t* data, uint8_t dlc)
+        { onFrameReceived(channelId, pid, data, dlc); });
 }
 
 uint32_t LinIoBridge::pumpTx(::commgateway::LinChannel& channel)
 {
     uint32_t sent = 0U;
     while (m_bridge.drainTxFrame(
-        [&channel, &sent](uint32_t messageId, uint16_t length, uint8_t const* data) {
+        [&channel](uint32_t messageId, uint16_t length, uint8_t const* data)
+        {
             if ((length == 0U) || (length > 8U) || (messageId > 0xFFU))
             {
                 return false;
@@ -39,8 +39,8 @@ uint32_t LinIoBridge::pumpTx(::commgateway::LinChannel& channel)
             {
                 buffer[i] = data[i];
             }
-            return channel.transmitFrame(static_cast<uint8_t>(messageId), buffer,
-                                         static_cast<uint8_t>(length));
+            return channel.transmitFrame(
+                static_cast<uint8_t>(messageId), buffer, static_cast<uint8_t>(length));
         }))
     {
         sent++;
@@ -49,8 +49,7 @@ uint32_t LinIoBridge::pumpTx(::commgateway::LinChannel& channel)
     return sent;
 }
 
-void LinIoBridge::onFrameReceived(uint8_t /* channelId */, uint8_t pid, uint8_t* data,
-                                  uint8_t dlc)
+void LinIoBridge::onFrameReceived(uint8_t /* channelId */, uint8_t pid, uint8_t* data, uint8_t dlc)
 {
     (void)m_bridge.pushRxFrame(pid, data, dlc);
 }

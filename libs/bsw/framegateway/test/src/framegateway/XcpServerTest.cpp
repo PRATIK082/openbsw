@@ -28,8 +28,8 @@ using namespace ::testing;
     return region;
 }
 
-::framegateway::XcpSymbol makeSymbol(std::string const& name, uint32_t address, uint16_t length,
-                                     bool cal)
+::framegateway::XcpSymbol
+makeSymbol(std::string const& name, uint32_t address, uint16_t length, bool cal)
 {
     ::framegateway::XcpSymbol symbol{};
     symbol.name          = name;
@@ -40,12 +40,12 @@ using namespace ::testing;
     return symbol;
 }
 
-uint16_t runCmd(::framegateway::XcpServer& server, std::vector<uint8_t> const& cmd,
-                uint8_t* response)
+uint16_t
+runCmd(::framegateway::XcpServer& server, std::vector<uint8_t> const& cmd, uint8_t* response)
 {
     uint16_t responseLength = 64U;
-    server.onXcpCommandReceived(cmd.data(), static_cast<uint16_t>(cmd.size()), response,
-                                responseLength);
+    server.onXcpCommandReceived(
+        cmd.data(), static_cast<uint16_t>(cmd.size()), response, responseLength);
     return responseLength;
 }
 
@@ -65,9 +65,9 @@ TEST(XcpServerTest, connect_upload)
     EXPECT_TRUE(server.isConnected());
 
     // SET_MTA 0x20000000 (little endian), then UPLOAD 4 bytes.
-    EXPECT_EQ(2U, runCmd(server,
-                         {::framegateway::XCP_CMD_SET_MTA, 0U, 0U, 0U, 0U, 0U, 0U, 0x20U},
-                         response));
+    EXPECT_EQ(
+        2U,
+        runCmd(server, {::framegateway::XCP_CMD_SET_MTA, 0U, 0U, 0U, 0U, 0U, 0U, 0x20U}, response));
     EXPECT_EQ(6U, runCmd(server, {::framegateway::XCP_CMD_UPLOAD, 0x04U}, response));
     EXPECT_EQ(0x00U, response[1]);
     EXPECT_EQ(3U, server.getCommandCount());
@@ -79,9 +79,8 @@ TEST(XcpServerTest, connect_upload)
 TEST(XcpServerTest, download_and_symbols)
 {
     ::framegateway::XcpServer server;
-    server.init({makeSymbol("Cal", 0x20000010U, 2U, true),
-                 makeSymbol("Meas", 0x20000020U, 2U, false)},
-                {});
+    server.init(
+        {makeSymbol("Cal", 0x20000010U, 2U, true), makeSymbol("Meas", 0x20000020U, 2U, false)}, {});
     server.addMemoryRegion(makeRegion(0x20000000U, 64U, true));
 
     uint8_t response[64U] = {0U};
@@ -135,9 +134,8 @@ TEST(XcpServerTest, daq_cyclic)
 
     std::vector<std::tuple<uint8_t, std::vector<uint8_t>>> dtos;
     server.setTransportHandler(
-        [&dtos](uint8_t, uint8_t, uint32_t, uint16_t len, uint8_t const* data) {
-            dtos.emplace_back(0U, std::vector<uint8_t>(data, data + len));
-        });
+        [&dtos](uint8_t, uint8_t, uint32_t, uint16_t len, uint8_t const* data)
+        { dtos.emplace_back(0U, std::vector<uint8_t>(data, data + len)); });
     server.setDaqTransport(0U, 0U, 0x700U);
 
     uint8_t response[64U] = {0U};

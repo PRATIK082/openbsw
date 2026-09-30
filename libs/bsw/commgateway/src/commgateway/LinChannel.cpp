@@ -24,11 +24,11 @@ void LinChannel::init(LinHwInterface* hw, uint8_t channelId)
     m_initialized = (hw != nullptr);
     if (m_initialized)
     {
-        m_hw->registerRxCallback(0U, [this](uint8_t pid, uint8_t* data, uint8_t dlc) {
-            onFrameReceived(pid, data, dlc);
-        });
-        m_hw->registerTxDoneCallback(
-            [this](uint8_t pid, bool success) { onFrameTransmitted(pid, success); });
+        m_hw->registerRxCallback(
+            0U,
+            [this](uint8_t pid, uint8_t* data, uint8_t dlc) { onFrameReceived(pid, data, dlc); });
+        m_hw->registerTxDoneCallback([this](uint8_t pid, bool success)
+                                     { onFrameTransmitted(pid, success); });
     }
 }
 
@@ -54,10 +54,10 @@ void LinChannel::scheduleFrame(LinFrameConfig const& config)
     if (config.scheduleTimeMs > 0U)
     {
         LinScheduleEntry entry{};
-        entry.pid          = config.pid;
-        entry.dlc          = config.dlc;
-        entry.cycleTimeMs  = config.scheduleTimeMs;
-        entry.enabled      = true;
+        entry.pid         = config.pid;
+        entry.dlc         = config.dlc;
+        entry.cycleTimeMs = config.scheduleTimeMs;
+        entry.enabled     = true;
         m_scheduler.addEntry(entry);
     }
 }
@@ -94,10 +94,7 @@ void LinChannel::onFrameTransmitted(uint8_t /* pid */, bool success)
 
 void LinChannel::registerUpperLayerCallback(LinUpperCallback cb) { m_upperCallback = cb; }
 
-void LinChannel::reportError(LinError error)
-{
-    m_errorCounts[static_cast<uint8_t>(error)]++;
-}
+void LinChannel::reportError(LinError error) { m_errorCounts[static_cast<uint8_t>(error)]++; }
 
 void LinChannel::mainFunction(uint32_t nowMs)
 {
@@ -105,13 +102,16 @@ void LinChannel::mainFunction(uint32_t nowMs)
     {
         return;
     }
-    m_scheduler.tick(nowMs, [this](uint8_t pid, uint8_t dlc) {
-        (void)dlc;
-        LinFrameConfig const* frame = findFrame(pid);
-        uint8_t data[8U]            = {0U};
-        uint8_t len                 = (frame != nullptr) ? frame->dlc : 0U;
-        return transmitFrame(pid, data, len);
-    });
+    m_scheduler.tick(
+        nowMs,
+        [this](uint8_t pid, uint8_t dlc)
+        {
+            (void)dlc;
+            LinFrameConfig const* frame = findFrame(pid);
+            uint8_t data[8U]            = {0U};
+            uint8_t len                 = (frame != nullptr) ? frame->dlc : 0U;
+            return transmitFrame(pid, data, len);
+        });
     m_hw->mainFunction();
 }
 
