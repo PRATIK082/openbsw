@@ -74,10 +74,10 @@ TEST(CommStackTest, lin_to_eth_gateway_path)
     config.ethTransport           = &ethTransport;
     config.ethConfig.primaryPduId = 4096U;
 
-    auto& stack = ::commgateway::CommStack::getInstance();
+    TestCommStack stack;
     stack.configure(config, ::async::CONTEXT_INVALID);
     ASSERT_TRUE(stack.isConfigured());
-    static_cast<TestCommStack&>(stack).publicInit();
+    stack.publicInit();
 
     ::commgateway::LinFrameConfig frame{};
     frame.pid              = ::commgateway::LinChannel::computePid(0x20U);
@@ -100,7 +100,7 @@ TEST(CommStackTest, lin_to_eth_gateway_path)
     EXPECT_EQ(2U, stack.getStatistics().rxFrameCount); // LIN rx + ETH loopback rx
     EXPECT_EQ(1U, stack.getStatistics().txFrameCount);
 
-    static_cast<TestCommStack&>(stack).publicShutdown();
+    stack.publicShutdown();
 }
 
 /**
@@ -116,9 +116,9 @@ TEST(CommStackTest, gateway_dispatch_to_lin)
     config.ethTransport           = &ethTransport;
     config.ethConfig.primaryPduId = 1U;
 
-    auto& stack = ::commgateway::CommStack::getInstance();
+    TestCommStack stack;
     stack.configure(config, ::async::CONTEXT_INVALID);
-    static_cast<TestCommStack&>(stack).publicInit();
+    stack.publicInit();
 
     ::commgateway::LinFrameConfig frame{};
     frame.pid              = ::commgateway::LinChannel::computePid(0x21U);
@@ -139,7 +139,7 @@ TEST(CommStackTest, gateway_dispatch_to_lin)
     ASSERT_EQ(1U, linHw.txBytes.size());
     EXPECT_EQ(3U, linHw.txBytes[0]);
 
-    static_cast<TestCommStack&>(stack).publicShutdown();
+    stack.publicShutdown();
 }
 
 } // namespace
