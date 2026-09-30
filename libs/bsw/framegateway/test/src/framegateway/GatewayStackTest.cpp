@@ -47,10 +47,10 @@ public:
  */
 TEST(GatewayStackTest, frame_to_pdu_path)
 {
-    auto& stack = ::framegateway::GatewayStack::getInstance();
+    TestGatewayStack stack;
     stack.configure(makeConfig(), ::async::CONTEXT_INVALID);
     ASSERT_TRUE(stack.isConfigured());
-    static_cast<TestGatewayStack&>(stack).publicInit();
+    stack.publicInit();
     stack.resetStatistics();
 
     std::vector<std::tuple<uint8_t, uint8_t, uint32_t, uint16_t>> sent;
@@ -80,7 +80,7 @@ TEST(GatewayStackTest, frame_to_pdu_path)
     stack.onFrameReceived(0U, 0U, 0x501U, 8U, frame);
     EXPECT_EQ(1U, stack.getStatistics().framesDropped);
 
-    static_cast<TestGatewayStack&>(stack).publicShutdown();
+    stack.publicShutdown();
 }
 
 /**
@@ -88,9 +88,9 @@ TEST(GatewayStackTest, frame_to_pdu_path)
  */
 TEST(GatewayStackTest, load_config)
 {
-    auto& stack = ::framegateway::GatewayStack::getInstance();
+    TestGatewayStack stack;
     stack.configure(::framegateway::GatewayStackConfig(), ::async::CONTEXT_INVALID);
-    static_cast<TestGatewayStack&>(stack).publicInit();
+    stack.publicInit();
     stack.resetStatistics();
 
     std::string error;
@@ -121,7 +121,7 @@ TEST(GatewayStackTest, load_config)
     stack.onFrameReceived(0U, 0U, 2015U, 8U, frame);
     EXPECT_EQ(1U, stack.getStatistics().framesDropped);
 
-    static_cast<TestGatewayStack&>(stack).publicShutdown();
+    stack.publicShutdown();
 }
 
 /**
@@ -129,9 +129,9 @@ TEST(GatewayStackTest, load_config)
  */
 TEST(GatewayStackTest, tp_path)
 {
-    auto& stack = ::framegateway::GatewayStack::getInstance();
+    TestGatewayStack stack;
     stack.configure(::framegateway::GatewayStackConfig(), ::async::CONTEXT_INVALID);
-    static_cast<TestGatewayStack&>(stack).publicInit();
+    stack.publicInit();
     stack.resetStatistics();
 
     bool delivered = false;
@@ -143,7 +143,7 @@ TEST(GatewayStackTest, tp_path)
     EXPECT_TRUE(delivered);
     EXPECT_EQ(1U, stack.getStatistics().framesReceived);
 
-    static_cast<TestGatewayStack&>(stack).publicShutdown();
+    stack.publicShutdown();
 }
 
 } // namespace
