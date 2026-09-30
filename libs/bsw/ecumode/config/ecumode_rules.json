@@ -1,0 +1,47 @@
+{
+    "_license": "Copyright (c) 2026 Accenture, Apache-2.0 (SPDX-License-Identifier: Apache-2.0)",
+    "_comment": "Example ECU mode filter/action configuration (Phase 5). Action names are symbolic only and are dispatched to caller-registered handlers.",
+    "modes": {
+        "NORMAL": {
+            "default": "ALLOW"
+        },
+        "STANDBY": {
+            "default": "BLOCK_RX",
+            "exceptions": [
+                {"frameId": 2016, "channelType": 0, "policy": "ALLOW"},
+                {"frameId": 2047, "channelType": 0, "policy": "ALLOW"}
+            ]
+        },
+        "SLEEP": {
+            "default": "BLOCK_BOTH",
+            "exceptions": [
+                {"frameId": 0, "channelType": 0, "policy": "ALLOW"}
+            ]
+        },
+        "DIAGNOSTIC": {
+            "default": "BLOCK_RX",
+            "exceptions": [
+                {"frameId": 2016, "channelType": 0, "policy": "ALLOW"},
+                {"frameId": 2047, "channelType": 0, "policy": "ALLOW"},
+                {"frameId": 1280, "channelType": 0, "policy": "ALLOW"}
+            ]
+        },
+        "TRANSPORT": {
+            "default": "BLOCK_BOTH",
+            "exceptions": [
+                {"frameId": 2016, "channelType": 0, "policy": "ALLOW"}
+            ]
+        },
+        "MANUFACTURING": {
+            "default": "ALLOW"
+        }
+    },
+    "actions": {
+        "NORMAL": ["START_SIGNAL_GATEWAY"],
+        "STANDBY": ["STOP_SIGNAL_GATEWAY"],
+        "SLEEP": ["STOP_SIGNAL_GATEWAY", "SUSPEND_COMMUNICATION"],
+        "DIAGNOSTIC": ["STOP_SIGNAL_GATEWAY", "ENABLE_DIAGNOSTIC_SESSION"],
+        "TRANSPORT": ["STOP_SIGNAL_GATEWAY", "ENABLE_TRANSPORT_MODE"],
+        "MANUFACTURING": ["START_SIGNAL_GATEWAY", "ENABLE_MANUFACTURING_MODE"]
+    }
+}
