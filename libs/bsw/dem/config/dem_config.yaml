@@ -1,0 +1,35 @@
+dem:
+  enabled: true
+  dtcs:
+    - { dtc: "P010000", format: "OBDII", severity: "MAJOR", obdClass: "A",
+        freezeFrameEnabled: true, extendedDataSize: 16, agingEnabled: true,
+        agingCycles: 40, pendingDtcEnabled: true, permanentDtcEnabled: false }
+    - { dtc: "C010015", format: "OBDII", severity: "CRITICAL", obdClass: "C",
+        freezeFrameEnabled: true, extendedDataSize: 32, agingEnabled: true,
+        agingCycles: 80, pendingDtcEnabled: true, permanentDtcEnabled: false }
+    - { dtc: "U010000", format: "UDS", severity: "MAJOR", obdClass: "C",
+        freezeFrameEnabled: true, extendedDataSize: 8, agingEnabled: true,
+        agingCycles: 40, pendingDtcEnabled: true, permanentDtcEnabled: false }
+    - { dtc: "P042000", format: "OBDII", severity: "MAJOR", obdClass: "C",
+        freezeFrameEnabled: true, extendedDataSize: 16, agingEnabled: false,
+        agingCycles: 0, pendingDtcEnabled: false, permanentDtcEnabled: true }
+    - { dtc: "P100000", format: "OEM", severity: "MINOR", obdClass: "B",
+        freezeFrameEnabled: false, extendedDataSize: 8, agingEnabled: true,
+        agingCycles: 20, pendingDtcEnabled: true, permanentDtcEnabled: false }
+  freezeFrame:
+    maxRecords: 5
+    priority: ["CRITICAL", "MAJOR", "MINOR"]
+    signals:
+      - { signalName: "VehicleSpeed", size: 2 }
+      - { signalName: "EngineSpeed", size: 2 }
+      - { signalName: "CoolantTemp", size: 1 }
+      - { signalName: "ThrottlePosition", size: 1 }
+      - { signalName: "BatteryVoltage", size: 2 }
+      - { signalName: "AmbientTemp", size: 1 }
+  operationCycles:
+    - { cycleName: "IGNITION_CYCLE", cycleType: "IGNITION_ON_TO_OFF" }
+    - { cycleName: "WARMUP_CYCLE", cycleType: "ENGINE_WARMUP" }
+    - { cycleName: "DRIVING_CYCLE", cycleType: "VEHICLE_MOVEMENT" }
+  eventMemory:
+    primaryMemory: { maxDtc: 50, priority: ["CRITICAL", "MAJOR"] }
+    secondaryMemory: { maxDtc: 100, priority: ["MINOR"] }
