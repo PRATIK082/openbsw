@@ -1,0 +1,45 @@
+persistence:
+  enabled: true
+  devices:
+    - deviceId: 0
+      deviceType: "INTERNAL_FLASH"
+      baseAddress: 0x08000000
+      size: 0x00100000
+      sectorSize: 0x1000
+      writeAlignment: 8
+    - deviceId: 1
+      deviceType: "EXTERNAL_EEPROM"
+      i2cAddress: 0x50
+      size: 0x8000
+  blocks:
+    - { blockId: 0, name: "CalibrationData", size: 4096, deviceId: 0,
+        storageType: "RAM_AND_FLASH", crcEnabled: true, crcType: "CRC32",
+        immediateWrite: false, redundancy: "SINGLE", defaultData: "0x00",
+        recoveryOnCrcError: "USE_DEFAULT" }
+    - { blockId: 1, name: "VehicleConfiguration", size: 512, deviceId: 0,
+        storageType: "FLASH_ONLY", crcEnabled: true, crcType: "CRC32",
+        immediateWrite: true, redundancy: "REDUNDANT", defaultData: "0xFF",
+        recoveryOnCrcError: "USE_RECOVERY" }
+    - { blockId: 2, name: "DtcMemory", size: 8192, deviceId: 0,
+        storageType: "RAM_AND_FLASH", crcEnabled: true, crcType: "CRC32",
+        immediateWrite: false, redundancy: "SINGLE", defaultData: "0x00",
+        recoveryOnCrcError: "USE_DEFAULT" }
+    - { blockId: 3, name: "Odometer", size: 64, deviceId: 1,
+        storageType: "FLASH_ONLY", crcEnabled: true, crcType: "CRC32",
+        immediateWrite: true, redundancy: "REDUNDANT", defaultData: "0x00",
+        recoveryOnCrcError: "USE_RECOVERY", writeCountLimit: 1000 }
+    - { blockId: 4, name: "XcpCalibration", size: 2048, deviceId: 0,
+        storageType: "RAM_AND_FLASH", crcEnabled: true, crcType: "CRC16",
+        immediateWrite: false, redundancy: "SINGLE", defaultData: "0x00",
+        recoveryOnCrcError: "USE_DEFAULT" }
+  wearLeveling:
+    enabled: true
+    algorithm: "SECTOR_ROTATION"
+    maxEraseCycles: 100000
+    warningThreshold: 80000
+    badBlockManagement: true
+  ramMirror:
+    enabled: true
+    mirrorAllBlocks: false
+    syncStrategy: "SYNC_ON_WRITE"
+    syncPeriodMs: 1000
