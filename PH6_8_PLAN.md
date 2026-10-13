@@ -175,3 +175,7 @@ Bazel: `bazel test //libs/bsw/persistence/... //libs/bsw/faultmanager/... //libs
 - `FaultManager` freeze-frame signals are value snapshots, not live RTE reads; RTE binding is a follow-up.
 - Integrity timeout monitoring uses caller tick (`setTickProvider`); default tick is a monotonic counter
   incremented in `mainFunction()`.
+
+## 8.
+## 9.
+## 10. 
