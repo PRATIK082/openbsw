@@ -1,0 +1,75 @@
+# *******************************************************************************
+# Copyright (c) 2026 Accenture
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+cc_library(
+    name = "canstack",
+    srcs = [
+        "src/canstack/CanChannel.cpp",
+        "src/canstack/CanFrame.cpp",
+        "src/canstack/CanHwMcp2515.cpp",
+        "src/canstack/CanHwSocketCan.cpp",
+        "src/canstack/CanHwStub.cpp",
+        "src/canstack/CanHwTransceiverAdapter.cpp",
+        "src/canstack/CanInterface.cpp",
+        "src/canstack/CanRouter.cpp",
+        "src/canstack/CanStackLogger.cpp",
+        "src/canstack/CanSubsystem.cpp",
+        "src/canstack/CanTxScheduler.cpp",
+        "src/canstack/SignalDb.cpp",
+    ],
+    hdrs = glob(["include/**/*.h"]),
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//libs/bsw/async",
+        "//libs/bsw/cpp2can",
+        "//libs/bsw/lifecycle",
+        "//libs/bsw/util",
+    ],
+)
+
+cc_library(
+    name = "canstack_test_utils",
+    testonly = True,
+    hdrs = [
+        "test/include/canstack/TestUtils.h",
+    ],
+    strip_include_prefix = "test/include",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":canstack",
+    ],
+)
+
+cc_library(
+    name = "canstack_test",
+    testonly = True,
+    srcs = [
+        "test/src/canstack/CanChannelTest.cpp",
+        "test/src/canstack/CanFrameTest.cpp",
+        "test/src/canstack/CanHwMcp2515Test.cpp",
+        "test/src/canstack/CanHwStubTest.cpp",
+        "test/src/canstack/CanInterfaceTest.cpp",
+        "test/src/canstack/CanRouterTest.cpp",
+        "test/src/canstack/CanSubsystemTest.cpp",
+        "test/src/canstack/CanTxSchedulerTest.cpp",
+        "test/src/canstack/SignalDbTest.cpp",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":canstack",
+        ":canstack_test_utils",
+        "//libs/bsw/async:async_mock",
+        "//libs/bsw/async:async_mock_impl",
+        "//libs/3rdparty/googletest:gmock_main",
+    ],
+)
