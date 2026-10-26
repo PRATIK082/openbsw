@@ -1,0 +1,33 @@
+# *******************************************************************************
+# Copyright (c) 2026 Accenture
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+integrity:
+  enabled: true
+  profiles:
+    - { profileId: 1, profileType: "P01", signalName: "VehicleSpeed", pduId: 1001,
+        dataId: 0x0001, crcType: "CRC8_SAE_J1850", counterSize: 4,
+        dataIdMode: "IMPLICIT", startValue: 0x00, timeoutMs: 100 }
+    - { profileId: 2, profileType: "P02", signalName: "EngineSpeed", pduId: 1002,
+        dataIdList: [0x01, 0x02, 0x03, 0x04], crcType: "CRC8_SAE_J1850", counterSize: 4,
+        dataIdMode: "ROTATING", startValue: 0x00, timeoutMs: 100 }
+    - { profileId: 4, profileType: "P04", signalName: "SteeringAngle", pduId: 1003,
+        dataId: 0x00000003, crcType: "CRC32_CCITT", counterSize: 16,
+        dataIdMode: "IMPLICIT", startValue: 0x0000, timeoutMs: 50 }
+    - { profileId: 5, profileType: "P05", signalName: "BrakePressure", pduId: 1004,
+        dataId: 0x0004, crcType: "CRC16_CCITT", counterSize: 8,
+        dataIdMode: "IMPLICIT", startValue: 0x00, timeoutMs: 20 }
+    - { profileId: 11, profileType: "P11", signalName: "AirbagStatus", pduId: 1005,
+        dataId: 0x0005, crcType: "CRC8_SAE_J1850", counterSize: 8,
+        dataIdMode: "IMPLICIT", startValue: 0x00, timeoutMs: 10 }
+  gateway:
+    enabled: true
+    checkOnReceive: true
+    protectOnTransmit: true
+    forwardEvenOnCrcError: false
