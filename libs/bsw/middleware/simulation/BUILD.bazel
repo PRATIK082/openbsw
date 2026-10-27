@@ -1,0 +1,160 @@
+# *******************************************************************************
+# Copyright (c) 2026 Accenture
+# Copyright (c) 2026 BMW AG
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("//bazel/config/build_variant:compatibility.bzl", "middleware_simulation_only", "unit_test_only")
+load(
+    "//libs/bsw/middleware/tools/cpp_generator:middleware_codegen.bzl",
+    "middleware_codegen",
+)
+load(":generated_outputs.bzl", "GENERATED_OUTPUTS")
+
+# ------------------------------------------------------------------------------
+# Platform integration
+#
+# Bound by the middleware_simulation platform via its platform flags.
+# ------------------------------------------------------------------------------
+
+cc_library(
+    name = "simulation_etl_profile",
+    hdrs = ["include/etl_profile.h"],
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "simulation_concurrency",
+    srcs = ["platform_integration/concurrency/src/ConcurrencyImpl.cpp"],
+    hdrs = ["platform_integration/concurrency/include/middleware/concurrency/lock_types.h"],
+    strip_include_prefix = "platform_integration/concurrency/include",
+    target_compatible_with = middleware_simulation_only(),
+    visibility = ["//libs/bsw/middleware:__pkg__"],
+    deps = ["//libs/bsw/middleware:middleware_interfaces"],
+    # Defines symbols that //libs/bsw/middleware references but the binary does not.
+    alwayslink = True,
+)
+
+cc_library(
+    name = "simulation_logger",
+    srcs = ["platform_integration/logger/src/LoggerImpl.cpp"],
+    target_compatible_with = middleware_simulation_only(),
+    visibility = ["//libs/bsw/middleware:__pkg__"],
+    deps = [
+        ":simulation_private_headers",
+        "//libs/3rdparty/etl",
+        "//libs/bsw/middleware:middleware_interfaces",
+    ],
+    # Defines symbols that //libs/bsw/middleware references but the binary does not.
+    alwayslink = True,
+)
+
+cc_library(
+    name = "simulation_os",
+    srcs = ["platform_integration/os/src/OsDefinitions.cpp"],
+    target_compatible_with = middleware_simulation_only(),
+    visibility = ["//libs/bsw/middleware:__pkg__"],
+    deps = ["//libs/bsw/middleware:middleware_interfaces"],
+    alwayslink = True,
+)
+
+cc_library(
+    name = "simulation_time",
+    srcs = ["platform_integration/time/src/SystemTimeProvider.cpp"],
+    target_compatible_with = middleware_simulation_only(),
+    visibility = ["//libs/bsw/middleware:__pkg__"],
+    deps = ["//libs/bsw/middleware:middleware_interfaces"],
+    alwayslink = True,
+)
+
+cc_library(
+    name = "simulation_qualifiers",
+    hdrs = [
+        "platform_integration/qualifier/include/middleware/signal/qualifier.h",
+    ],
+    strip_include_prefix = "platform_integration/qualifier/include",
+    deps = [
+        "//libs/3rdparty/etl",
+        "//libs/bsw/middleware:middleware_hdrs",
+    ],
+)
+
+# ------------------------------------------------------------------------------
+# Generated code
+# ------------------------------------------------------------------------------
+
+middleware_codegen(
+    name = "middleware_simulation_generated",
+    deployment_yaml = "model/deployment-test.yaml",
+    generated_outputs = GENERATED_OUTPUTS,
+    deps = [
+        ":simulation_qualifiers",
+        "//libs/bsw/middleware",
+    ],
+)
+
+cc_library(
+    name = "simulation_private_headers",
+    hdrs = [
+        "include/Logger.h",
+        "include/foo/FooProxyWrapper.h",
+        "include/foo/FooSkeletonWrapper.h",
+    ],
+    strip_include_prefix = "include",
+)
+
+# ------------------------------------------------------------------------------
+# Simulation and tests
+# ------------------------------------------------------------------------------
+
+cc_test(
+    name = "middleware_simulation_foo_method_test",
+    srcs = [
+        "src/Logger.cpp",
+        "test/FooMethodTest.cpp",
+    ],
+    linkopts = [
+        "-lpthread",
+        "-lrt",
+    ],
+    target_compatible_with = unit_test_only(),
+    deps = [
+        ":middleware_simulation_generated",
+        ":simulation_private_headers",
+        "//libs/3rdparty/googletest:gtest_main",
+        "//libs/bsw/middleware",
+    ],
+)
+
+cc_binary(
+    name = "middleware_simulation",
+    srcs = [
+        "src/Logger.cpp",
+        "src/MainCore0.cpp",
+        "src/MainCore1.cpp",
+        "src/Sample.cpp",
+        "src/ShmWrapper.cpp",
+        "src/ShmWrapper.h",
+    ],
+    linkopts = [
+        "-lpthread",
+        "-lrt",
+    ],
+    tags = ["manual"],
+    target_compatible_with = middleware_simulation_only(),
+    deps = [
+        ":middleware_simulation_generated",
+        ":simulation_private_headers",
+        ":simulation_qualifiers",
+        "//libs/bsw/middleware",
+    ],
+)

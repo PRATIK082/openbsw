@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2025 BMW AG
+ * Copyright (c) 2025-2026 BMW AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License Version 2.0 which is available at
@@ -26,9 +26,9 @@ namespace middleware::core
 void ITimeoutConfiguration::registerTimeoutTransceiver(
     ITimeoutHandler& transceiver, ::etl::ivector<ITimeoutHandler*>& timeoutTransceivers)
 {
-    auto const* it
+    auto const* timeoutIterator
         = ::etl::find(timeoutTransceivers.cbegin(), timeoutTransceivers.cend(), &transceiver);
-    if (it == timeoutTransceivers.cend())
+    if (timeoutIterator == timeoutTransceivers.cend())
     {
         if (!timeoutTransceivers.full())
         {
@@ -40,10 +40,11 @@ void ITimeoutConfiguration::registerTimeoutTransceiver(
 void ITimeoutConfiguration::unregisterTimeoutTransceiver(
     ITimeoutHandler& transceiver, ::etl::ivector<ITimeoutHandler*>& timeoutTransceivers)
 {
-    auto* it = ::etl::find(timeoutTransceivers.begin(), timeoutTransceivers.end(), &transceiver);
-    if (it != timeoutTransceivers.end())
+    auto* timeoutIterator
+        = ::etl::find(timeoutTransceivers.begin(), timeoutTransceivers.end(), &transceiver);
+    if (timeoutIterator != timeoutTransceivers.end())
     {
-        *it = timeoutTransceivers.back();
+        *timeoutIterator = timeoutTransceivers.back();
         timeoutTransceivers.pop_back();
     }
 }
@@ -74,7 +75,7 @@ IClusterConnectionConfigurationBase::dispatchMessageToProxy(
             static_cast<void>((*it)->onNewMessageReceived(msg));
         }
     }
-    else if (msg.isResponse())
+    else if (msg.isResponse() || msg.isError())
     {
         Message::Header const& header      = msg.getHeader();
         TransceiverBase* const transceiver = meta::DbManipulator::getTransceiver(
@@ -136,7 +137,7 @@ HRESULT IClusterConnectionConfigurationBase::dispatchMessage(
     Message const& msg)
 {
     HRESULT result = HRESULT::Ok;
-    if (msg.isEvent() || msg.isResponse())
+    if (msg.isEvent() || msg.isResponse() || msg.isError())
     {
         result = dispatchMessageToProxy(proxiesStart, proxiesEnd, msg);
     }

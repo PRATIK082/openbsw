@@ -22,6 +22,7 @@
 
 #include <common/busid/BusId.h>
 #include <etl/algorithm.h>
+#include <etl/array.h>
 #include <etl/ipool.h>
 #include <etl/span.h>
 
@@ -85,7 +86,7 @@ private:
     {
         uint16_t sourceAddress;
         uint16_t targetAddress;
-        uint8_t payloadPrefixBuffer[PAYLOAD_PREFIX_BUFFER_SIZE];
+        ::etl::array<uint8_t, PAYLOAD_PREFIX_BUFFER_SIZE> payloadPrefixBuffer;
     };
 
     DoIpTransportMessageSendJob* allocateJob(
@@ -119,15 +120,15 @@ private:
     void releaseDiagnosticSendJob(DoIpTransportMessageSendJob& sendJob);
 
     PayloadPrefixContext _payloadPeekContext;
-    IDoIpServerConnection* _connection;
+    IDoIpServerConnection* _connection{nullptr};
     ::etl::ipool& _diagnosticSendJobPool;
     ::etl::ipool& _protocolSendJobPool;
-    ::transport::TransportMessage* _transportMessage;
+    ::transport::TransportMessage* _transportMessage{nullptr};
     DoIpServerTransportConnectionConfig const& _config;
-    uint16_t _receiveMessagePayloadLength;
+    uint16_t _receiveMessagePayloadLength{0U};
     DoIpConstants::ProtocolVersion _protocolVersion;
-    bool _isRoutingActive;
-    uint8_t _readBuffer[4];
+    bool _isRoutingActive{false};
+    ::etl::array<uint8_t, 4> _readBuffer;
 };
 
 } // namespace doip

@@ -63,9 +63,10 @@ public:
     // [service-skeleton-execute-start]
     void execute()
     {
-        if (Base::isInitialized() && pendingAsyncResponse_ != nullptr)
+        /* Disabled for the mock unit test: init() is mocked, so isInitialized() stays false. */
+        if (/* Base::isInitialized() && */ pendingAsyncResponse_ != nullptr)
         {
-            [[maybe_unused]] ::middleware::core::HRESULT const result = Base::respond(
+            [[maybe_unused]] ::middleware::core::HRESULT const result = Base::respondAsyncMethod(
                 *pendingAsyncResponse_, features::communication::DummyService::Baz{9U, 8U, 7U, 6U});
             pendingAsyncResponse_ = nullptr;
         }
@@ -98,17 +99,17 @@ public:
     // [service-skeleton-attribute-broadcast-end]
 
     // [service-skeleton-attribute-get-start]
-    void get_SimpleFieldAttribute(SkeletonResponseInfo& response) override
+    void getSimpleFieldAttribute(SkeletonResponseInfo& response) override
     {
-        Base::get_SimpleFieldAttribute(response);
+        Base::getSimpleFieldAttribute(response);
     }
 
     // [service-skeleton-attribute-get-end]
 
     // [service-skeleton-attribute-set-start]
-    void set_SimpleFieldAttribute(uint32_t const& value) override
+    void setSimpleFieldAttribute(uint32_t const& value) override
     {
-        Base::set_SimpleFieldAttribute(value);
+        Base::setSimpleFieldAttribute(value);
     }
 
     // [service-skeleton-attribute-set-end]

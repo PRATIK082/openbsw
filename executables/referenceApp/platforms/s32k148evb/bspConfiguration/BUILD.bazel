@@ -17,9 +17,11 @@ cc_library(
         "include/bsp/**/*.hpp",
     ]),
     strip_include_prefix = "include",
+    target_compatible_with = ["//bazel/platform/constraints/soc:s32k148"],
     visibility = ["//visibility:public"],
     deps = [
         "//libs/bsp/bspInterrupts:bsp_interrupts",
+        "//platforms/s32k1xx/bsp/bspAdc:bsp_adc_headers",
         "//platforms/s32k1xx/bsp/bspEepromDriver:bsp_eeprom_driver",
         "//platforms/s32k1xx/bsp/bspFtm:bsp_ftm",
         "//platforms/s32k1xx/bsp/bspFtmPwm:bsp_ftm_pwm",
@@ -36,6 +38,7 @@ cc_library(
         "src/bsp/stdIo/stdIo.cpp",
         "src/bsp/uart/UartConfig.cpp",
     ],
+    target_compatible_with = ["//bazel/platform/constraints/soc:s32k148"],
     visibility = ["//visibility:public"],
     deps = [
         ":bsp_configuration_headers",
