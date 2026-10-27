@@ -133,9 +133,9 @@ docker> bazel test --config=s32k148 //...
 | UDS / DoIP | ISO 14229 UDS, ISO 13400 DoIP diagnostics | Yes | Yes | On current `main` |
 | ECU Mode Mgmt | NORMAL/STANDBY/SLEEP/DIAGNOSTIC/TRANSPORT/MANUFACTURING | Yes | Yes | On current `main` |
 | I/O Bridge | CAN/LIN/Ethernet I/O bridging, signal gateway | Yes | Yes | On current `main` |
-| Persistence | Block-based NVRAM, CRC, wear leveling, async API | Yes (in-memory) | Yes | Feature branch |
-| Fault/Event Mgr | DTC storage, freeze-frame, extended data, aging, permanent DTCs | Yes | Yes | Feature branch |
-| E2E Protection | ISO 26262 E2E profiles 1/2/4/5/11 (CRC+counter+data-ID) | Yes | Yes | Feature branch |
+| Persistence | Block-based NVRAM, CRC, wear leveling, async API | Yes | Yes | On current `main` |
+| Fault/Event Mgr | DTC storage, freeze-frame, extended data, aging, permanent DTCs | Yes | Yes | On current `main` |
+| E2E Protection | ISO 26262 E2E profiles 1/2/4/5/11 (CRC+counter+data-ID) | Yes | Yes | On current `main` |
 
 ## Automotive & Embedded Engineering Analysis
 
@@ -198,7 +198,7 @@ considered production-ready.
 
 ***
 
-## **PHASE 6: Memory & Persistence (NVRAM Manager)** ✅ Implemented (feature branch)
+## **PHASE 6: Memory & Persistence (NVRAM Manager)** ✅ Implemented
 
 ### Features to Implement
 | Feature |  Equivalent | OpenBSW Implementation |
@@ -221,7 +221,7 @@ considered production-ready.
 
 ***
 
-## **PHASE 7: Diagnostic Event Manager (Fault/Event Manager)** ✅ Implemented (feature branch)
+## **PHASE 7: Diagnostic Event Manager (Fault/Event Manager)** ✅ Implemented
 
 ### Features to Implement
 | Feature |  Equivalent | OpenBSW Implementation |
@@ -245,7 +245,7 @@ considered production-ready.
 
 ***
 
-## **PHASE 8: End-to-End (E2E) Protection** ✅ Implemented (feature branch)
+## **PHASE 8: End-to-End (E2E) Protection** ✅ Implemented
 
 ### Features to Implement
 | Feature |  Equivalent | OpenBSW Implementation |
@@ -610,7 +610,7 @@ considered production-ready.
 
 This roadmap covers **95% of Automotive generaly used features** plus **SDV-specific requirements** (DDS, SOME/IP, cloud, OTA). Each phase builds on previous phases, maximizing code reuse from OpenBSW's existing modules.
 
-**Next step**: merge `feature/phase6-8-persistence-faultmanager-integrity` into `main` via PR; complete Phase 9 (NM) and Phase 10 (multi-core).
+**Next step**: complete Phase 9 (Network Management) and Phase 10 (multi-core/partitioning); add SecOC (Phase 13) for ASIL-D diagnostics.
 
 See [GitHub Issues](https://github.com/eclipse-openbsw/openbsw/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement).
 
