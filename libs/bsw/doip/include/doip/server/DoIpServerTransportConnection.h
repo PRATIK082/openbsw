@@ -18,6 +18,7 @@
 #include "doip/server/DoIpServerConnectionHandler.h"
 #include "doip/server/DoIpServerTransportMessageHandler.h"
 
+#include <etl/array.h>
 #include <etl/intrusive_forward_list.h>
 #include <etl/intrusive_links.h>
 
@@ -88,8 +89,8 @@ public:
 private:
     DoIpTcpConnection _connection;
     DoIpServerTransportMessageHandler _transportMessageHandler;
-    uint8_t _writeBuffer[DoIpConstants::DOIP_HEADER_LENGTH];
-    bool _isMarkedForClose;
+    ::etl::array<uint8_t, DoIpConstants::DOIP_HEADER_LENGTH> _writeBuffer{};
+    bool _isMarkedForClose{false};
     DoIpTcpConnection::ConnectionType _type;
 };
 

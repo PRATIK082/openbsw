@@ -23,6 +23,7 @@
 #include <tcp/IDataSendNotificationListener.h>
 #include <tcp/socket/AbstractSocket.h>
 
+#include <etl/array.h>
 #include <etl/intrusive_links.h>
 #include <etl/intrusive_list.h>
 #include <etl/span.h>
@@ -136,28 +137,28 @@ private:
     ::tcp::AbstractSocket& _socket;
     ::etl::span<uint8_t> _currentReadBuffer;
     ::etl::span<uint8_t> _writeBuffer;
-    IDoIpConnectionHandler* _handler;
+    IDoIpConnectionHandler* _handler{nullptr};
     PayloadReceivedCallbackType _payloadReceivedCallback;
     PayloadDiscardedCallbackType _payloadDiscardedCallback;
     DetachCallbackType _detachCallback;
     SendJobList _pendingSendJobs;
     SendJobList _sentJobs;
-    uint8_t _headerBuffer[DoIpConstants::DOIP_HEADER_LENGTH];
-    size_t _readPayloadLength;
-    size_t _receivedBufferLength;
-    size_t _availableReadDataLength;
-    size_t _sentDataLength;
-    size_t _pendingSendDataLength;
-    size_t _sentJobTotalLength;
+    ::etl::array<uint8_t, DoIpConstants::DOIP_HEADER_LENGTH> _headerBuffer;
+    size_t _readPayloadLength{0U};
+    size_t _receivedBufferLength{0U};
+    size_t _availableReadDataLength{0U};
+    size_t _sentDataLength{0U};
+    size_t _pendingSendDataLength{0U};
+    size_t _sentJobTotalLength{0U};
     ::async::TimeoutType _sendTimeout;
     ::async::ContextType const _context;
-    ConnectionState _connectionState;
-    ReadState _readState;
-    CloseMode _closeMode;
-    uint8_t _sendBufferIndex;
-    uint8_t _suspendCallCounter;
-    bool _recurseRead;
-    bool _recurseWrite;
+    ConnectionState _connectionState{ConnectionState::INIT};
+    ReadState _readState{ReadState::HEADER};
+    CloseMode _closeMode{CloseMode::CLOSE};
+    uint8_t _sendBufferIndex{0U};
+    uint8_t _suspendCallCounter{0U};
+    bool _recurseRead{false};
+    bool _recurseWrite{false};
 };
 
 /**

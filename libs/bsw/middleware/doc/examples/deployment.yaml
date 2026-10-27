@@ -15,20 +15,42 @@ clusters:
   - &core0
     name: Core0
     id: 0
-    queue_size: 10
+    queueSize: 10
   - &core1
     name: Core1
     id: 1
-    queue_size: 10
+    queueSize: 10
 
 allocators:
   - &default_allocator
     name: default
     pools:
-      - elements: 10
-        chunk_sizes: 64
-      - elements: 1
-        chunk_sizes: 8208
+      - NumberOfElements: 10
+        ChunkSize: 64
+      - NumberOfElements: 1
+        ChunkSize: 8208
+
+pdus:
+  - name: samplePduWithCrc
+    size: 8
+    namespace: features::communication
+    headers:
+      common: features/communication/samplePduWithCrcCommon.h
+      reader: features/communication/samplePduWithCrcReader.h
+      reader_mock: features/communication/samplePduWithCrcReaderMock.h
+    signals:
+      - name: crc
+        type: uint8_t
+        bit_length: 8
+      - name: firstSignal
+        type: uint8_t
+        bit_length: 8
+      - name: secondSignal
+        type: uint16_t
+        bit_length: 16
+      - name: thirdSignal
+        type: uint32_t
+        bit_length: 32
 
 services:
   - &dummy_service

@@ -9,6 +9,7 @@
 # *******************************************************************************
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//bazel/config/build_variant:compatibility.bzl", "unit_test_only")
 
 # Compiled RTOS implementation. Every platform must declare this via its platform flags.
@@ -27,12 +28,10 @@ label_flag(
     visibility = ["//visibility:public"],
 )
 
-# Async binding (provides the RTOS-support define and runtime binding for the async layer).
-#   Default:  referenceApp binding
-#   Override: --//libs/bsw/async:async_binding=//path/to:your_binding
+# Override via --//libs/bsw/async:async_binding=<your_async_binding_target>
 label_flag(
     name = "async_binding",
-    build_setting_default = "//executables/referenceApp/asyncBinding:async_binding",
+    build_setting_default = "//bazel/config:no_implementation",
     visibility = ["//visibility:public"],
 )
 
@@ -56,7 +55,6 @@ cc_library(
     name = "async",
     visibility = ["//visibility:public"],
     deps = [
-        ":async_binding",
         ":async_headers",
         ":async_platform",
     ],
@@ -89,7 +87,22 @@ cc_library(
         "mock/gmock/src/async/TestContext.cpp",
         "mock/gmock/src/async/Types.cpp",
     ],
+    implementation_deps = [":async_mock"],
     target_compatible_with = unit_test_only(),
     visibility = ["//visibility:public"],
-    deps = [":async_mock"],
+)
+
+cc_test(
+    name = "async_test",
+    srcs = [
+        "test/src/async/TestContextTest.cpp",
+        "test/src/async/TypesTest.cpp",
+        "test/src/async/util/CallTest.cpp",
+    ],
+    target_compatible_with = unit_test_only(),
+    deps = [
+        ":async_mock",
+        ":async_mock_impl",
+        "//libs/3rdparty/googletest:gtest_main",
+    ],
 )

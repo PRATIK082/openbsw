@@ -65,7 +65,7 @@ endforeach ()
 
 project(
     "Eclipse OpenBSW"
-    VERSION 0.1.0
+    VERSION 2026.10.0
     DESCRIPTION
         "BSW workspace with reference application for multiple platforms"
     LANGUAGES C CXX ASM)
@@ -187,6 +187,7 @@ if (BUILD_EXECUTABLE STREQUAL "unitTest")
         add_subdirectory(libs/bsw/logger/test)
         add_subdirectory(libs/bsw/lwipSocket/test)
         add_subdirectory(libs/bsw/middleware/test)
+        add_subdirectory(libs/bsw/middleware/doc/examples)
         add_subdirectory(libs/bsw/routing/test)
         add_subdirectory(libs/bsw/runtime/test)
         add_subdirectory(libs/bsw/shed/test)

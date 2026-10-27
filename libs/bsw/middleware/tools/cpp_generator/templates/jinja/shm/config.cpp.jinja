@@ -22,9 +22,12 @@
 #include <cstdint>
 
 
+#include "middleware/core/MiddlewarePdu.h"
 #include "middleware/shm/Config.h"
-#include "shm/AllocatorsDefinitions.h"
-#include "shm/QueueDefinitions.h"
+
+#include "middleware/shm/AllocatorsDefinitions.h"
+#include "middleware/shm/PduDefinitions.h"
+#include "middleware/shm/QueueDefinitions.h"
 
 namespace middleware::shm
 {
@@ -47,6 +50,14 @@ volatile uint8_t* get{{ allocator.name | capitalize }}AllocatorMutex()
 MiddlewareQueue<QUEUE_TO_{{ cluster.name | upper }}_SIZE>* getQueueTo{{ cluster.name }}()
 {
     return &getMemoryLayout().queueTo{{ cluster.name }};
+}
+
+{% endfor %}
+
+{% for pdu in pdus %}
+{{ pdu.name | capitalize }}Pdu* get{{ pdu.name | capitalize }}()
+{
+    return &getMemoryLayout().{{ pdu.name }};
 }
 
 {% endfor %}
