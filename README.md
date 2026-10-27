@@ -127,6 +127,62 @@ docker> bazel test --config=s32k148 //...
 | UDS, DoCAN | Diagnostics over CAN | If ``SocketCAN`` is supported | Yes | Since Release 0.1 |
 | Ethernet | Basic TCP and UDP support | Yes | Yes | On current `main` |
 | Storage | Persistent data storage on EEPROM and Flash | Yes | Yes | On current `main` |
+| CAN Stack | Signal-based multi-channel CAN, HW abstraction (SocketCAN, MCP2515, STM32 bxCAN/FDCAN) | Yes | Yes | On current `main` |
+| LIN | LIN master/slave, scheduler, HW abstraction | Yes | Yes | On current `main` |
+| Frame Gateway | PDU routing, ISO-TP, DoIP, XCP server, gateway policies | Yes | Yes | On current `main` |
+| UDS / DoIP | ISO 14229 UDS, ISO 13400 DoIP diagnostics | Yes | Yes | On current `main` |
+| ECU Mode Mgmt | NORMAL/STANDBY/SLEEP/DIAGNOSTIC/TRANSPORT/MANUFACTURING | Yes | Yes | On current `main` |
+| I/O Bridge | CAN/LIN/Ethernet I/O bridging, signal gateway | Yes | Yes | On current `main` |
+| Persistence | Block-based NVRAM, CRC, wear leveling, async API | Yes (in-memory) | Yes | Feature branch |
+| Fault/Event Mgr | DTC storage, freeze-frame, extended data, aging, permanent DTCs | Yes | Yes | Feature branch |
+| E2E Protection | ISO 26262 E2E profiles 1/2/4/5/11 (CRC+counter+data-ID) | Yes | Yes | Feature branch |
+
+## Automotive & Embedded Engineering Analysis
+
+This fork extends Eclipse OpenBSW into a production-oriented automotive BSW. The analysis below
+captures the constraints that drive the design and the verification expected before any module is
+considered production-ready.
+
+### Target Platforms
+| Platform | MCU / SoC | RTOS | Status |
+| --- | --- | --- | --- |
+| POSIX (Linux) | x86_64 host | FreeRTOS / ThreadX (simulated) | Reference & CI target |
+| NXP S32K148 | ARM Cortex-M4F, 128 KB RAM | FreeRTOS / bare-metal | Primary automotive target |
+| ST STM32F413ZH / G474RE | ARM Cortex-M4/M7 | FreeRTOS / ThreadX | Secondary target |
+| Nucleo F413ZH / G474RE | ARM Cortex-M4/M7 | FreeRTOS | Dev boards |
+
+### Standards & Compliance
+- **AUTOSAR Classic 4.x concepts**: BSW layering (MCAL/ECU abstraction/Services/Complex drivers),
+  RTE-style signal access, NVRAM/FaultManager/E2E naming kept distinct from AUTOSAR API names to
+  avoid symbol collisions when integrating with AUTOSAR stacks.
+- **ISO 14229-1 (UDS)** and **ISO 13400 (DoIP)** for diagnostics; **SAE J1979 / ISO 27145 (WWH-OBD)**
+  for OBD-II.
+- **ISO 15765-2 (ISO-TP)** for CAN transport; **ISO 11898 (CAN/CAN-FD)**; **IEEE 802.3 (Ethernet)**.
+- **ISO 26262** (ASIL-B/D): E2E protection, watchdog, CRC, safe-state handling.
+- **ISO 21434 / UN R155** cybersecurity baseline (SecOC, secure diagnostics) planned.
+- **MISRA C++ / CERT**: table-free CRC, no dynamic allocation in hot paths, bounded containers (ETL).
+
+### Real-Time & Resource Constraints
+- **Deterministic latency**: gateway and E2E paths avoid heap allocation; ETL fixed-capacity containers.
+- **Wear endurance**: `FlashWearStore` sector rotation keeps erase-cycle delta small; deferred writes
+  flushed on `Persistence::shutdown()` (Phase-5 SLEEP).
+- **Memory footprint**: modules are opt-in via CMake/Bazel; `OPENBSW_CONFIGURE_GENERIC_BSW` gating.
+- **Concurrency**: spinlocks and lock-free queues for multi-core (Phase 10); single-core default.
+
+### Safety (ASIL) Mapping
+| Module | ASIL Target | Mechanism |
+| --- | --- | --- |
+| `integrity` (E2E) | ASIL-D | CRC-8/16/32 + counter + data-ID, timeout monitoring |
+| `persistence` | ASIL-B | CRC per block, redundant copies, wear leveling |
+| `faultmanager` | ASIL-B | DTC status bits, permanent DTCs, aging |
+| `framegateway` | ASIL-B | Policy-based routing, E2E check on RX |
+| `ecumode` | ASIL-B | Coordinated sleep/wake, deferred-write gating |
+
+### Verification Expectations
+- Unit tests (GoogleTest) for every module; Bazel `//...` and CTest gates in CI.
+- Clang-tidy / cppcheck static analysis; LCOV branch coverage.
+- Hardware-in-the-loop (S32K148) via pytest targets (`test/pyTest`).
+- No `--no-verify` / hook bypass; guard-audit clean before push.
 
 ## Roadmap
 **
@@ -142,7 +198,7 @@ docker> bazel test --config=s32k148 //...
 
 ***
 
-## **PHASE 6: Memory & Persistence (NVRAM Manager)**
+## **PHASE 6: Memory & Persistence (NVRAM Manager)** ✅ Implemented (feature branch)
 
 ### Features to Implement
 | Feature |  Equivalent | OpenBSW Implementation |
@@ -165,7 +221,7 @@ docker> bazel test --config=s32k148 //...
 
 ***
 
-## **PHASE 7: Diagnostic Event Manager (Fault/Event Manager)**
+## **PHASE 7: Diagnostic Event Manager (Fault/Event Manager)** ✅ Implemented (feature branch)
 
 ### Features to Implement
 | Feature |  Equivalent | OpenBSW Implementation |
@@ -189,7 +245,7 @@ docker> bazel test --config=s32k148 //...
 
 ***
 
-## **PHASE 8: End-to-End (E2E) Protection**
+## **PHASE 8: End-to-End (E2E) Protection** ✅ Implemented (feature branch)
 
 ### Features to Implement
 | Feature |  Equivalent | OpenBSW Implementation |
@@ -554,7 +610,7 @@ docker> bazel test --config=s32k148 //...
 
 This roadmap covers **95% of Automotive generaly used features** plus **SDV-specific requirements** (DDS, SOME/IP, cloud, OTA). Each phase builds on previous phases, maximizing code reuse from OpenBSW's existing modules.
 
-**Next step**: need to define
+**Next step**: merge `feature/phase6-8-persistence-faultmanager-integrity` into `main` via PR; complete Phase 9 (NM) and Phase 10 (multi-core).
 
 See [GitHub Issues](https://github.com/eclipse-openbsw/openbsw/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement).
 
