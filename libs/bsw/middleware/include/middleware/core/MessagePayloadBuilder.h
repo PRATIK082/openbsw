@@ -20,6 +20,7 @@
 #include <etl/span.h>
 #include <etl/type_traits.h>
 
+#include <cstddef>
 #include <cstdint>
 
 namespace middleware::core
@@ -78,7 +79,7 @@ public:
      * \return HRESULT indicating success or failure
      */
     [[nodiscard]] static HRESULT
-    allocate(::etl::span<uint8_t const> src, Message& msg, uint8_t numberOfReferences = 1U);
+    allocate(::etl::span<uint8_t const> const& src, Message& msg, uint8_t numberOfReferences = 1U);
 
     /**
      * Reads an object of type T from the content of \p msg.
@@ -143,7 +144,11 @@ public:
      *
      * \return MessagePayloadBuilder& The singleton instance
      */
-    static MessagePayloadBuilder& getInstance() { return _instance; }
+    static MessagePayloadBuilder& getInstance()
+    {
+        static MessagePayloadBuilder instance{};
+        return instance;
+    }
 
 private:
     /**
@@ -155,7 +160,7 @@ private:
      * \return HRESULT
      */
     static HRESULT allocAndCopyBytesToExternalPayload(
-        ::etl::span<uint8_t const> src, Message& msg, uint8_t numberOfReferences);
+        ::etl::span<uint8_t const> const& src, Message& msg, uint8_t numberOfReferences);
 
     static uint8_t* getAllocatorPointerFromMessage(Message const& msg);
 
@@ -173,6 +178,8 @@ private:
     emplaceExternalPayload(T const& obj, Message& msg, uint8_t const numberOfReferences)
     {
         static_assert(::etl::is_copy_constructible<T>::value, "T must have a copy constructor!");
+        static_assert(
+            alignof(T) <= alignof(std::max_align_t), "Over-aligned payloads are not supported");
 
         HRESULT ret = HRESULT::CannotAllocatePayload;
 
@@ -203,8 +210,6 @@ private:
     }
 
     MessagePayloadBuilder() = default;
-
-    static MessagePayloadBuilder _instance;
 };
 
 } // namespace middleware::core

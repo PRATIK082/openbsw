@@ -9,6 +9,8 @@
 # *******************************************************************************
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("//bazel/config/build_variant:compatibility.bzl", "reference_app_only", "unit_test_only")
 
 alias(
     name = "storage_rtos_impl",
@@ -27,7 +29,6 @@ cc_library(
         "src/storage/EepStorage.cpp",
         "src/storage/MappingStorage.cpp",
         "src/storage/QueuingStorage.cpp",
-        "src/storage/StorageTester.cpp",
     ],
     hdrs = [
         "include/storage/EepStorage.h",
@@ -36,29 +37,57 @@ cc_library(
         "include/storage/MappingStorage.h",
         "include/storage/QueuingStorage.h",
         "include/storage/StorageJob.h",
-        "include/storage/StorageTester.h",
     ],
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
     deps = [
-        ":storage_rtos_impl",
         "//libs/3rdparty/etl",
         "//libs/bsw/async",
+        "//libs/bsw/async:async_rtos_impl",
         "//libs/bsw/bsp",
         "//libs/bsw/util",
     ],
 )
 
 cc_library(
+    name = "storage_tester",
+    srcs = ["src/storage/StorageTester.cpp"],
+    hdrs = ["include/storage/StorageTester.h"],
+    strip_include_prefix = "include",
+    target_compatible_with = reference_app_only(),
+    visibility = ["//visibility:public"],
+    deps = [
+        ":storage",
+        "//libs/bsw/async:async_platform",
+    ],
+)
+
+cc_library(
     name = "storage_mock",
-    testonly = True,
     hdrs = [
         "mock/include/storage/IStorageMock.h",
     ],
     strip_include_prefix = "mock/include",
+    target_compatible_with = unit_test_only(),
     visibility = ["//visibility:public"],
     deps = [
         ":storage",
         "//libs/3rdparty/googletest:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "storage_test",
+    srcs = [
+        "test/src/StorageTest.cpp",
+    ],
+    target_compatible_with = unit_test_only(),
+    deps = [
+        ":storage",
+        ":storage_mock",
+        "//libs/3rdparty/googletest:gtest_main",
+        "//libs/bsw/async:async_mock_impl",
+        "//libs/bsw/bsp:bsp_mock",
+        "//libs/bsw/util:util_mock",
     ],
 )

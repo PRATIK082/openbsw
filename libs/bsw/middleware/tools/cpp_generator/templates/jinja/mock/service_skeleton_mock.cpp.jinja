@@ -167,7 +167,7 @@ void {{ service.name }}Skeleton::set{{ attribute.name }}Attribute(const {{ attri
 
 middleware::core::HRESULT {{ service.name }}Skeleton::respondSet{{ attribute.name }}Attribute(
     middleware::core::ResponseBufferBase::SkeletonResponseInfo& response,
-    const bool& result,
+    const {{ attribute.type }}& result,
     const bool handleResponseFailure)
 {
     auto* mock = {{ service.name }}SkeletonMock::getMock();
@@ -194,12 +194,6 @@ void {{ service.name }}Skeleton::set{{ attribute.name }}Attribute(const {{ attri
 
 // ATTRIBUTE / EVENT TRANSPORT (send forwards to the skeleton mock singleton)
 {% for attribute in service.attributes if attribute.event %}
-middleware::core::HRESULT {{ attribute.name }}Attribute::send(const AttributeType& value)
-{
-    auto* mock = {{ service.name }}SkeletonMock::getMock();
-    return mock->{{ attribute.variable }}.send(value);
-}
-
 middleware::core::HRESULT {{ attribute.name }}Attribute::send()
 {
     auto* mock = {{ service.name }}SkeletonMock::getMock();

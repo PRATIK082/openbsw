@@ -9,6 +9,8 @@
 # *******************************************************************************
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("//bazel/config/build_variant:compatibility.bzl", "unit_test_only")
 
 cc_library(
     name = "docan",
@@ -32,7 +34,6 @@ cc_library(
 
 cc_library(
     name = "docan_mock",
-    testonly = True,
     hdrs = [
         "mock/gmock/include/docan/addressing/DoCanAddressConverterMock.h",
         "mock/gmock/include/docan/datalink/DoCanDataFrameTransmitterCallbackMock.h",
@@ -43,6 +44,39 @@ cc_library(
         "mock/gmock/include/docan/transmitter/DoCanTickGeneratorMock.h",
     ],
     strip_include_prefix = "mock/gmock/include",
+    target_compatible_with = unit_test_only(),
     visibility = ["//visibility:public"],
     deps = [":docan"],
+)
+
+_DOCAN_TEST_DEPS = [
+    ":docan_mock",
+    "//libs/3rdparty/etl",
+    "//libs/3rdparty/googletest:gtest_esr_extensions",
+    "//libs/3rdparty/googletest:gtest_main",
+    "//libs/bsw/async:async_mock_impl",
+    "//libs/bsw/bsp:bsp_mock",
+    "//libs/bsw/common:configuration",
+    "//libs/bsw/cpp2can:cpp2can_mock",
+    "//libs/bsw/transport:transport_mock",
+    "//libs/bsw/util:util_mock",
+]
+
+cc_test(
+    name = "docan_test",
+    srcs = glob(
+        ["test/src/**/*.cpp"],
+        exclude = ["test/src/docan/integration/**"],
+    ),
+    target_compatible_with = unit_test_only(),
+    deps = _DOCAN_TEST_DEPS,
+)
+
+# The integration tests keep global state alive across test cases, so they run in
+# their own binary to stay isolated from the other tests that expect a clean start.
+cc_test(
+    name = "docan_integration_test",
+    srcs = glob(["test/src/docan/integration/**/*.cpp"]),
+    target_compatible_with = unit_test_only(),
+    deps = _DOCAN_TEST_DEPS,
 )
