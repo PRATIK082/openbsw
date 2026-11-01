@@ -619,6 +619,9 @@ See [GitHub Issues](https://github.com/eclipse-openbsw/openbsw/issues?q=is%3Aiss
 The [documentation](https://eclipse-openbsw.github.io/openbsw)
 describes Eclipse OpenBSW in detail and provides simple setup guides to build and use it.
 
+For the production-grade feature gap analysis and prioritised roadmap, see
+[`docs/engineering/PRODUCTION_GRADE_ROADMAP.md`](docs/engineering/PRODUCTION_GRADE_ROADMAP.md).
+
 ## Contributing
 
 It is expected that this repository will be used as a starting point for many custom developments.
