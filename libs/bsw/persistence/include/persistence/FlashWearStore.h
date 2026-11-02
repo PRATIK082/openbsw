@@ -20,6 +20,14 @@
 #include <etl/array.h>
 #include <etl/vector.h>
 
+namespace bsp
+{
+namespace flash
+{
+class IFlashDriver;
+}
+} // namespace bsp
+
 namespace persistence
 {
 
@@ -37,6 +45,11 @@ public:
 
     FlashWearStore() = default;
     FlashWearStore(uint32_t numSectors, uint32_t sectorSize, uint32_t maxEraseCycles = 100000U);
+
+    /// Bind a real flash driver (HAL binding). When set, reads/writes delegate to it.
+    void setFlashDriver(bsp::flash::IFlashDriver* driver) { _flashDriver = driver; }
+    bsp::flash::IFlashDriver* getFlashDriver() const { return _flashDriver; }
+    bool hasFlashDriver() const { return _flashDriver != nullptr; }
 
     bool init();
     bool isInitialized() const { return _initialized; }
@@ -71,6 +84,7 @@ private:
     etl::array<bool, MAX_SECTORS> _bad{};
     etl::array<bool, MAX_SECTORS> _erased{};
     etl::vector<uint8_t, MAX_LOGICAL_SIZE> _store{};
+    bsp::flash::IFlashDriver* _flashDriver{nullptr};
 };
 
 } // namespace persistence

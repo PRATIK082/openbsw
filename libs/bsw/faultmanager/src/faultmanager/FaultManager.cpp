@@ -26,6 +26,8 @@ bool FaultManager::init(DtcConfig const* dtcs, size_t count, FaultManagerConfig 
     _initialized  = false;
     _suppressed   = false;
     _liveSignals.clear();
+    _readiness.clear();
+    _inhibitions.clear();
     if ((dtcs == nullptr) || (count == 0U) || (count > MAX_DTCS))
     {
         return false;
@@ -314,6 +316,82 @@ void FaultManager::setFreezeSignals(FreezeSignal const* signals, size_t count)
     {
         _liveSignals.push_back(signals[i]);
     }
+}
+
+void FaultManager::setReadinessMonitor(char const* name, bool complete)
+{
+    if (name == nullptr)
+    {
+        return;
+    }
+    _readiness[std::string(name)] = complete;
+}
+
+bool FaultManager::isReadinessComplete(char const* name) const
+{
+    if (name == nullptr)
+    {
+        return false;
+    }
+    auto it = _readiness.find(std::string(name));
+    if (it == _readiness.end())
+    {
+        return false;
+    }
+    return it->second;
+}
+
+size_t FaultManager::getReadinessMonitorCount() const
+{
+    return _readiness.size();
+}
+
+FaultManager::DtcCodeType FaultManager::decodeDtcCodeType(uint32_t dtc)
+{
+    uint8_t const hi = static_cast<uint8_t>((dtc >> 22U) & 0x03U);
+    switch (hi)
+    {
+        case 0U: return DtcCodeType::P;
+        case 1U: return DtcCodeType::C;
+        case 2U: return DtcCodeType::B;
+        case 3U: return DtcCodeType::U;
+        default: return DtcCodeType::P;
+    }
+}
+
+char const* FaultManager::dtcCodeTypePrefix(DtcCodeType t)
+{
+    switch (t)
+    {
+        case DtcCodeType::P: return "P";
+        case DtcCodeType::C: return "C";
+        case DtcCodeType::B: return "B";
+        case DtcCodeType::U: return "U";
+        default: return "P";
+    }
+}
+
+void FaultManager::setInhibitionCondition(char const* name, bool active)
+{
+    if (name == nullptr)
+    {
+        return;
+    }
+    _inhibitions[std::string(name)] = active;
+}
+
+bool FaultManager::isInhibited(char const* name) const
+{
+    if (name == nullptr)
+    {
+        return false;
+    }
+    auto it = _inhibitions.find(std::string(name));
+    if (it == _inhibitions.end())
+    {
+        return false;
+    }
+    return it->second;
 }
 
 bool FaultManager::isMinor(Entry const& e) { return e.config.severity == Severity::Minor; }

@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -66,6 +67,23 @@ public:
 
     void clear();
 
+    /// Wakeup source registry (Phase-5/9): register a checker for a wakeup source id.
+    using WakeupChecker = std::function<bool()>;
+    void registerWakeupSource(uint32_t id, WakeupChecker checker);
+    void unregisterWakeupSource(uint32_t id);
+    bool isWakeupSourceActive(uint32_t id) const;
+    std::vector<uint32_t> getActiveWakeupSources() const;
+
+    /// Run-request management (BswM-like): clients request/release run; ECU stays awake while any request active.
+    void requestRun(std::string const& client);
+    void releaseRun(std::string const& client);
+    bool hasRunRequests() const;
+    size_t getRunRequestCount() const;
+
+    /// Mode-dependent communication enable flag (per ECU mode).
+    void setModeCommunication(EcuMode mode, bool enabled);
+    bool isModeCommunicationEnabled(EcuMode mode) const;
+
     // Hides (does not override) the non-virtual base mainFunction; applies any
     // pending ECU mode after running the base channel state machine.
     // NOLINTNEXTLINE: base mainFunction is non-virtual, hiding is intended.
@@ -89,6 +107,10 @@ private:
 
     ModeChangeCallback m_modeChangeCallback;
     mutable uint32_t m_blockCount = 0U;
+
+    std::map<uint32_t, WakeupChecker> m_wakeupSources{};
+    std::set<std::string> m_runRequests{};
+    std::map<EcuMode, bool> m_modeCommunication{};
 };
 
 } // namespace ecumode

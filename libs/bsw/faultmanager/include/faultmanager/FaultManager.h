@@ -17,6 +17,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <map>
+#include <string>
 #include <etl/delegate.h>
 #include <etl/map.h>
 #include <etl/span.h>
@@ -147,6 +149,20 @@ public:
     void setTimeProvider(TimeProvider provider) { _timeProvider = provider; }
     void setFreezeSignals(FreezeSignal const* signals, size_t count);
 
+    /// Readiness monitors (SAE J1979 I/M): track completion state per monitor name.
+    void setReadinessMonitor(char const* name, bool complete);
+    bool isReadinessComplete(char const* name) const;
+    size_t getReadinessMonitorCount() const;
+
+    /// OBD-II DTC code type (P/C/B/U) derived from the two high bits of the first byte.
+    enum class DtcCodeType : uint8_t { P, C, B, U };
+    static DtcCodeType decodeDtcCodeType(uint32_t dtc);
+    static char const* dtcCodeTypePrefix(DtcCodeType t);
+
+    /// Function Inhibition Manager (FiM): named inhibition conditions.
+    void setInhibitionCondition(char const* name, bool active);
+    bool isInhibited(char const* name) const;
+
     /// Persistence persistence hooks (Phase-6): flat binary image of confirmed DTC entries.
     size_t serialize(etl::span<uint8_t> out) const;
     bool deserialize(etl::span<uint8_t const> in);
@@ -183,6 +199,8 @@ private:
     TimeProvider _timeProvider{};
     uint32_t _tick{0U};
     etl::vector<FreezeSignal, MAX_FREEZE_SIGNALS> _liveSignals{};
+    std::map<std::string, bool> _readiness{};
+    std::map<std::string, bool> _inhibitions{};
 };
 
 } // namespace faultmanager
