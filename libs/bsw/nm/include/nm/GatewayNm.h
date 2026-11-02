@@ -12,10 +12,12 @@
  * \file
  * \ingroup nm
  *
- * Gateway Network Management — coordinates sleep/wake across multiple CAN
- * channels (and, by extension, LIN/Eth channels via adapters). A gateway keeps
- * the whole network awake as long as any single channel has a network request,
- * and allows sleep only when all channels are ready to sleep.
+ * Gateway Network Management — coordinates sleep/wake across multiple CAN (and,
+ * by extension, LIN/Eth) channels. Tracks both ECU-wide state and per-channel
+ * state, supports per-channel sleep modes, keep-awake requests, and wakeup
+ * propagation. A gateway keeps the whole ECU awake as long as any channel is
+ * requesting, kept awake, or awake; allows global sleep only when all channels
+ * are ready to sleep and no keep-awake is held.
  */
 #pragma once
 
@@ -29,10 +31,43 @@
 namespace nm
 {
 
+/// Per-channel sleep mode (independent of ECU-wide state).
+enum class ChannelSleepMode : uint8_t
+{
+    Awake,        ///< full communication, NM active
+    Silent,       ///< receive only, no TX (ComM silent)
+    Sleep,        ///< channel put to sleep independently
+    KeepAwake     ///< forced awake (diagnostics/OTA)
+};
+
+bool parseChannelSleepMode(char const* text, ChannelSleepMode& mode);
+
+/// ECU-wide state aggregated from all channels.
+enum class EcuState : uint8_t
+{
+    Off,
+    Startup,
+    Run,
+    PrepareSleep,
+    Sleep,
+    Wakeup
+};
+
+bool parseEcuState(char const* text, EcuState& state);
+
 class GatewayNm
 {
 public:
-    using ChannelList = std::vector<CanNm*>;
+    struct ChannelInfo
+    {
+        CanNm* nm = nullptr;
+        ChannelSleepMode mode = ChannelSleepMode::Awake;
+        bool keepAwake = false;       ///< per-channel keep-awake hold
+        bool requiredSleep = true;    ///< must sleep when ECU sleeps
+        bool wakeupPending = false;   ///< wakeup requested on this channel
+        NmState lastNmState = NmState::BusSleep;
+        uint32_t stateEntryTime = 0U;
+    };
 
     GatewayNm() = default;
     ~GatewayNm() = default;
@@ -40,40 +75,69 @@ public:
     GatewayNm(GatewayNm const&) = delete;
     GatewayNm& operator=(GatewayNm const&) = delete;
 
-    /// Register a channel's CanNm instance. Returns false on null/duplicate.
+    // ---- channel registration ----
     bool registerChannel(CanNm* nm);
-
-    /// Number of registered channels.
     size_t getChannelCount() const { return channels_.size(); }
+    ChannelInfo const* getChannel(size_t index) const;
 
-    /// Notify that a network request was made on a given channel index.
+    // ---- per-channel sleep mode ----
+    bool setChannelSleepMode(size_t index, ChannelSleepMode mode);
+    ChannelSleepMode getChannelSleepMode(size_t index) const;
+    bool setChannelRequiredSleep(size_t index, bool required);
+
+    // ---- per-channel keep-awake ----
+    void channelKeepAwake(size_t index, bool hold);
+    bool isChannelKeptAwake(size_t index) const;
+
+    // ---- per-channel wakeup / sleep ----
+    void channelWakeup(size_t index);
+    void channelSleep(size_t index);
+    bool isChannelAwake(size_t index) const;
+
+    // ---- network request propagation (legacy) ----
     void onChannelNetworkRequest(size_t channelIndex);
-
-    /// Notify that a network was released on a given channel index.
     void onChannelNetworkRelease(size_t channelIndex);
 
-    /// Periodic processing. nowMs caller-provided tick (ms).
+    // ---- ECU-wide state ----
+    EcuState getEcuState() const { return ecuState_; }
+    uint32_t getAwakeChannelCount() const;
+    bool isEcuAwake() const { return ecuState_ == EcuState::Run || ecuState_ == EcuState::Wakeup || ecuState_ == EcuState::Startup; }
+
+    // ---- periodic processing ----
     void mainFunction(uint32_t nowMs);
 
-    /// True if any channel is currently requesting the network.
+    // ---- aggregate queries ----
     bool isNetworkRequested() const;
-
-    /// True if all channels are ready to sleep (or already sleeping).
     bool areAllChannelsReadyToSleep() const;
+    bool areAllRequiredChannelsReadyToSleep() const;
 
-    /// Callback when gateway decides to allow global sleep.
+    // ---- callbacks ----
     using SleepCallback = std::function<void()>;
     void setGlobalSleepCallback(SleepCallback cb) { globalSleepCallback_ = std::move(cb); }
-
-    /// Callback when gateway wakes (any channel activity).
     using WakeupCallback = std::function<void()>;
     void setGlobalWakeupCallback(WakeupCallback cb) { globalWakeupCallback_ = std::move(cb); }
+    using ChannelStateCallback = std::function<void(size_t channelIndex, ChannelSleepMode mode)>;
+    void setChannelStateCallback(ChannelStateCallback cb) { channelStateCallback_ = std::move(cb); }
+
+    // ---- tuning ----
+    void setPrepareSleepTime(uint32_t ms) { prepareSleepTime_ = ms; }
 
 private:
-    std::vector<CanNm*> channels_;
+    void aggregateEcuState(uint32_t nowMs);
+    void enforceChannelModes();
+    void propagateWakeup(size_t sourceIndex);
+    void propagateSleep();
+
+    std::vector<ChannelInfo> channels_;
+    EcuState ecuState_ = EcuState::Off;
+    uint32_t ecuStateEntryTime_ = 0U;
+    uint32_t prepareSleepTime_ = 1500U;
+    bool globalSleepAllowed_ = false;
+    bool started_ = false;
+
     SleepCallback globalSleepCallback_;
     WakeupCallback globalWakeupCallback_;
-    bool globalSleepAllowed_ = false;
+    ChannelStateCallback channelStateCallback_;
 };
 
 } // namespace nm

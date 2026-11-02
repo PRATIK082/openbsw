@@ -453,9 +453,9 @@ TEST(GatewayNmTest, GlobalSleepCallbackWhenAllReady)
     gw.registerChannel(&a);
 
     a.networkRequest();
-    a.mainFunction(0U);
+    gw.mainFunction(0U);
     a.networkRelease();
-    a.mainFunction(1100U); // ReadySleep
+    gw.mainFunction(1100U); // ReadySleep
 
     bool slept = false;
     gw.setGlobalSleepCallback([&]() { slept = true; });
@@ -472,4 +472,182 @@ TEST(GatewayNmTest, MainFunctionDrivesChannels)
     gw.registerChannel(&a);
     gw.mainFunction(0U);
     EXPECT_EQ(a.getState(), nm::NmState::BusSleep);
+}
+
+TEST(GatewayNmTest, ParseChannelSleepModeAndEcuState)
+{
+    nm::ChannelSleepMode m;
+    EXPECT_TRUE(nm::parseChannelSleepMode("KeepAwake", m));
+    EXPECT_EQ(m, nm::ChannelSleepMode::KeepAwake);
+    nm::EcuState s;
+    EXPECT_TRUE(nm::parseEcuState("PrepareSleep", s));
+    EXPECT_EQ(s, nm::EcuState::PrepareSleep);
+}
+
+TEST(GatewayNmTest, PerChannelSleepModeIndependent)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a, b;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    ASSERT_TRUE(b.init(c));
+    gw.registerChannel(&a);
+    gw.registerChannel(&b);
+
+    // put channel 1 to sleep independently while ECU stays awake
+    ASSERT_TRUE(gw.setChannelSleepMode(1U, nm::ChannelSleepMode::Sleep));
+    EXPECT_EQ(gw.getChannelSleepMode(1U), nm::ChannelSleepMode::Sleep);
+    EXPECT_EQ(gw.getChannelSleepMode(0U), nm::ChannelSleepMode::Awake);
+
+    // channel 0 requests network
+    a.networkRequest();
+    gw.mainFunction(0U);
+    EXPECT_TRUE(a.isNetworkRequested());
+    // sleeping channel should not be requested
+    EXPECT_FALSE(b.isNetworkRequested());
+}
+
+TEST(GatewayNmTest, KeepAwakeHoldsEcuAwake)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    gw.registerChannel(&a);
+
+    gw.channelKeepAwake(0U, true);
+    EXPECT_TRUE(gw.isChannelKeptAwake(0U));
+    EXPECT_TRUE(gw.isNetworkRequested());
+
+    // even with no NM request, ECU stays awake
+    gw.mainFunction(0U);
+    EXPECT_TRUE(gw.isEcuAwake());
+}
+
+TEST(GatewayNmTest, ChannelWakeupFromSleep)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a, b;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    ASSERT_TRUE(b.init(c));
+    gw.registerChannel(&a);
+    gw.registerChannel(&b);
+
+    // drive to sleep
+    a.networkRequest(); b.networkRequest();
+    gw.mainFunction(0U);
+    a.networkRelease(); b.networkRelease();
+    gw.mainFunction(1100U);
+    gw.mainFunction(5000U); // sleep
+    EXPECT_EQ(gw.getEcuState(), nm::EcuState::Sleep);
+
+    // wakeup on channel 0
+    gw.channelWakeup(0U);
+    EXPECT_EQ(gw.getEcuState(), nm::EcuState::Run);
+    EXPECT_TRUE(a.isNetworkRequested());
+}
+
+TEST(GatewayNmTest, RequiredSleepChannelsSleepOnEcuSleep)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a, b;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    ASSERT_TRUE(b.init(c));
+    gw.registerChannel(&a);
+    gw.registerChannel(&b);
+    // channel 1 is NOT required to sleep (stays awake for diagnostics)
+    gw.setChannelRequiredSleep(1U, false);
+
+    a.networkRequest(); b.networkRequest();
+    gw.mainFunction(0U);
+    a.networkRelease(); b.networkRelease();
+    gw.mainFunction(1100U);
+    gw.mainFunction(5000U);
+    EXPECT_EQ(gw.getEcuState(), nm::EcuState::Sleep);
+    // required channel 0 should be in sleep mode
+    EXPECT_EQ(gw.getChannelSleepMode(0U), nm::ChannelSleepMode::Sleep);
+    // non-required channel 1 should remain awake mode
+    EXPECT_EQ(gw.getChannelSleepMode(1U), nm::ChannelSleepMode::Awake);
+}
+
+TEST(GatewayNmTest, KeepAwakeBlocksGlobalSleep)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    gw.registerChannel(&a);
+
+    a.networkRequest();
+    gw.mainFunction(0U);
+    gw.channelKeepAwake(0U, true);
+    a.networkRelease();
+    gw.mainFunction(1100U);
+    gw.mainFunction(5000U);
+    // keep-awake holds ECU awake
+    EXPECT_TRUE(gw.isEcuAwake());
+    EXPECT_FALSE(gw.areAllChannelsReadyToSleep());
+}
+
+TEST(GatewayNmTest, ChannelSleepModeSilentSetsCommMode)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    gw.registerChannel(&a);
+    ASSERT_TRUE(gw.setChannelSleepMode(0U, nm::ChannelSleepMode::Silent));
+    EXPECT_EQ(a.getCommMode(), nm::CommMode::SilentCommunication);
+}
+
+TEST(GatewayNmTest, AwakeChannelCount)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a, b;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    ASSERT_TRUE(b.init(c));
+    gw.registerChannel(&a);
+    gw.registerChannel(&b);
+    EXPECT_EQ(gw.getAwakeChannelCount(), 2U);
+    gw.channelSleep(1U);
+    EXPECT_EQ(gw.getAwakeChannelCount(), 1U);
+}
+
+TEST(GatewayNmTest, ChannelInfoAccess)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    gw.registerChannel(&a);
+    auto const* ci = gw.getChannel(0U);
+    ASSERT_NE(ci, nullptr);
+    EXPECT_EQ(ci->nm, &a);
+    EXPECT_EQ(gw.getChannel(99U), nullptr);
+}
+
+TEST(GatewayNmTest, SetChannelRequiredSleepValidation)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    gw.registerChannel(&a);
+    EXPECT_FALSE(gw.setChannelRequiredSleep(5U, false));
+    EXPECT_TRUE(gw.setChannelRequiredSleep(0U, false));
+}
+
+TEST(GatewayNmTest, EcuStateOffToStartupOnRegister)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    gw.registerChannel(&a);
+    // state becomes Startup on register; first mainFunction moves to Run
+    gw.mainFunction(0U);
+    EXPECT_EQ(gw.getEcuState(), nm::EcuState::Run);
 }

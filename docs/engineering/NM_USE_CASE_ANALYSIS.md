@@ -28,6 +28,13 @@ Analyses all automotive NM use cases against the implemented `CanNm` + `GatewayN
 | 14 | Bus-off recovery | Robustness | `onBusOff()` → BusSleep + callback | ✅ |
 | 15 | ECU mode integration (sleep callback) | EcuM | `setSleepCallback`, `setWakeupCallback` | ✅ |
 | 16 | Node user data exchange | Application data | `setUserData`/`getUserData`, per-node storage | ✅ |
+| 17 | Per-channel sleep mode (Awake/Silent/Sleep/KeepAwake) | Individual channel power mgmt | `setChannelSleepMode`, `ChannelSleepMode` | ✅ |
+| 18 | Keep-awake hold per channel | Diagnostics/OTA keep ECU awake | `channelKeepAwake`, `isChannelKeptAwake` | ✅ |
+| 19 | Per-channel wakeup / sleep control | Selective channel wake | `channelWakeup`, `channelSleep`, `isChannelAwake` | ✅ |
+| 20 | ECU-wide state aggregation | Complex ECU state vs channel state | `getEcuState`, `EcuState`, aggregate in mainFunction | ✅ |
+| 21 | Required vs optional sleep channels | Some channels stay awake during ECU sleep | `setChannelRequiredSleep`, `areAllRequiredChannelsReadyToSleep` | ✅ |
+| 22 | Multi-channel wakeup propagation | Wake all channels on one wakeup | `propagateWakeup` | ✅ |
+| 23 | Channel state tracking | Per-channel NM + mode tracking | `ChannelInfo`, `getChannel` | ✅ |
 
 ## Remaining gaps (future slices)
 - LinNm / EthNm / UdpNm (LIN/Ethernet NM) — requires LinIf/EthIf drivers.
