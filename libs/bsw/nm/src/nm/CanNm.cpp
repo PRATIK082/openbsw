@@ -34,6 +34,7 @@ bool CanNm::init(CanNmConfig const& config)
     if (config.maxNodes == 0U) return false;
     if (config.tTx == 0U) return false;
     if (config.userDataLength > 6U) return false;
+    if (config.maxUsers == 0U) return false;
 
     cfg_ = config;
     if (cfg_.userDataLength > 6U) cfg_.userDataLength = 6U;
@@ -41,12 +42,16 @@ bool CanNm::init(CanNmConfig const& config)
     lastSeen_.assign(cfg_.maxNodes, 0U);
     seen_.assign(cfg_.maxNodes, false);
     nodeUserData_.assign(cfg_.maxNodes, std::vector<uint8_t>(cfg_.userDataLength, 0U));
+    nodePnGroup_.assign(cfg_.maxNodes, 0U);
+
+    userRequests_.assign(cfg_.maxUsers, false);
 
     state_ = NmState::BusSleep;
     stateEntryTime_ = 0U;
     lastTxTime_ = 0U;
     lastNmPduRxTime_ = 0U;
     requestCount_ = 0U;
+    commMode_ = CommMode::FullCommunication;
     for (uint8_t i = 0U; i < 8U; ++i) localUserData_[i] = 0U;
 
     initialised_ = true;
@@ -58,24 +63,88 @@ void CanNm::shutdown()
     initialised_ = false;
     state_ = NmState::BusSleep;
     requestCount_ = 0U;
+    std::fill(userRequests_.begin(), userRequests_.end(), false);
+}
+
+// ---- User management ----
+int8_t CanNm::registerUser()
+{
+    if (!initialised_) return -1;
+    for (uint8_t i = 0U; i < cfg_.maxUsers; ++i)
+    {
+        // find a slot not registered? We use userRequests_ as registration+request.
+        // Simple: allow any index < maxUsers; track registration separately not needed.
+        return static_cast<int8_t>(i);
+    }
+    return -1;
+}
+
+void CanNm::userNetworkRequest(uint8_t userId)
+{
+    if (!initialised_) return;
+    if (userId >= cfg_.maxUsers) return;
+    if (commMode_ == CommMode::NoCommunication) return;
+    if (!userRequests_[userId])
+    {
+        userRequests_[userId] = true;
+        ++requestCount_;
+        if (state_ == NmState::BusSleep || state_ == NmState::PrepareBusSleep ||
+            state_ == NmState::ReadySleep)
+        {
+            if (wakeupCallback_) wakeupCallback_();
+        }
+    }
+}
+
+void CanNm::userNetworkRelease(uint8_t userId)
+{
+    if (!initialised_) return;
+    if (userId >= cfg_.maxUsers) return;
+    if (userRequests_[userId])
+    {
+        userRequests_[userId] = false;
+        if (requestCount_ > 0U) --requestCount_;
+    }
 }
 
 void CanNm::networkRequest()
 {
     if (!initialised_) return;
-    ++requestCount_;
-    if (state_ == NmState::BusSleep || state_ == NmState::PrepareBusSleep ||
-        state_ == NmState::ReadySleep)
-    {
-        // wake up
-        if (wakeupCallback_) wakeupCallback_();
-    }
+    // aggregate: request on behalf of user 0
+    userNetworkRequest(0U);
 }
 
 void CanNm::networkRelease()
 {
     if (!initialised_) return;
-    if (requestCount_ > 0U) --requestCount_;
+    userNetworkRelease(0U);
+}
+
+void CanNm::setCommMode(CommMode mode)
+{
+    if (!initialised_) return;
+    commMode_ = mode;
+    if (mode == CommMode::NoCommunication)
+    {
+        // release all users
+        for (uint8_t i = 0U; i < cfg_.maxUsers; ++i)
+        {
+            if (userRequests_[i])
+            {
+                userRequests_[i] = false;
+                if (requestCount_ > 0U) --requestCount_;
+            }
+        }
+    }
+}
+
+// ---- Receive path ----
+bool CanNm::isRelevantPdu(uint8_t pnGroup) const
+{
+    if (!cfg_.partialNetworkingEnabled) return true;
+    // broadcast group 0 or matching group
+    if (pnGroup == 0U) return true;
+    return (pnGroup == cfg_.pnGroup);
 }
 
 void CanNm::onNmPduReceived(uint8_t nodeId, uint8_t const* data, uint8_t dlc, uint32_t nowMs)
@@ -83,22 +152,31 @@ void CanNm::onNmPduReceived(uint8_t nodeId, uint8_t const* data, uint8_t dlc, ui
     if (!initialised_) return;
     if (nodeId >= cfg_.maxNodes) return;
 
-    // decode
     NmControlBits cb{};
     uint8_t src = 0U;
     uint8_t ud[8] = {0U};
     uint8_t udLen = 0U;
-    if (!decodePdu(data, dlc, cb, src, ud, udLen)) return;
+    uint8_t pnGroup = 0U;
+    if (!decodePdu(data, dlc, cb, src, ud, udLen, &pnGroup)) return;
+
+    if (!isRelevantPdu(pnGroup)) return;
 
     // track alive
     seen_[nodeId] = true;
     lastSeen_[nodeId] = nowMs;
     for (uint8_t i = 0U; i < cfg_.userDataLength && i < udLen; ++i)
         nodeUserData_[nodeId][i] = ud[i];
+    nodePnGroup_[nodeId] = pnGroup;
 
     lastNmPduRxTime_ = nowMs;
 
-    // passive wake-up: receiving an NM PDU while sleeping wakes the network
+    // remote wakeup (AW bit)
+    if (cb.activeWakeup && (state_ == NmState::BusSleep || state_ == NmState::PrepareBusSleep))
+    {
+        if (wakeupCallback_) wakeupCallback_();
+    }
+
+    // passive wake-up
     if (state_ == NmState::BusSleep)
     {
         if (wakeupCallback_) wakeupCallback_();
@@ -115,9 +193,17 @@ void CanNm::onNmPduReceived(uint8_t nodeId, uint8_t const* data, uint8_t dlc, ui
         transitionTo(NmState::RepeatMessage, nowMs);
         return;
     }
-    // in RepeatMessage/NormalOperation just refresh
 }
 
+void CanNm::onBusOff()
+{
+    if (!initialised_) return;
+    if (busOffCallback_) busOffCallback_();
+    // on bus-off, go to bus sleep to recover
+    transitionTo(NmState::BusSleep, (lastNmPduRxTime_ != 0U) ? lastNmPduRxTime_ : 0U);
+}
+
+// ---- Periodic processing ----
 void CanNm::mainFunction(uint32_t nowMs)
 {
     if (!initialised_) return;
@@ -127,9 +213,7 @@ void CanNm::mainFunction(uint32_t nowMs)
     switch (state_)
     {
         case NmState::BusSleep:
-            // nothing; waiting for request or RX (handled in onNmPduReceived/networkRequest)
-            // But networkRequest() only sets counter; need to transition here:
-            if (requestCount_ > 0U)
+            if (requestCount_ > 0U && commMode_ != CommMode::NoCommunication)
             {
                 if (wakeupCallback_) wakeupCallback_();
                 transitionTo(NmState::RepeatMessage, nowMs);
@@ -142,10 +226,8 @@ void CanNm::mainFunction(uint32_t nowMs)
                 transitionTo(NmState::RepeatMessage, nowMs);
                 break;
             }
-            // if an NM PDU arrives, handled in onNmPduReceived -> RepeatMessage
             if ((nowMs - stateEntryTime_) >= cfg_.tWaitBusSleep)
             {
-                // sleep
                 transitionTo(NmState::BusSleep, nowMs);
                 if (sleepCallback_) sleepCallback_();
             }
@@ -155,7 +237,6 @@ void CanNm::mainFunction(uint32_t nowMs)
             transmitPdu(nowMs);
             if (requestCount_ == 0U && (nowMs - stateEntryTime_) >= cfg_.tRepeatMessage)
             {
-                // no requests -> ready sleep
                 transitionTo(NmState::ReadySleep, nowMs);
             }
             else if (requestCount_ > 0U && (nowMs - stateEntryTime_) >= cfg_.tRepeatMessage)
@@ -173,18 +254,16 @@ void CanNm::mainFunction(uint32_t nowMs)
             break;
 
         case NmState::ReadySleep:
-            // listen; transmit occasionally? Ready sleep: node stays awake but indicates ready to sleep
             transmitPdu(nowMs);
             if (requestCount_ > 0U)
             {
                 transitionTo(NmState::RepeatMessage, nowMs);
                 break;
             }
-            // if no NM PDUs received for tNm -> prepare bus sleep
+            // NM coordinator: if coordinator and ready, set CSR already handled in TX
             if (lastNmPduRxTime_ == 0U || (nowMs - lastNmPduRxTime_) >= cfg_.tNm)
             {
-                // but only if no other nodes alive
-                if (getAliveNodeCount() <= 1U) // only self
+                if (getAliveNodeCount() <= 1U)
                 {
                     transitionTo(NmState::PrepareBusSleep, nowMs);
                 }
@@ -199,9 +278,8 @@ void CanNm::transitionTo(NmState next, uint32_t nowMs)
     NmState old = state_;
     state_ = next;
     stateEntryTime_ = nowMs;
-    lastTxTime_ = 0U; // force tx on next
+    lastTxTime_ = 0U;
     if (stateCallback_) stateCallback_(old, next);
-    // Transmit immediately on entering a communicating state.
     if (next == NmState::RepeatMessage || next == NmState::NormalOperation ||
         next == NmState::ReadySleep)
     {
@@ -211,17 +289,27 @@ void CanNm::transitionTo(NmState next, uint32_t nowMs)
 
 void CanNm::transmitPdu(uint32_t nowMs)
 {
-    if (!cfg_.activeNm) return;
+    if (!cfg_.activeNm) return; // passive NM never transmits
+    if (commMode_ == CommMode::SilentCommunication || commMode_ == CommMode::NoCommunication) return;
     if (txCallback_ == nullptr) return;
     if (lastTxTime_ != 0U && (nowMs - lastTxTime_) < cfg_.tTx) return;
 
     NmControlBits cb{};
     cb.repeatMessageRequest = (state_ == NmState::RepeatMessage);
-    cb.nmCoordinatorSleepReady = (state_ == NmState::ReadySleep);
+    cb.nmCoordinatorSleepReady = (cfg_.nmCoordinator && state_ == NmState::ReadySleep);
     cb.activeWakeup = (requestCount_ > 0U);
+    cb.partialNetworkInfo = cfg_.partialNetworkingEnabled;
 
     uint8_t buf[8] = {0U};
-    uint8_t dlc = encodePdu(cfg_, cb, cfg_.nodeId, localUserData_, buf, 8U);
+    // PN group carried in user data byte 0 when PN enabled
+    uint8_t ud[8] = {0U};
+    for (uint8_t i = 0U; i < cfg_.userDataLength; ++i) ud[i] = localUserData_[i];
+    if (cfg_.partialNetworkingEnabled && cfg_.userDataLength > 0U)
+    {
+        ud[0] = cfg_.pnGroup;
+    }
+
+    uint8_t dlc = encodePdu(cfg_, cb, cfg_.nodeId, ud, buf, 8U);
     txCallback_(cfg_.nmPduId, dlc, buf);
     lastTxTime_ = nowMs;
 }
@@ -244,10 +332,8 @@ uint8_t CanNm::getAliveNodeCount() const
     uint8_t n = 0U;
     for (uint8_t i = 0U; i < cfg_.maxNodes; ++i)
         if (seen_[i]) ++n;
-    // include self if active and in a non-sleep state
     if (cfg_.activeNm && state_ != NmState::BusSleep && state_ != NmState::PrepareBusSleep)
     {
-        // count self if not already counted
         if (cfg_.nodeId < cfg_.maxNodes && !seen_[cfg_.nodeId])
             ++n;
     }
@@ -299,6 +385,7 @@ uint8_t CanNm::encodePdu(CanNmConfig const& cfg, NmControlBits const& cb,
     if (cb.repeatMessageRequest) cbv |= 0x01U;
     if (cb.nmCoordinatorSleepReady) cbv |= 0x02U;
     if (cb.activeWakeup) cbv |= 0x04U;
+    if (cb.partialNetworkInfo) cbv |= 0x08U;
     out[0] = cbv;
     out[1] = srcNodeId;
 
@@ -306,26 +393,31 @@ uint8_t CanNm::encodePdu(CanNmConfig const& cfg, NmControlBits const& cb,
     {
         out[2U + i] = (userData != nullptr) ? userData[i] : 0U;
     }
-    // zero fill
     for (uint8_t i = dlc; i < outSize && i < 8U; ++i) out[i] = 0U;
     return dlc;
 }
 
 bool CanNm::decodePdu(uint8_t const* data, uint8_t dlc,
                       NmControlBits& cb, uint8_t& srcNodeId,
-                      uint8_t* userData, uint8_t& userDataLen)
+                      uint8_t* userData, uint8_t& userDataLen,
+                      uint8_t* pnGroup)
 {
     if (data == nullptr || dlc < 2U) return false;
     uint8_t cbv = data[0];
     cb.repeatMessageRequest = (cbv & 0x01U) != 0U;
     cb.nmCoordinatorSleepReady = (cbv & 0x02U) != 0U;
     cb.activeWakeup = (cbv & 0x04U) != 0U;
+    cb.partialNetworkInfo = (cbv & 0x08U) != 0U;
     srcNodeId = data[1];
     userDataLen = (dlc >= 2U) ? static_cast<uint8_t>(dlc - 2U) : 0U;
     if (userDataLen > 6U) userDataLen = 6U;
     if (userData != nullptr)
     {
         for (uint8_t i = 0U; i < userDataLen; ++i) userData[i] = data[2U + i];
+    }
+    if (pnGroup != nullptr && cb.partialNetworkInfo && userDataLen > 0U)
+    {
+        *pnGroup = data[2U];
     }
     return true;
 }

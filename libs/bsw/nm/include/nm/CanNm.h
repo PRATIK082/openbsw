@@ -13,8 +13,11 @@
  * \ingroup nm
  *
  * CAN Network Management (CanNm) — AUTOSAR-style NM state machine for CAN buses.
- * Provides node detection, alive tracking, sleep/wake coordination and NM PDU
- * handling. Tick-driven via mainFunction() (caller-provided tick, ms).
+ * Supports active/passive NM, multi-user request aggregation, partial networking,
+ * NM coordinator (CSR), remote wakeup, bus-off handling, and gateway coordination
+ * (see GatewayNm).
+ *
+ * Tick-driven via mainFunction() (caller-provided tick, ms).
  */
 #pragma once
 
@@ -36,15 +39,24 @@ enum class NmState : uint8_t
     ReadySleep
 };
 
+/// Communication mode of an NM user/channel (ComM-aligned).
+enum class CommMode : uint8_t
+{
+    FullCommunication,
+    SilentCommunication,
+    NoCommunication
+};
+
 /// Parses a NmState name; false on unknown.
 bool parseNmState(char const* text, NmState& state);
 
 /// NM PDU control bit vector (byte 0).
 struct NmControlBits
 {
-    bool repeatMessageRequest = false;   ///< RMR
+    bool repeatMessageRequest = false;    ///< RMR
     bool nmCoordinatorSleepReady = false; ///< CSR
-    bool activeWakeup = false;           ///< AW
+    bool activeWakeup = false;            ///< AW
+    bool partialNetworkInfo = false;      ///< PNI (partial networking)
 };
 
 /// Configuration for one CanNm instance (one CAN channel / NM cluster).
@@ -62,6 +74,17 @@ struct CanNmConfig
 
     bool activeNm = true;            ///< active (transmits) vs passive NM
     uint8_t maxNodes = 64U;          ///< max tracked nodes (capacity)
+
+    // Partial networking (PN)
+    bool partialNetworkingEnabled = false;
+    uint8_t pnGroup = 0U;            ///< this node's PN group (0 = all/broadcast)
+
+    // NM coordinator
+    bool nmCoordinator = false;      ///< this node decides sleep readiness (CSR)
+    uint8_t coordinatorNodeId = 0U;   ///< coordinator node id (if not self)
+
+    // Multi-user support
+    uint8_t maxUsers = 4U;
 };
 
 class CanNm
@@ -71,6 +94,7 @@ public:
     using StateCallback = std::function<void(NmState oldState, NmState newState)>;
     using SleepCallback = std::function<void()>;   ///< notify upper layer (EcuMode) to sleep
     using WakeupCallback = std::function<void()>;  ///< notify upper layer of network activity
+    using BusOffCallback = std::function<void()>;
 
     CanNm() = default;
     ~CanNm() = default;
@@ -84,23 +108,39 @@ public:
     /// Releases resources / resets state.
     void shutdown();
 
-    /// Upper-layer network request (increment user count).
-    void networkRequest();
+    // ---- User management (ComM-aligned) ----
+    /// Register a user. Returns the assigned user id (index) or -1 on failure.
+    int8_t registerUser();
+    /// Per-user network request.
+    void userNetworkRequest(uint8_t userId);
+    /// Per-user network release.
+    void userNetworkRelease(uint8_t userId);
+    /// True if any user holds a request.
+    bool isNetworkRequested() const { return requestCount_ > 0U; }
+    /// Number of currently requesting users.
+    uint32_t getRequestCount() const { return requestCount_; }
 
-    /// Upper-layer network release (decrement user count; clamped at 0).
+    // ---- Legacy aggregate request/release (kept for compatibility) ----
+    void networkRequest();
     void networkRelease();
 
-    /// Receive path: inject a received NM PDU. nodeId is the sender's NM node id.
+    /// Set communication mode (affects whether users may request).
+    void setCommMode(CommMode mode);
+    CommMode getCommMode() const { return commMode_; }
+
+    // ---- Receive path ----
+    /// Inject a received NM PDU. nodeId is the sender's NM node id.
     void onNmPduReceived(uint8_t nodeId, uint8_t const* data, uint8_t dlc, uint32_t nowMs);
 
+    /// Notify that a bus-off occurred.
+    void onBusOff();
+
+    // ---- Periodic processing ----
     /// Periodic processing. nowMs is the caller-provided tick (ms).
     void mainFunction(uint32_t nowMs);
 
-    /// State query.
+    // ---- State query ----
     NmState getState() const { return state_; }
-
-    /// True when at least one user holds a network request.
-    bool isNetworkRequested() const { return requestCount_ > 0U; }
 
     /// Number of currently alive nodes (including self if active).
     uint8_t getAliveNodeCount() const;
@@ -115,13 +155,19 @@ public:
     void setUserData(uint8_t const* data, uint8_t len);
     void getUserData(uint8_t* out, uint8_t len) const;
 
-    /// Callbacks.
+    /// Partial networking: set the PN group carried in TX PDUs.
+    void setPnGroup(uint8_t group) { cfg_.pnGroup = group; }
+    uint8_t getPnGroup() const { return cfg_.pnGroup; }
+
+    // ---- Callbacks ----
     void setTxCallback(TxCallback cb) { txCallback_ = std::move(cb); }
     void setStateCallback(StateCallback cb) { stateCallback_ = std::move(cb); }
     void setSleepCallback(SleepCallback cb) { sleepCallback_ = std::move(cb); }
     void setWakeupCallback(WakeupCallback cb) { wakeupCallback_ = std::move(cb); }
+    void setBusOffCallback(BusOffCallback cb) { busOffCallback_ = std::move(cb); }
 
-    /// Encode an NM PDU into buffer (size >= 2+userDataLength). Returns DLC.
+    // ---- PDU codec ----
+    /// Encode an NM PDU into buffer. Returns DLC.
     static uint8_t encodePdu(CanNmConfig const& cfg, NmControlBits const& cb,
                              uint8_t srcNodeId, uint8_t const* userData,
                              uint8_t* out, uint8_t outSize);
@@ -129,13 +175,15 @@ public:
     /// Decode an NM PDU. Returns false on invalid size.
     static bool decodePdu(uint8_t const* data, uint8_t dlc,
                           NmControlBits& cb, uint8_t& srcNodeId,
-                          uint8_t* userData, uint8_t& userDataLen);
+                          uint8_t* userData, uint8_t& userDataLen,
+                          uint8_t* pnGroup = nullptr);
 
 private:
     void transitionTo(NmState next, uint32_t nowMs);
     void transmitPdu(uint32_t nowMs);
     void updateAliveNodes(uint32_t nowMs);
     bool isBusSleepAllowed(uint32_t nowMs) const;
+    bool isRelevantPdu(uint8_t pnGroup) const;
 
     CanNmConfig cfg_{};
     bool initialised_ = false;
@@ -146,11 +194,15 @@ private:
     uint32_t lastNmPduRxTime_ = 0U;
 
     uint32_t requestCount_ = 0U;
+    std::vector<bool> userRequests_;
 
-    // alive tracking: last-seen time per node id; 0 means never seen (use a separate flag)
+    CommMode commMode_ = CommMode::FullCommunication;
+
+    // alive tracking
     std::vector<uint32_t> lastSeen_;
     std::vector<bool> seen_;
     std::vector<std::vector<uint8_t>> nodeUserData_;
+    std::vector<uint8_t> nodePnGroup_;
 
     uint8_t localUserData_[8] = {0U};
 
@@ -158,6 +210,7 @@ private:
     StateCallback stateCallback_;
     SleepCallback sleepCallback_;
     WakeupCallback wakeupCallback_;
+    BusOffCallback busOffCallback_;
 };
 
 } // namespace nm

@@ -8,7 +8,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-add_library(nm src/nm/CanNm.cpp)
+add_library(nm src/nm/CanNm.cpp src/nm/GatewayNm.cpp)
 
 target_include_directories(nm PUBLIC include)
 

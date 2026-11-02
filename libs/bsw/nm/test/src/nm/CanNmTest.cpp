@@ -9,6 +9,7 @@
  ********************************************************************************/
 
 #include <nm/CanNm.h>
+#include <nm/GatewayNm.h>
 
 #include <gtest/gtest.h>
 
@@ -226,4 +227,249 @@ TEST(CanNmTest, UserDataLocal)
     uint8_t out[4] = {};
     nm.getUserData(out, 4);
     EXPECT_EQ(std::memcmp(in, out, 4), 0);
+}
+
+TEST(CanNmTest, UserManagementAggregation)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    nm.registerUser();
+    EXPECT_FALSE(nm.isNetworkRequested());
+    nm.userNetworkRequest(0U);
+    nm.userNetworkRequest(1U);
+    EXPECT_TRUE(nm.isNetworkRequested());
+    EXPECT_EQ(nm.getRequestCount(), 2U);
+    nm.userNetworkRelease(0U);
+    EXPECT_TRUE(nm.isNetworkRequested());
+    nm.userNetworkRelease(1U);
+    EXPECT_FALSE(nm.isNetworkRequested());
+}
+
+TEST(CanNmTest, UserRequestIgnoredInNoCommMode)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    nm.setCommMode(nm::CommMode::NoCommunication);
+    nm.userNetworkRequest(0U);
+    EXPECT_FALSE(nm.isNetworkRequested());
+    EXPECT_EQ(nm.getCommMode(), nm::CommMode::NoCommunication);
+}
+
+TEST(CanNmTest, CommModeSilentSuppressesTx)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    int txCount = 0;
+    nm.setTxCallback([&](uint32_t, uint8_t, uint8_t const*) { ++txCount; return true; });
+    nm.setCommMode(nm::CommMode::SilentCommunication);
+    nm.networkRequest();
+    nm.mainFunction(0U);
+    EXPECT_EQ(txCount, 0);
+}
+
+TEST(CanNmTest, PassiveNmNeverTransmits)
+{
+    nm::CanNmConfig c = makeCfg();
+    c.activeNm = false;
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(c));
+    int txCount = 0;
+    nm.setTxCallback([&](uint32_t, uint8_t, uint8_t const*) { ++txCount; return true; });
+    nm.networkRequest();
+    nm.mainFunction(0U);
+    EXPECT_EQ(txCount, 0);
+}
+
+TEST(CanNmTest, RemoteWakeupOnActiveWakeupBit)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    bool woken = false;
+    nm.setWakeupCallback([&]() { woken = true; });
+    // PDU with active wakeup bit set (0x04) from node 2
+    uint8_t buf[6] = {0x04, 2, 0, 0, 0, 0};
+    nm.onNmPduReceived(2U, buf, 6U, 50U);
+    EXPECT_TRUE(woken);
+    EXPECT_EQ(nm.getState(), nm::NmState::RepeatMessage);
+}
+
+TEST(CanNmTest, PartialNetworkingFiltersNonMatchingGroup)
+{
+    nm::CanNmConfig c = makeCfg();
+    c.partialNetworkingEnabled = true;
+    c.pnGroup = 5U;
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(c));
+    // PDU from node 2 with PN group 9 (non-matching), PNI bit set
+    uint8_t buf[6] = {0x08, 2, 9, 0, 0, 0}; // cbv PNI, src 2, pnGroup 9
+    nm::NmState before = nm.getState();
+    nm.onNmPduReceived(2U, buf, 6U, 50U);
+    // should be ignored -> state unchanged (still BusSleep)
+    EXPECT_EQ(nm.getState(), before);
+    EXPECT_FALSE(nm.isNodeAlive(2U, 50U));
+}
+
+TEST(CanNmTest, PartialNetworkingAcceptsMatchingGroup)
+{
+    nm::CanNmConfig c = makeCfg();
+    c.partialNetworkingEnabled = true;
+    c.pnGroup = 5U;
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(c));
+    uint8_t buf[6] = {0x08, 2, 5, 0, 0, 0};
+    nm.onNmPduReceived(2U, buf, 6U, 50U);
+    EXPECT_TRUE(nm.isNodeAlive(2U, 50U));
+}
+
+TEST(CanNmTest, BusOffTransitionsToBusSleep)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    nm.networkRequest();
+    nm.mainFunction(0U);
+    EXPECT_EQ(nm.getState(), nm::NmState::RepeatMessage);
+    bool cbCalled = false;
+    nm.setBusOffCallback([&]() { cbCalled = true; });
+    nm.onBusOff();
+    EXPECT_TRUE(cbCalled);
+    EXPECT_EQ(nm.getState(), nm::NmState::BusSleep);
+}
+
+TEST(CanNmTest, CoordinatorSetsCSRInReadySleep)
+{
+    nm::CanNmConfig c = makeCfg();
+    c.nmCoordinator = true;
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(c));
+    int txCount = 0;
+    uint8_t lastCbv = 0;
+    nm.setTxCallback([&](uint32_t, uint8_t dlc, uint8_t const* data) {
+        ++txCount;
+        if (dlc > 0) lastCbv = data[0];
+        return true;
+    });
+    nm.networkRequest();
+    nm.mainFunction(0U);
+    nm.networkRelease();
+    nm.mainFunction(1100U); // ReadySleep
+    // CSR bit (0x02) should be set when coordinator ready
+    EXPECT_TRUE((lastCbv & 0x02U) != 0U);
+}
+
+TEST(CanNmTest, PniBitInEncodedPdu)
+{
+    nm::CanNmConfig c = makeCfg();
+    c.partialNetworkingEnabled = true;
+    c.pnGroup = 7U;
+    nm::NmControlBits cb{};
+    cb.partialNetworkInfo = true;
+    uint8_t ud[4] = {7, 0, 0, 0};
+    uint8_t buf[8] = {};
+    uint8_t dlc = nm::CanNm::encodePdu(c, cb, 1U, ud, buf, 8U);
+    EXPECT_GE(dlc, 2U);
+    EXPECT_TRUE((buf[0] & 0x08U) != 0U);
+}
+
+TEST(CanNmTest, DecodePduWithPnGroup)
+{
+    uint8_t buf[6] = {0x08, 3, 9, 0, 0, 0};
+    nm::NmControlBits cb{};
+    uint8_t src = 0;
+    uint8_t ud[8] = {};
+    uint8_t len = 0;
+    uint8_t pn = 0;
+    ASSERT_TRUE(nm::CanNm::decodePdu(buf, 6, cb, src, ud, len, &pn));
+    EXPECT_TRUE(cb.partialNetworkInfo);
+    EXPECT_EQ(src, 3U);
+    EXPECT_EQ(pn, 9U);
+}
+
+TEST(CanNmTest, ParseNmStateAll)
+{
+    nm::NmState s;
+    EXPECT_TRUE(nm::parseNmState("RepeatMessage", s));
+    EXPECT_EQ(s, nm::NmState::RepeatMessage);
+    EXPECT_TRUE(nm::parseNmState("NormalOperation", s));
+    EXPECT_TRUE(nm::parseNmState("ReadySleep", s));
+    EXPECT_TRUE(nm::parseNmState("PrepareBusSleep", s));
+}
+
+TEST(GatewayNmTest, RegisterAndCountChannels)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a, b;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    ASSERT_TRUE(b.init(c));
+    EXPECT_TRUE(gw.registerChannel(&a));
+    EXPECT_TRUE(gw.registerChannel(&b));
+    EXPECT_FALSE(gw.registerChannel(&a)); // duplicate
+    EXPECT_FALSE(gw.registerChannel(nullptr));
+    EXPECT_EQ(gw.getChannelCount(), 2U);
+}
+
+TEST(GatewayNmTest, RequestOnOneChannelWakesAll)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a, b;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    ASSERT_TRUE(b.init(c));
+    gw.registerChannel(&a);
+    gw.registerChannel(&b);
+
+    bool woke = false;
+    gw.setGlobalWakeupCallback([&]() { woke = true; });
+    gw.onChannelNetworkRequest(0U);
+    EXPECT_TRUE(a.isNetworkRequested());
+    EXPECT_TRUE(b.isNetworkRequested());
+    EXPECT_TRUE(woke);
+}
+
+TEST(GatewayNmTest, AllReadyToSleepOnlyWhenAllReady)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a, b;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    ASSERT_TRUE(b.init(c));
+    gw.registerChannel(&a);
+    gw.registerChannel(&b);
+
+    // initially both BusSleep -> not all ready? BusSleep counts as ready-to-sleep
+    EXPECT_TRUE(gw.areAllChannelsReadyToSleep());
+
+    a.networkRequest();
+    a.mainFunction(0U);
+    EXPECT_FALSE(gw.areAllChannelsReadyToSleep());
+}
+
+TEST(GatewayNmTest, GlobalSleepCallbackWhenAllReady)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    gw.registerChannel(&a);
+
+    a.networkRequest();
+    a.mainFunction(0U);
+    a.networkRelease();
+    a.mainFunction(1100U); // ReadySleep
+
+    bool slept = false;
+    gw.setGlobalSleepCallback([&]() { slept = true; });
+    gw.mainFunction(5000U);
+    EXPECT_TRUE(slept);
+}
+
+TEST(GatewayNmTest, MainFunctionDrivesChannels)
+{
+    nm::GatewayNm gw;
+    nm::CanNm a;
+    nm::CanNmConfig c = makeCfg();
+    ASSERT_TRUE(a.init(c));
+    gw.registerChannel(&a);
+    gw.mainFunction(0U);
+    EXPECT_EQ(a.getState(), nm::NmState::BusSleep);
 }
