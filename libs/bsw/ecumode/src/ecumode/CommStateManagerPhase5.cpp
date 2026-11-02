@@ -704,6 +704,86 @@ bool CommStateManagerPhase5::loadConfig(std::string const& jsonText, std::string
     return true;
 }
 
+void CommStateManagerPhase5::registerWakeupSource(uint32_t id, WakeupChecker checker)
+{
+    if (!checker)
+    {
+        m_wakeupSources.erase(id);
+        return;
+    }
+    m_wakeupSources[id] = checker;
+}
+
+void CommStateManagerPhase5::unregisterWakeupSource(uint32_t id)
+{
+    m_wakeupSources.erase(id);
+}
+
+bool CommStateManagerPhase5::isWakeupSourceActive(uint32_t id) const
+{
+    auto it = m_wakeupSources.find(id);
+    if (it == m_wakeupSources.end())
+    {
+        return false;
+    }
+    if (!it->second)
+    {
+        return false;
+    }
+    return it->second();
+}
+
+std::vector<uint32_t> CommStateManagerPhase5::getActiveWakeupSources() const
+{
+    std::vector<uint32_t> out;
+    for (auto const& kv : m_wakeupSources)
+    {
+        if (kv.second && kv.second())
+        {
+            out.push_back(kv.first);
+        }
+    }
+    return out;
+}
+
+void CommStateManagerPhase5::requestRun(std::string const& client)
+{
+    if (!client.empty())
+    {
+        m_runRequests.insert(client);
+    }
+}
+
+void CommStateManagerPhase5::releaseRun(std::string const& client)
+{
+    m_runRequests.erase(client);
+}
+
+bool CommStateManagerPhase5::hasRunRequests() const
+{
+    return !m_runRequests.empty();
+}
+
+size_t CommStateManagerPhase5::getRunRequestCount() const
+{
+    return m_runRequests.size();
+}
+
+void CommStateManagerPhase5::setModeCommunication(EcuMode mode, bool enabled)
+{
+    m_modeCommunication[mode] = enabled;
+}
+
+bool CommStateManagerPhase5::isModeCommunicationEnabled(EcuMode mode) const
+{
+    auto it = m_modeCommunication.find(mode);
+    if (it == m_modeCommunication.end())
+    {
+        return true; // default allow
+    }
+    return it->second;
+}
+
 void CommStateManagerPhase5::clear()
 {
     ::commgateway::CommStateManager::clear();
@@ -716,6 +796,9 @@ void CommStateManagerPhase5::clear()
     m_actionHandlers.clear();
     m_modeChangeCallback = ModeChangeCallback();
     m_blockCount         = 0U;
+    m_wakeupSources.clear();
+    m_runRequests.clear();
+    m_modeCommunication.clear();
 }
 
 void CommStateManagerPhase5::mainFunction(uint32_t const nowMs)

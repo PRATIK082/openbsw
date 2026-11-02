@@ -91,6 +91,11 @@ struct BlockConfig
 
 using AsyncCallback = etl::delegate<void(Result)>;
 
+/// Migration callback invoked when a stored block version differs from the
+/// configured version. The callback may rewrite `data` in place; the manager
+/// then re-persists the block at the new version.
+using MigrationCallback = etl::delegate<void(uint16_t blockId, uint16_t oldVersion, uint16_t newVersion, void* data, uint16_t size)>;
+
 /// Block-based Persistence manager with RAM mirror, CRC protection and deferred writes.
 class Persistence
 {
@@ -117,6 +122,8 @@ public:
     Result setToDefault(uint16_t blockId);
     bool getBlockInfo(uint16_t blockId, BlockConfig& info) const;
     uint16_t getVersion(uint16_t blockId) const;
+    /// Run migration for a block if its stored version differs from configured version.
+    Result migrateBlock(uint16_t blockId);
     uint32_t getWriteCounter(uint16_t blockId) const;
     uint8_t getWearLevel() const;
 
@@ -129,6 +136,24 @@ public:
 
     /// Test hook: corrupt one flash byte so the next read trips CRC recovery.
     bool corruptFlashForTest(uint16_t blockId, uint16_t offset, uint8_t xorMask);
+
+    /// Register a migration callback for block version upgrades.
+    void setMigrationCallback(MigrationCallback cb) { _migrationCallback = cb; }
+
+    /// NvM-style job queue (Phase-6): enqueue a read/write job with priority.
+    enum class JobOp : uint8_t { Read, Write };
+    struct Job
+    {
+        uint16_t blockId{0U};
+        JobOp op{JobOp::Read};
+        uint8_t priority{0U}; // lower = higher priority
+        void* data{nullptr};
+        uint16_t length{0U};
+        AsyncCallback callback{};
+    };
+    bool enqueueJob(Job const& job);
+    size_t getJobQueueDepth() const { return _jobQueue.size(); }
+    void processJobs();
 
 private:
     Persistence() = default;
@@ -160,6 +185,8 @@ private:
     bool _initialized{false};
     bool _deferredBlocked{false};
     uint32_t _maxEraseCycles{100000U};
+    MigrationCallback _migrationCallback{};
+    etl::vector<Job, 32U> _jobQueue{};
 };
 
 } // namespace persistence

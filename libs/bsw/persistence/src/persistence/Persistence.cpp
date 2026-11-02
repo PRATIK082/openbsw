@@ -467,4 +467,92 @@ bool Persistence::corruptFlashForTest(uint16_t blockId, uint16_t offset, uint8_t
     return true;
 }
 
+bool Persistence::enqueueJob(Job const& job)
+{
+    if (!_initialized)
+    {
+        return false;
+    }
+    if (find(job.blockId) == nullptr)
+    {
+        return false;
+    }
+    if (_jobQueue.size() >= _jobQueue.max_size())
+    {
+        return false;
+    }
+    _jobQueue.push_back(job);
+    // Insertion sort by priority (stable, lower priority value first).
+    for (size_t i = _jobQueue.size(); i > 1U; --i)
+    {
+        if (_jobQueue[i - 1U].priority < _jobQueue[i - 2U].priority)
+        {
+            Job tmp = _jobQueue[i - 1U];
+            _jobQueue[i - 1U] = _jobQueue[i - 2U];
+            _jobQueue[i - 2U] = tmp;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return true;
+}
+
+void Persistence::processJobs()
+{
+    if (!_initialized || _jobQueue.empty())
+    {
+        return;
+    }
+    Job job = _jobQueue.front();
+    // Remove front by shifting.
+    for (size_t i = 1U; i < _jobQueue.size(); ++i)
+    {
+        _jobQueue[i - 1U] = _jobQueue[i];
+    }
+    _jobQueue.pop_back();
+
+    if (job.op == Job::JobOp::Read)
+    {
+        Result const r = read(job.blockId, job.data, job.length);
+        if (job.callback)
+        {
+            job.callback(r);
+        }
+    }
+    else
+    {
+        Result const r = write(job.blockId, job.data, job.length);
+        if (job.callback)
+        {
+            job.callback(r);
+        }
+    }
+}
+
+Result Persistence::migrateBlock(uint16_t blockId)
+{
+    BlockState* st = find(blockId);
+    if (st == nullptr)
+    {
+        return Result::BlockInvalid;
+    }
+    if (st->storedVersion == st->config.version)
+    {
+        return Result::Ok;
+    }
+    uint16_t const oldVer = st->storedVersion;
+    if (_migrationCallback)
+    {
+        _migrationCallback(blockId, oldVer, st->config.version, st->ram.data(), st->config.size);
+    }
+    st->storedVersion = st->config.version;
+    if (st->config.storageType != StorageType::RamOnly)
+    {
+        return writeToFlash(*st, st->ram.data());
+    }
+    return Result::Ok;
+}
+
 } // namespace persistence
