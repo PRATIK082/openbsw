@@ -48,6 +48,13 @@ enum class CheckResult : uint8_t
     ConfigError
 };
 
+enum class E2EState : uint8_t
+{
+    Init,
+    Ok,
+    Error
+};
+
 /// Static Integrity profile descriptor (normally generated from YAML -> blob).
 struct ProfileConfig
 {
@@ -93,6 +100,7 @@ public:
 
     uint32_t getCounter(uint8_t profileId) const;
     void reset(uint8_t profileId);
+    E2EState getState(uint8_t profileId) const;
     void setTickProvider(TickProvider provider) { _tickProvider = provider; }
     void mainFunction();
 
@@ -106,6 +114,7 @@ private:
         uint32_t rxCounter{0U};
         bool rxSynced{false};
         uint32_t lastRxTick{0U};
+        E2EState e2eState{E2EState::Init};
     };
 
     State* find(uint8_t profileId);

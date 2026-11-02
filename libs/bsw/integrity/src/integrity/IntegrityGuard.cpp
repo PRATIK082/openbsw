@@ -35,6 +35,7 @@ bool IntegrityGuard::init(ProfileConfig const* profiles, size_t count)
         st.txCounter = 0U;
         st.rxCounter = 0U;
         st.rxSynced  = false;
+        st.e2eState  = E2EState::Init;
         _states[st.config.profileId] = st;
     }
     _initialized = true;
@@ -502,6 +503,7 @@ CheckResult IntegrityGuard::check(uint8_t profileId, uint8_t const* data, uint16
         if (elapsed > st->config.timeoutMs)
         {
             st->rxSynced = false;
+            st->e2eState = E2EState::Error;
             return CheckResult::TimeoutError;
         }
     }
@@ -554,6 +556,7 @@ CheckResult IntegrityGuard::check(uint8_t profileId, uint8_t const* data, uint16
     }
     if (crcRes != CheckResult::Ok)
     {
+        st->e2eState = E2EState::Error;
         return crcRes;
     }
     uint8_t const bits
@@ -563,12 +566,24 @@ CheckResult IntegrityGuard::check(uint8_t profileId, uint8_t const* data, uint16
     uint32_t const mask = maskFor(bits);
     if (!validateCounter(rxCounter, st->rxCounter, bits, st->rxSynced))
     {
+        st->e2eState = E2EState::Error;
         return CheckResult::CounterError;
     }
     st->rxCounter   = rxCounter & mask;
     st->rxSynced    = true;
     st->lastRxTick  = now();
+    st->e2eState    = E2EState::Ok;
     return CheckResult::Ok;
+}
+
+E2EState IntegrityGuard::getState(uint8_t profileId) const
+{
+    State const* st = find(profileId);
+    if (st == nullptr)
+    {
+        return E2EState::Init;
+    }
+    return st->e2eState;
 }
 
 uint32_t IntegrityGuard::getCounter(uint8_t profileId) const
@@ -589,6 +604,7 @@ void IntegrityGuard::reset(uint8_t profileId)
         st->txCounter  = 0U;
         st->rxCounter  = 0U;
         st->rxSynced   = false;
+        st->e2eState   = E2EState::Init;
         st->lastRxTick = now();
     }
 }
