@@ -105,7 +105,6 @@ TEST(IntegrityGuardTest, Profile2RotatingDataId)
     ASSERT_EQ(integrity::IntegrityGuard::instance().protect(2U, frame, 6U), integrity::CheckResult::Ok);
     EXPECT_EQ(integrity::IntegrityGuard::instance().check(2U, frame, 6U), integrity::CheckResult::Ok);
 }
-﻿
 TEST(IntegrityGuardTest, E2EStateTransitions)
 {
     integrity::ProfileConfig cfgs[1U] = {profile(7U, integrity::ProfileType::P11, 0x0007U)};
@@ -128,10 +127,3 @@ TEST(IntegrityGuardTest, E2EStateTransitions)
     integrity::IntegrityGuard::instance().reset(7U);
     EXPECT_EQ(integrity::IntegrityGuard::instance().getState(7U), integrity::E2EState::Init);
 }
-'
-$py = @'
-p=r"C:\D\Project\GitHub\openbsw\openbsw\libs\bsw\integrity\test\src\integrity\IntegrityGuardTest.cpp"
-s=open(p,encoding="utf-8").read()
-s=s.rstrip()+"\n"+$add
-open(p,"w",encoding="utf-8").write(s)
-print("done")
