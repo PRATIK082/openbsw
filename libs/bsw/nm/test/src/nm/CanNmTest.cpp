@@ -1,0 +1,229 @@
+/********************************************************************************
+ * Copyright (c) 2026 Accenture
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
+
+#include <nm/CanNm.h>
+
+#include <gtest/gtest.h>
+
+#include <cstring>
+#include <vector>
+
+namespace
+{
+
+nm::CanNmConfig makeCfg(uint8_t nodeId = 1U)
+{
+    nm::CanNmConfig c{};
+    c.nodeId = nodeId;
+    c.nmPduId = 0x500U;
+    c.userDataLength = 4U;
+    c.tNm = 2000U;
+    c.tRepeatMessage = 1000U;
+    c.tWaitBusSleep = 1500U;
+    c.tTx = 500U;
+    c.activeNm = true;
+    c.maxNodes = 8U;
+    return c;
+}
+
+} // namespace
+
+TEST(CanNmTest, InitRejectsInvalidConfig)
+{
+    nm::CanNm nm;
+    nm::CanNmConfig c = makeCfg();
+    c.maxNodes = 0U;
+    EXPECT_FALSE(nm.init(c));
+    c = makeCfg();
+    c.tTx = 0U;
+    EXPECT_FALSE(nm.init(c));
+    c = makeCfg();
+    c.userDataLength = 7U;
+    EXPECT_FALSE(nm.init(c));
+}
+
+TEST(CanNmTest, EncodeDecodeRoundTrip)
+{
+    nm::CanNmConfig c = makeCfg(3U);
+    nm::NmControlBits cb{};
+    cb.repeatMessageRequest = true;
+    cb.activeWakeup = true;
+    uint8_t ud[4] = {0xAA, 0xBB, 0xCC, 0xDD};
+    uint8_t buf[8] = {};
+    uint8_t dlc = nm::CanNm::encodePdu(c, cb, 3U, ud, buf, 8U);
+    EXPECT_EQ(dlc, 6U); // 2 + 4
+
+    nm::NmControlBits cb2{};
+    uint8_t src = 0U;
+    uint8_t ud2[8] = {};
+    uint8_t len = 0U;
+    ASSERT_TRUE(nm::CanNm::decodePdu(buf, dlc, cb2, src, ud2, len));
+    EXPECT_TRUE(cb2.repeatMessageRequest);
+    EXPECT_FALSE(cb2.nmCoordinatorSleepReady);
+    EXPECT_TRUE(cb2.activeWakeup);
+    EXPECT_EQ(src, 3U);
+    EXPECT_EQ(len, 4U);
+    EXPECT_EQ(std::memcmp(ud, ud2, 4), 0);
+}
+
+TEST(CanNmTest, DecodeRejectsTooSmall)
+{
+    uint8_t buf[1] = {0};
+    nm::NmControlBits cb{};
+    uint8_t src = 0;
+    uint8_t ud[8] = {};
+    uint8_t len = 0;
+    EXPECT_FALSE(nm::CanNm::decodePdu(buf, 1, cb, src, ud, len));
+    EXPECT_FALSE(nm::CanNm::decodePdu(nullptr, 2, cb, src, ud, len));
+}
+
+TEST(CanNmTest, InitialStateBusSleep)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    EXPECT_EQ(nm.getState(), nm::NmState::BusSleep);
+    EXPECT_FALSE(nm.isNetworkRequested());
+}
+
+TEST(CanNmTest, NetworkRequestWakesToRepeatMessage)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    bool woken = false;
+    nm.setWakeupCallback([&]() { woken = true; });
+    nm.networkRequest();
+    EXPECT_TRUE(nm.isNetworkRequested());
+    nm.mainFunction(0U);
+    EXPECT_EQ(nm.getState(), nm::NmState::RepeatMessage);
+    EXPECT_TRUE(woken);
+}
+
+TEST(CanNmTest, NetworkReleaseEventuallySleeps)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    nm.networkRequest();
+    nm.mainFunction(0U);
+    EXPECT_EQ(nm.getState(), nm::NmState::RepeatMessage);
+
+    nm.networkRelease();
+    EXPECT_FALSE(nm.isNetworkRequested());
+    // stay in repeat for tRepeatMessage
+    nm.mainFunction(500U);
+    // after tRepeatMessage (1000ms) with no request -> ReadySleep
+    nm.mainFunction(1100U);
+    EXPECT_EQ(nm.getState(), nm::NmState::ReadySleep);
+}
+
+TEST(CanNmTest, ReceivedPduWakesFromBusSleep)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    EXPECT_EQ(nm.getState(), nm::NmState::BusSleep);
+
+    uint8_t buf[6] = {0, 2, 0, 0, 0, 0}; // node 2, empty ud
+    nm.onNmPduReceived(2U, buf, 6U, 100U);
+    EXPECT_EQ(nm.getState(), nm::NmState::RepeatMessage);
+}
+
+TEST(CanNmTest, NodeTrackingAliveAndDead)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    uint8_t buf[6] = {0, 2, 0x11, 0x22, 0x33, 0x44};
+    nm.onNmPduReceived(2U, buf, 6U, 100U);
+    EXPECT_TRUE(nm.isNodeAlive(2U, 100U));
+    EXPECT_TRUE(nm.isNodeAlive(2U, 2000U)); // within tNm (2000ms from 100 -> 2100)
+    EXPECT_FALSE(nm.isNodeAlive(2U, 2200U)); // expired
+
+    uint8_t ud[4] = {};
+    nm.getNodeUserData(2U, ud, 4U);
+    EXPECT_EQ(ud[0], 0x11);
+}
+
+TEST(CanNmTest, AliveNodeCount)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg(1U)));
+    nm.networkRequest();
+    nm.mainFunction(0U); // self active in RepeatMessage
+    EXPECT_GE(nm.getAliveNodeCount(), 1U);
+
+    uint8_t buf[6] = {0, 2, 0, 0, 0, 0};
+    nm.onNmPduReceived(2U, buf, 6U, 50U);
+    EXPECT_GE(nm.getAliveNodeCount(), 2U);
+}
+
+TEST(CanNmTest, ReadySleepToPrepareBusSleepWhenAlone)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    nm.networkRequest();
+    nm.mainFunction(0U);
+    nm.networkRelease();
+    nm.mainFunction(1100U); // -> ReadySleep
+    EXPECT_EQ(nm.getState(), nm::NmState::ReadySleep);
+    // no other nodes, tNm expired relative to last rx (0) -> PrepareBusSleep
+    nm.mainFunction(5000U);
+    EXPECT_EQ(nm.getState(), nm::NmState::PrepareBusSleep);
+}
+
+TEST(CanNmTest, PrepareBusSleepTimesOutToBusSleep)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    nm.networkRequest();
+    nm.mainFunction(0U);
+    nm.networkRelease();
+    nm.mainFunction(1100U); // ReadySleep
+    nm.mainFunction(5000U); // PrepareBusSleep
+    EXPECT_EQ(nm.getState(), nm::NmState::PrepareBusSleep);
+    bool slept = false;
+    nm.setSleepCallback([&]() { slept = true; });
+    nm.mainFunction(5000U + 1600U);
+    EXPECT_EQ(nm.getState(), nm::NmState::BusSleep);
+    EXPECT_TRUE(slept);
+}
+
+TEST(CanNmTest, TxCallbackInvokedInRepeatMessage)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    int txCount = 0;
+    nm.setTxCallback([&](uint32_t id, uint8_t dlc, uint8_t const* /*data*/) {
+        EXPECT_EQ(id, 0x500U);
+        EXPECT_GE(dlc, 2U);
+        ++txCount;
+        return true;
+    });
+    nm.networkRequest();
+    nm.mainFunction(0U); // state entry; tx on first mainFunction (lastTxTime_ 0)
+    EXPECT_GE(txCount, 1);
+}
+
+TEST(CanNmTest, ParseNmState)
+{
+    nm::NmState s;
+    EXPECT_TRUE(nm::parseNmState("BusSleep", s));
+    EXPECT_EQ(s, nm::NmState::BusSleep);
+    EXPECT_FALSE(nm::parseNmState("Nope", s));
+    EXPECT_FALSE(nm::parseNmState(nullptr, s));
+}
+
+TEST(CanNmTest, UserDataLocal)
+{
+    nm::CanNm nm;
+    ASSERT_TRUE(nm.init(makeCfg()));
+    uint8_t in[4] = {1, 2, 3, 4};
+    nm.setUserData(in, 4);
+    uint8_t out[4] = {};
+    nm.getUserData(out, 4);
+    EXPECT_EQ(std::memcmp(in, out, 4), 0);
+}
