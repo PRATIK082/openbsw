@@ -10,6 +10,7 @@
 
 #include "uds/services/readdtcinformation/ReadDTCInformation.h"
 
+#include "faultmanager/FaultManager.h"
 #include "uds/connection/IncomingDiagConnection.h"
 #include "uds/session/DiagSession.h"
 
@@ -39,16 +40,23 @@ DiagReturnCode::Type ReadDTCInformation::process(
             {
                 return DiagReturnCode::ISO_INVALID_FORMAT;
             }
-            uint8_t const dtcData[] = {
-                0xFFU, // DTCStatusAvailabilityMask
-                0x12U,
-                0x34U,
-                0x56U,
-                0x09U // DTC 0x123456, status 0x09
-            };
+            uint8_t const statusMask = request[1];
             PositiveResponse& response = connection.releaseRequestGetResponse();
             (void)response.appendUint8(subFunction);
-            (void)response.appendData(dtcData, sizeof(dtcData));
+            // DTCStatusAvailabilityMask
+            (void)response.appendUint8(0xFFU);
+            if (_dem != nullptr)
+            {
+                auto const dtcs = _dem->getDtcsWithStatus();
+                for (auto const& d : dtcs)
+                {
+                    if ((d.status & statusMask) == 0U) continue;
+                    (void)response.appendUint8(static_cast<uint8_t>((d.dtc >> 16) & 0xFFU));
+                    (void)response.appendUint8(static_cast<uint8_t>((d.dtc >> 8) & 0xFFU));
+                    (void)response.appendUint8(static_cast<uint8_t>(d.dtc & 0xFFU));
+                    (void)response.appendUint8(d.status);
+                }
+            }
             (void)connection.sendPositiveResponseInternal(response.getLength(), *this);
             return DiagReturnCode::OK;
         }

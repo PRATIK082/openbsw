@@ -10,6 +10,7 @@
 
 #include "uds/services/cleardiagnosticinformation/ClearDiagnosticInformation.h"
 
+#include "faultmanager/FaultManager.h"
 #include "uds/connection/IncomingDiagConnection.h"
 #include "uds/session/DiagSession.h"
 
@@ -38,8 +39,10 @@ DiagReturnCode::Type ClearDiagnosticInformation::process(
     {
         case GROUP_ALL_DTCS:
         {
-            // Demo: clear all DTCs. Real DTC clearing is project-specific and will not be
-            // implemented in this reference file
+            if (_dem != nullptr)
+            {
+                _dem->clearAllDtcs();
+            }
             PositiveResponse& response = connection.releaseRequestGetResponse();
             (void)connection.sendPositiveResponseInternal(response.getLength(), *this);
             return DiagReturnCode::OK;

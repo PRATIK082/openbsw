@@ -12,6 +12,11 @@
 
 #include "uds/base/Service.h"
 
+namespace faultmanager
+{
+class FaultManager;
+} // namespace faultmanager
+
 namespace uds
 {
 class ControlDTCSetting : public Service
@@ -25,7 +30,11 @@ public:
 
     explicit ControlDTCSetting();
 
+    void setFaultManager(faultmanager::FaultManager* dem) { _dem = dem; }
+    faultmanager::FaultManager* getFaultManager() const { return _dem; }
+
 private:
+    faultmanager::FaultManager* _dem{nullptr};
     static uint8_t const EXPECTED_REQUEST_LENGTH = 1U;
     static uint8_t const RESPONSE_LENGTH         = 1U;
 

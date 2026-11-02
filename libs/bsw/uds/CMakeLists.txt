@@ -53,6 +53,7 @@ target_link_libraries(
     uds
     PUBLIC async
            bsp
+           faultmanager
            transport
            transportConfiguration
            udsConfiguration
