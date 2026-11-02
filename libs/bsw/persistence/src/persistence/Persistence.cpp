@@ -513,7 +513,7 @@ void Persistence::processJobs()
     }
     _jobQueue.pop_back();
 
-    if (job.op == Job::JobOp::Read)
+    if (job.op == JobOp::Read)
     {
         Result const r = read(job.blockId, job.data, job.length);
         if (job.callback)
