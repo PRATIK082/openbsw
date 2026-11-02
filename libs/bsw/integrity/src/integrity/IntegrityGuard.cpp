@@ -35,6 +35,7 @@ bool IntegrityGuard::init(ProfileConfig const* profiles, size_t count)
         st.txCounter = 0U;
         st.rxCounter = 0U;
         st.rxSynced  = false;
+        st.e2eState  = E2EState::Init;
         _states[st.config.profileId] = st;
     }
     _initialized = true;
@@ -347,6 +348,26 @@ CheckResult IntegrityGuard::checkProfile11(uint8_t const* data, uint16_t len, ui
     return CheckResult::Ok;
 }
 
+CheckResult IntegrityGuard::protectProfile22(uint8_t* data, uint16_t len, uint32_t dataId, bool inc)
+{
+    return protectProfile1(data, len, dataId, inc);
+}
+
+CheckResult IntegrityGuard::checkProfile22(uint8_t const* data, uint16_t len, uint32_t dataId)
+{
+    return checkProfile1(data, len, dataId);
+}
+
+CheckResult IntegrityGuard::protectSignal(uint8_t profileId, uint8_t* signal, uint16_t signalLen, bool inc)
+{
+    return protect(profileId, signal, signalLen, inc);
+}
+
+CheckResult IntegrityGuard::checkSignal(uint8_t profileId, uint8_t const* signal, uint16_t signalLen)
+{
+    return check(profileId, signal, signalLen);
+}
+
 CheckResult IntegrityGuard::protect(uint8_t profileId, uint8_t* data, uint16_t length, bool increment)
 {
     State* st = find(profileId);
@@ -357,6 +378,7 @@ CheckResult IntegrityGuard::protect(uint8_t profileId, uint8_t* data, uint16_t l
     CheckResult r = CheckResult::ConfigError;
     switch (st->config.type)
     {
+        case ProfileType::P22:
         case ProfileType::P01:
             // Stateful counter: temporarily sync the stateless helper via repeated calls is not
             // possible, so implement inline with txCounter.
@@ -502,6 +524,7 @@ CheckResult IntegrityGuard::check(uint8_t profileId, uint8_t const* data, uint16
         if (elapsed > st->config.timeoutMs)
         {
             st->rxSynced = false;
+            st->e2eState = E2EState::Error;
             return CheckResult::TimeoutError;
         }
     }
@@ -509,6 +532,7 @@ CheckResult IntegrityGuard::check(uint8_t profileId, uint8_t const* data, uint16
     uint32_t rxCounter = 0U;
     switch (st->config.type)
     {
+        case ProfileType::P22:
         case ProfileType::P01:
             crcRes = checkProfile1(data, length, st->config.dataId);
             if (length >= 2U)
@@ -554,21 +578,35 @@ CheckResult IntegrityGuard::check(uint8_t profileId, uint8_t const* data, uint16
     }
     if (crcRes != CheckResult::Ok)
     {
+        st->e2eState = E2EState::Error;
         return crcRes;
     }
     uint8_t const bits
         = (st->config.type == ProfileType::P01) || (st->config.type == ProfileType::P02)
+              || (st->config.type == ProfileType::P22)
         ? 4U
         : (st->config.type == ProfileType::P04 ? 16U : 8U);
     uint32_t const mask = maskFor(bits);
     if (!validateCounter(rxCounter, st->rxCounter, bits, st->rxSynced))
     {
+        st->e2eState = E2EState::Error;
         return CheckResult::CounterError;
     }
     st->rxCounter   = rxCounter & mask;
     st->rxSynced    = true;
     st->lastRxTick  = now();
+    st->e2eState    = E2EState::Ok;
     return CheckResult::Ok;
+}
+
+E2EState IntegrityGuard::getState(uint8_t profileId) const
+{
+    State const* st = find(profileId);
+    if (st == nullptr)
+    {
+        return E2EState::Init;
+    }
+    return st->e2eState;
 }
 
 uint32_t IntegrityGuard::getCounter(uint8_t profileId) const
@@ -589,6 +627,7 @@ void IntegrityGuard::reset(uint8_t profileId)
         st->txCounter  = 0U;
         st->rxCounter  = 0U;
         st->rxSynced   = false;
+        st->e2eState   = E2EState::Init;
         st->lastRxTick = now();
     }
 }

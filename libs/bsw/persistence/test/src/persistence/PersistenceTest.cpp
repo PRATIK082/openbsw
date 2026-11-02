@@ -153,3 +153,20 @@ TEST(FlashWearStoreTest, BadSectorKeepsDataReadable)
     EXPECT_TRUE(fee.read(0U, rx, 8U));
     EXPECT_EQ(std::memcmp(tx, rx, 8U), 0);
 }
+
+
+TEST(PersistenceTest, MainFunctionFlushesDeferredBlock)
+{
+    persistence::BlockConfig cfgs[1U] = {makeBlock(99U, 16U, false)};
+    ASSERT_TRUE(persistence::Persistence::instance().init(cfgs, 1U));
+    uint8_t data[16U];
+    for (uint16_t i = 0U; i < 16U; ++i) { data[i] = static_cast<uint8_t>(i + 1U); }
+    ASSERT_EQ(persistence::Persistence::instance().write(99U, data, 16U), persistence::Result::Ok);
+
+    persistence::Persistence::instance().mainFunction();
+
+    uint8_t reloaded[16U] = {};
+    ASSERT_EQ(persistence::Persistence::instance().invalidateBlock(99U), persistence::Result::Ok);
+    ASSERT_EQ(persistence::Persistence::instance().read(99U, reloaded, 16U), persistence::Result::Ok);
+    EXPECT_EQ(std::memcmp(reloaded, data, 16U), 0);
+}

@@ -35,7 +35,8 @@ enum class ProfileType : uint8_t
     P02,
     P04,
     P05,
-    P11
+    P11,
+    P22
 };
 
 enum class CheckResult : uint8_t
@@ -46,6 +47,13 @@ enum class CheckResult : uint8_t
     DataIdError,
     TimeoutError,
     ConfigError
+};
+
+enum class E2EState : uint8_t
+{
+    Init,
+    Ok,
+    Error
 };
 
 /// Static Integrity profile descriptor (normally generated from YAML -> blob).
@@ -91,8 +99,17 @@ public:
     CheckResult protectProfile11(uint8_t* data, uint16_t len, uint32_t dataId, bool inc = true);
     CheckResult checkProfile11(uint8_t const* data, uint16_t len, uint32_t dataId);
 
+    /// E2E Profile 22 (CRC-8 + rolling counter).
+    CheckResult protectProfile22(uint8_t* data, uint16_t len, uint32_t dataId, bool inc = true);
+    CheckResult checkProfile22(uint8_t const* data, uint16_t len, uint32_t dataId);
+
+    /// Per-signal E2E transformer helpers (AUTOSAR E2E transformer style).
+    CheckResult protectSignal(uint8_t profileId, uint8_t* signal, uint16_t signalLen, bool inc = true);
+    CheckResult checkSignal(uint8_t profileId, uint8_t const* signal, uint16_t signalLen);
+
     uint32_t getCounter(uint8_t profileId) const;
     void reset(uint8_t profileId);
+    E2EState getState(uint8_t profileId) const;
     void setTickProvider(TickProvider provider) { _tickProvider = provider; }
     void mainFunction();
 
@@ -106,6 +123,7 @@ private:
         uint32_t rxCounter{0U};
         bool rxSynced{false};
         uint32_t lastRxTick{0U};
+        E2EState e2eState{E2EState::Init};
     };
 
     State* find(uint8_t profileId);
