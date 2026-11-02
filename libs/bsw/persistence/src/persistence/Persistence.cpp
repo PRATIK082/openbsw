@@ -48,8 +48,9 @@ bool Persistence::init(BlockConfig const* blocks, size_t count)
         st.crc0.resize(crcSize(cfg.crcKind), 0U);
         st.crc1.clear();
         st.crc1.resize(crcSize(cfg.crcKind), 0U);
-        st.writeCounter = 0U;
-        st.eraseCycles  = 0U;
+        st.writeCounter   = 0U;
+        st.eraseCycles    = 0U;
+        st.storedVersion  = cfg.version;
         st.dirty        = false;
         st.valid        = true;
         computeCrc(st, st.flash0.data(), st.crc0.data());
@@ -379,6 +380,16 @@ bool Persistence::getBlockInfo(uint16_t blockId, BlockConfig& info) const
     return true;
 }
 
+uint16_t Persistence::getVersion(uint16_t blockId) const
+{
+    BlockState const* st = find(blockId);
+    if (st == nullptr)
+    {
+        return 0U;
+    }
+    return st->storedVersion;
+}
+
 uint32_t Persistence::getWriteCounter(uint16_t blockId) const
 {
     BlockState const* st = find(blockId);
@@ -426,8 +437,23 @@ Result Persistence::shutdown()
 
 void Persistence::mainFunction()
 {
-    // Background: nothing to do for the emulated flash; hook reserved for real HAL
-    // wear-leveling ticks (FlashWearStore::mainFunction per device).
+    // Background: flush one dirty (deferred, non-immediate) block per cycle so that
+    // deferred writes are eventually persisted without an explicit shutdown() call.
+    // Immediate writes are already flushed in write(); RamOnly blocks never dirty-flash.
+    for (auto& kv : _blocks)
+    {
+        BlockState& st = kv.second;
+        if (st.dirty && (st.config.storageType != StorageType::RamOnly)
+            && !st.config.immediateWrite)
+        {
+            if (_deferredBlocked)
+            {
+                return; // defer until unblocked
+            }
+            (void)writeToFlash(st, st.ram.data());
+            return; // one block per cycle
+        }
+    }
 }
 
 bool Persistence::corruptFlashForTest(uint16_t blockId, uint16_t offset, uint8_t xorMask)

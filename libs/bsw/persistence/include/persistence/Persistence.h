@@ -86,6 +86,7 @@ struct BlockConfig
     uint8_t defaultData{0x00U};
     Recovery recovery{Recovery::UseDefault};
     uint32_t writeCountLimit{0U}; // 0 = unlimited
+    uint16_t version{1U}; // block format version (for migration)
 };
 
 using AsyncCallback = etl::delegate<void(Result)>;
@@ -115,6 +116,7 @@ public:
     Result invalidateBlock(uint16_t blockId);
     Result setToDefault(uint16_t blockId);
     bool getBlockInfo(uint16_t blockId, BlockConfig& info) const;
+    uint16_t getVersion(uint16_t blockId) const;
     uint32_t getWriteCounter(uint16_t blockId) const;
     uint8_t getWearLevel() const;
 
@@ -141,6 +143,7 @@ private:
         etl::vector<uint8_t, 4U> crc1{};
         uint32_t writeCounter{0U};
         uint32_t eraseCycles{0U};
+        uint16_t storedVersion{1U};
         bool dirty{false};
         bool valid{false};
     };
