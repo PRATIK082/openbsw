@@ -12,6 +12,11 @@
 
 #include "uds/base/Service.h"
 
+namespace faultmanager
+{
+class FaultManager;
+} // namespace faultmanager
+
 namespace uds
 {
 /**
@@ -29,7 +34,12 @@ class ClearDiagnosticInformation : public Service
 public:
     explicit ClearDiagnosticInformation();
 
+    /// Wire to the Dem (FaultManager) so clearing routes to it.
+    void setFaultManager(faultmanager::FaultManager* dem) { _dem = dem; }
+    faultmanager::FaultManager* getFaultManager() const { return _dem; }
+
 private:
+    faultmanager::FaultManager* _dem{nullptr};
     static uint8_t const EXPECTED_REQUEST_LENGTH = 3U;
     static uint8_t const RESPONSE_LENGTH         = 0U;
     static uint32_t const GROUP_ALL_DTCS         = 0xFFFFFFU;

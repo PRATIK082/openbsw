@@ -11,9 +11,11 @@
 #include <cstring>
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <persistence/FlashWearStore.h>
 #include <persistence/Persistence.h>
+#include <bsp/flash/FlashDriverMock.h>
 
 namespace
 {
@@ -169,4 +171,28 @@ TEST(PersistenceTest, MainFunctionFlushesDeferredBlock)
     ASSERT_EQ(persistence::Persistence::instance().invalidateBlock(99U), persistence::Result::Ok);
     ASSERT_EQ(persistence::Persistence::instance().read(99U, reloaded, 16U), persistence::Result::Ok);
     EXPECT_EQ(std::memcmp(reloaded, data, 16U), 0);
+}
+
+TEST(FlashWearStoreTest, DelegatesToFlashDriverWhenBound)
+{
+    persistence::FlashWearStore fee(2U, 64U, 100000U);
+    ASSERT_TRUE(fee.init());
+    flash::FlashDriverMock mock;
+    fee.setFlashDriver(&mock);
+
+    uint8_t tx[4U] = {1U, 2U, 3U, 4U};
+    EXPECT_CALL(mock, write(0U, ::testing::_, 4U)).WillOnce(::testing::Return(flash::IFlashDriver::FLASH_OP_SUCCESSFUL));
+    EXPECT_CALL(mock, flush()).WillOnce(::testing::Return(flash::IFlashDriver::FLASH_OP_SUCCESSFUL));
+    ASSERT_TRUE(fee.write(0U, tx, 4U));
+
+    uint8_t rx[4U] = {};
+    EXPECT_CALL(mock, read(0U, ::testing::_, 4U)).WillOnce(::testing::DoAll(
+        ::testing::SetArrayArgument<1>(tx, tx + 4U),
+        ::testing::Return(flash::IFlashDriver::FLASH_OP_SUCCESSFUL)));
+    ASSERT_TRUE(fee.read(0U, rx, 4U));
+    EXPECT_EQ(std::memcmp(tx, rx, 4U), 0);
+
+    EXPECT_CALL(mock, erase(0U, 4U)).WillOnce(::testing::Return(flash::IFlashDriver::FLASH_OP_SUCCESSFUL));
+    EXPECT_CALL(mock, flush()).WillOnce(::testing::Return(flash::IFlashDriver::FLASH_OP_SUCCESSFUL));
+    ASSERT_TRUE(fee.erase(0U, 4U));
 }

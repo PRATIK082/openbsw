@@ -18,6 +18,7 @@ namespace flash
 {
 struct FlashDriverMock : IFlashDriver
 {
+    MOCK_METHOD(FlashOperationStatus, read, (uint32_t, uint8_t*, uint32_t));
     MOCK_METHOD(FlashOperationStatus, write, (uint32_t, uint8_t const*, uint32_t));
     MOCK_METHOD(FlashOperationStatus, erase, (uint32_t, uint32_t));
     MOCK_METHOD(FlashOperationStatus, flush, ());

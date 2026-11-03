@@ -73,6 +73,13 @@ public:
     void unregisterWakeupSource(uint32_t id);
     bool isWakeupSourceActive(uint32_t id) const;
     std::vector<uint32_t> getActiveWakeupSources() const;
+    /// Returns true if at least one registered wakeup source is currently active.
+    bool hasActiveWakeup() const;
+    /// Returns the id of the first active wakeup source, or 0 if none.
+    uint32_t getWakeupReason() const;
+    /// Propagates an active wakeup to ECU mode: if any wakeup source is active and
+    /// the current mode is SLEEP or STANDBY, requests a transition to NORMAL.
+    void processWakeupSources();
 
     /// Run-request management (BswM-like): clients request/release run; ECU stays awake while any request active.
     void requestRun(std::string const& client);

@@ -15,7 +15,7 @@
 // DEPRECATED: use persistence::Crc / integrity::Crc instead. Kept for legacy
 // unitTest harness; no external callers. Candidate for removal.
 // This class is in the global scope for backwards compatibility
-class CRCCalculator
+class [[deprecated("Use persistence::Crc / integrity::Crc instead; legacy unitTest helper")]] CRCCalculator
 {
 public:
     static uint16_t getCRC16(uint8_t const* pBuffer, uint32_t bufferLength);

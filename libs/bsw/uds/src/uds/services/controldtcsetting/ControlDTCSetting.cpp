@@ -10,6 +10,7 @@
 
 #include "uds/services/controldtcsetting/ControlDTCSetting.h"
 
+#include "faultmanager/FaultManager.h"
 #include "uds/UdsLogger.h"
 #include "uds/connection/IncomingDiagConnection.h"
 #include "uds/session/ApplicationExtendedSession.h"
@@ -45,12 +46,18 @@ DiagReturnCode::Type ControlDTCSetting::process(
         // NOLINTNEXTLINE(bugprone-branch-clone): Remove suppression when cases are implemented.
         case CONTROL_DTC_SETTING_ON:
         {
-            // Allow creation of new DTCs. Intentionally not implemented.
+            if (_dem != nullptr)
+            {
+                _dem->setDtcRecordingSuppressed(false);
+            }
             break;
         }
         case CONTROL_DTC_SETTING_OFF:
         {
-            // Disallow creation of new DTCs. Intentionally not implemented.
+            if (_dem != nullptr)
+            {
+                _dem->setDtcRecordingSuppressed(true);
+            }
             break;
         }
         default:
