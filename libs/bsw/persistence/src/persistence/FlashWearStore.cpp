@@ -9,6 +9,7 @@
  ********************************************************************************/
 
 #include <persistence/FlashWearStore.h>
+#include <bsp/flash/IFlashDriver.h>
 
 namespace persistence
 {
@@ -106,6 +107,10 @@ bool FlashWearStore::read(uint32_t logicalAddress, uint8_t* data, size_t length)
     {
         return false;
     }
+    if (_flashDriver != nullptr)
+    {
+        return _flashDriver->read(logicalAddress, data, static_cast<uint32_t>(length)) == flash::IFlashDriver::FLASH_OP_SUCCESSFUL;
+    }
     // Data is mirrored by logical address: sector rotation only affects wear counters,
     // so a plain logical read is correct while writes rotate erase load.
     for (size_t i = 0U; i < length; ++i)
@@ -132,9 +137,20 @@ bool FlashWearStore::write(uint32_t logicalAddress, uint8_t const* data, size_t 
     {
         return false;
     }
-    for (size_t i = 0U; i < length; ++i)
+    if (_flashDriver != nullptr)
     {
-        _store[static_cast<size_t>(logicalAddress) + i] = data[i];
+        if (_flashDriver->write(logicalAddress, data, static_cast<uint32_t>(length)) != flash::IFlashDriver::FLASH_OP_SUCCESSFUL)
+        {
+            return false;
+        }
+        (void)_flashDriver->flush();
+    }
+    else
+    {
+        for (size_t i = 0U; i < length; ++i)
+        {
+            _store[static_cast<size_t>(logicalAddress) + i] = data[i];
+        }
     }
     touchSector(best);
     if (_eraseCycles[best] > _maxEraseCycles)
@@ -155,9 +171,20 @@ bool FlashWearStore::erase(uint32_t logicalAddress, size_t length)
     {
         return false;
     }
-    for (size_t i = 0U; i < length; ++i)
+    if (_flashDriver != nullptr)
     {
-        _store[static_cast<size_t>(logicalAddress) + i] = 0xFFU;
+        if (_flashDriver->erase(logicalAddress, static_cast<uint32_t>(length)) != flash::IFlashDriver::FLASH_OP_SUCCESSFUL)
+        {
+            return false;
+        }
+        (void)_flashDriver->flush();
+    }
+    else
+    {
+        for (size_t i = 0U; i < length; ++i)
+        {
+            _store[static_cast<size_t>(logicalAddress) + i] = 0xFFU;
+        }
     }
     touchSector(sectorIndexFor(logicalAddress));
     return true;

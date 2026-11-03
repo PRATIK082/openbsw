@@ -13,7 +13,7 @@ add_library(
 
 target_include_directories(persistence PUBLIC include)
 
-target_link_libraries(persistence PUBLIC etl util)
+target_link_libraries(persistence PUBLIC etl util bsp)
 
 if (BUILD_EXECUTABLE STREQUAL "unitTest")
     add_subdirectory(test)

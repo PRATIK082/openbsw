@@ -12,6 +12,11 @@
 
 #include "uds/base/Service.h"
 
+namespace faultmanager
+{
+class FaultManager;
+} // namespace faultmanager
+
 namespace uds
 {
 class IncomingDiagConnection;
@@ -33,7 +38,11 @@ public:
 
     explicit ReadDTCInformation();
 
+    void setFaultManager(faultmanager::FaultManager* dem) { _dem = dem; }
+    faultmanager::FaultManager* getFaultManager() const { return _dem; }
+
 private:
+    faultmanager::FaultManager* _dem{nullptr};
     DiagReturnCode::Type verify(uint8_t const request[], uint16_t requestLength) override;
 
     DiagReturnCode::Type process(

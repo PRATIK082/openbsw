@@ -746,6 +746,43 @@ std::vector<uint32_t> CommStateManagerPhase5::getActiveWakeupSources() const
     return out;
 }
 
+bool CommStateManagerPhase5::hasActiveWakeup() const
+{
+    for (auto const& kv : m_wakeupSources)
+    {
+        if (kv.second && kv.second())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+uint32_t CommStateManagerPhase5::getWakeupReason() const
+{
+    for (auto const& kv : m_wakeupSources)
+    {
+        if (kv.second && kv.second())
+        {
+            return kv.first;
+        }
+    }
+    return 0U;
+}
+
+void CommStateManagerPhase5::processWakeupSources()
+{
+    if (!hasActiveWakeup())
+    {
+        return;
+    }
+    EcuMode const cur = getCurrentEcuMode();
+    if (cur == EcuMode::SLEEP || cur == EcuMode::STANDBY)
+    {
+        requestEcuMode(EcuMode::NORMAL);
+    }
+}
+
 void CommStateManagerPhase5::requestRun(std::string const& client)
 {
     if (!client.empty())

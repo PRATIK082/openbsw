@@ -448,4 +448,22 @@ TEST_F(EcuModeManagerTest, gateway_forwarding_pattern)
     EXPECT_EQ(0U, blockedTx);
 }
 
+
+TEST_F(EcuModeManagerTest, wakeup_source_propagates_to_normal_mode)
+{
+    Manager& mgr = manager();
+    enterMode(mgr, EcuMode::SLEEP);
+
+    mgr.registerWakeupSource(42U, []() { return true; });
+    EXPECT_TRUE(mgr.hasActiveWakeup());
+    EXPECT_EQ(42U, mgr.getWakeupReason());
+    mgr.processWakeupSources();
+    mgr.mainFunction(1U);
+    EXPECT_EQ(EcuMode::NORMAL, mgr.getCurrentEcuMode());
+
+    mgr.unregisterWakeupSource(42U);
+    EXPECT_FALSE(mgr.hasActiveWakeup());
+    EXPECT_EQ(0U, mgr.getWakeupReason());
+}
+
 } // namespace
