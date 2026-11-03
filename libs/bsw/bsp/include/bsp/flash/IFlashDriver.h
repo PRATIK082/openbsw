@@ -28,6 +28,8 @@ public:
         FLASH_OP_FAILED
     };
 
+    virtual FlashOperationStatus read(uint32_t source, uint8_t* destination, uint32_t size) = 0;
+
     virtual FlashOperationStatus write(uint32_t destination, uint8_t const* source, uint32_t size)
         = 0;
 

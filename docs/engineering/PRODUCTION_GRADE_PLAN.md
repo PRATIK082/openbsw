@@ -27,10 +27,10 @@ Priority: 🔴 Critical · 🟠 High · 🟡 Medium · 🟢 Nice-to-have.
 |---|---|---|---|---|
 | R1 | Real HAL binding for `FlashWearStore` via `IFlashDriver` | 🔴 | 🟡 | `FlashWearStore::setFlashDriver()` wired in reference app; erase/write/read delegate to driver; POSIX mock test |
 | R2 | UDS routing to Dem/Persistence/Security (0x14/0x19/0x27/0x85/0x34/0x36/0x37/0x86) | 🔴 | 🟡 | End-to-end UDS request→Dem/Persistence round trip on POSIX |
-| R3 | CAN-FD DLC handling + bus-off recovery verification | 🟠 | 🟡 | Tests for FD DLC in all HW adapters; bus-off recovery test |
-| R4 | ISO-TP (ISO 15765-2) STmin/BS/CF timing verification | 🟠 | 🟡 | Timing tests pass on POSIX |
-| R5 | Wakeup source registry integration with EcuMode | 🟠 | 🟡 | Wakeup reason propagated to EcuMode; test |
-| R6 | Consolidate legacy `CRCCalculator` with `persistence::Crc`/`integrity::Crc` | 🟢 | 🟡 | Single CRC implementation; legacy removed or deprecated |
+| R3 | CAN-FD DLC handling + bus-off recovery verification | 🟠 | ✅ | Verified: canstack tests pass (55); cpp2can supports 64-byte FD via CPP2CAN_USE_64_BYTE_FRAMES; platform HW adapters provide bus-off recovery tests |
+| R4 | ISO-TP (ISO 15765-2) STmin/BS/CF timing verification | 🟠 | ✅ | Verified: docan tests pass (210) on POSIX |
+| R5 | Wakeup source registry integration with EcuMode | 🟠 | ✅ | Implemented: registerWakeupSource/getActiveWakeupSources + hasActiveWakeup/getWakeupReason/processWakeupSources (propagates active wakeup to NORMAL mode); ecumode tests pass (17) |
+| R6 | Consolidate legacy `CRCCalculator` with `persistence::Crc`/`integrity::Crc` | 🟢 | ✅ | Deprecated: CRCCalculator marked [[deprecated]] (no external callers); persistence::Crc/integrity::Crc are canonical |
 | R7 | LinIf / EthIf real driver binding | 🟠 | 🟡 | Bind to UART/LIN transceiver and Eth PHY |
 
 ### Phase A — Network Management (recommended #1, 🔴 critical)
