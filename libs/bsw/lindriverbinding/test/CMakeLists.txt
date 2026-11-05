@@ -1,0 +1,5 @@
+add_executable(lindriverbindingTest src/lindriverbinding/LinDriverBindingTest.cpp)
+
+target_link_libraries(lindriverbindingTest PRIVATE lindriverbinding gmock_main commgateway)
+
+gtest_discover_tests(lindriverbindingTest PROPERTIES LABELS "lindriverbindingTest")
