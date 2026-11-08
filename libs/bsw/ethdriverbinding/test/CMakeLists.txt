@@ -1,0 +1,5 @@
+add_executable(ethdriverbindingTest src/ethdriverbinding/EthDriverBindingTest.cpp)
+
+target_link_libraries(ethdriverbindingTest PRIVATE ethdriverbinding gmock_main commgateway)
+
+gtest_discover_tests(ethdriverbindingTest PROPERTIES LABELS "ethdriverbindingTest")
