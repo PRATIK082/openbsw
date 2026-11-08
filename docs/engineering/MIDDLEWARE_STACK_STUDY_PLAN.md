@@ -1,8 +1,8 @@
 # Automotive Embedded Middleware Stack — Study Plan & Mission Backlog
 
 **Project:** Eclipse OpenBSW (`openbsw`)  
-**Branch:** `study/automotive-middleware-stack-plan`  
-**Baseline commit:** `51d2a8bc` — "Feature/p0 phase1 8 production gaps (#6)" (2026-11-05)  
+**Branch:** `study/update-plan-latest-main`  
+**Baseline commit:** `4b74e28c` — merge of PR #8 (study plan) + latest main updates (2026-11-08)  
 **Companion docs:** `PRODUCTION_GRADE_ROADMAP.md`, `PRODUCTION_GRADE_PLAN.md`, `NM_USE_CASE_ANALYSIS.md`  
 **Status legend:** ✅ Done · 🟡 Partial · ❌ Not started · 🚧 In progress  
 **Priority:** 🔴 Critical · 🟠 High · 🟡 Medium · 🟢 Nice-to-have
@@ -24,17 +24,19 @@ worked through on this branch. It is intended to be the single tracking artifact
 OpenBSW already delivers a strong **communication + diagnostics + persistence + safety (E2E)** core on
 POSIX and reference hardware (S32K148, STM32, etc.).
 
-### 1.1 BSW module inventory (39 modules, `libs/bsw/`)
+### 1.1 BSW module inventory (47 modules, `libs/bsw/`)
 
 `async`, `asyncConsole`, `asyncFreeRtos`, `asyncImpl`, `asyncThreadX`, `blob`, `bsp`, `canstack`,
-`commgateway`, `common`, `cpp2can`, `cpp2ethernet`, `cpp2someip`, `docan`, `doip`, `ecumode`,
-`faultmanager`, `framegateway`, `gwbridge`, `integrity`, `io`, `lifecycle`, `logger`,
-`loggerIntegration`, `lwipSocket`, `middleware`, `nm`, `persistence`, `routing`, `runtime`, `shed`,
-`stdioConsoleInput`, `storage`, `time`, `timer`, `transport`, `transportRouterSimple`, `uds`, `util`.
+`commchannel`, `commgateway`, `common`, `cpp2can`, `cpp2ethernet`, `cpp2someip`, `docan`, `doip`,
+`ecumode`, `ethdriver`, `ethdriverbinding`, `ethlink`, `faultmanager`, `framegateway`, `gwbridge`,
+`integrity`, `io`, `lifecycle`, `lindriver`, `lindriverbinding`, `linlink`, `logger`,
+`loggerIntegration`, `lwipSocket`, `middleware`, `modearbiter`, `nm`, `persistence`, `routing`,
+`runtime`, `shed`, `stdioConsoleInput`, `storage`, `time`, `timer`, `transport`,
+`transportRouterSimple`, `uds`, `util`.
 
 ### 1.2 Test baseline
 
-- 359 unit-test files under `libs/bsw/**/test`.
+- 365 unit-test files under `libs/bsw/**/test`.
 - Build presets: `tests-posix-debug` (POSIX-first verification gate).
 - Reference applications: `referenceApp`, `unitTest` executables.
 
@@ -46,7 +48,14 @@ POSIX and reference hardware (S32K148, STM32, etc.).
 - Persistence/NvM (`persistence`), Dem (`faultmanager`), E2E (`integrity`, profiles 1/2/4/5/11).
 - RTOS abstraction (`async` FreeRTOS/ThreadX), POSIX socketcan simulation.
 - Diagnostics core UDS (0x10–0x3E partial), DoIP.
-- Network Management: `CanNm` + `GatewayNm` (state machine, PN, gateway sleep coordination).
+- Network Management: `CanNm` + `GatewayNm`, plus `LinLinkManager` (LinNm) and `EthLinkManager`
+  (EthNm) with active/passive NM, PN, CSR coordinator, remote wakeup, bus-off handling.
+- Communication Manager: `commchannel::CommChannelManager` (channels, users, FULL/SILENT/NO modes,
+  request/release aggregation) — Phase B delivered.
+- BSW Mode Manager: `modearbiter::ModeArbiter` (rules + actions, EcuMode integration) — Phase C
+  delivered.
+- Driver bindings: `lindriverbinding`, `ethdriverbinding` (IFlashDriver-style HAL binding) — R7
+  substantially addressed.
 - EcuMode (NORMAL/STANDBY/SLEEP/DIAG), wakeup source registration.
 - Build/CI: CMake, Bazel, clang-tidy, cppcheck, gcov/lcov, pytest HIL.
 
@@ -124,15 +133,22 @@ This section consolidates everything not yet done, grouped so it can be appended
 |---|---|---|---|---|
 | R1 | Real HAL binding for `FlashWearStore` via `IFlashDriver` | 🔴 | 🟡 | Wired in reference app; POSIX mock test green. |
 | R2 | UDS routing to Dem/Persistence/Security (0x14/0x19/0x27/0x85/0x34/0x36/0x37/0x86) | 🔴 | 🟡 | End-to-end UDS→Dem/Persistence round trip on POSIX. |
-| R7 | LinIf / EthIf real driver binding | 🟠 | 🟡 | Bind to UART/LIN transceiver + Eth PHY. |
-| R8 | *(new)* ComM channel model prerequisite stub for NM integration | 🔴 | ❌ | Channel request/release API compiles + tests. |
-| R9 | *(new)* Wakeup source registry fully wired into EcuMode transitions | 🟠 | 🟡 | All wakeup sources propagate to NORMAL mode. |
+| R7 | LinIf / EthIf real driver binding | 🟠 | 🟡→✅ | `lindriverbinding` + `ethdriverbinding` added; HW binding still pending. |
+| R8 | ComM channel model | 🔴 | ✅ | `commchannel::CommChannelManager` delivered with tests. |
+| R9 | Wakeup source registry fully wired into EcuMode transitions | 🟠 | 🟡 | All wakeup sources propagate to NORMAL mode. |
 
 ### 4.2 Phase A — Network Management (🔴 critical, #1)
 
 A1 CanNm state machine · A2 NM PDU encode/decode · A3 passive/active + node tracking ·
 A4 sleep/wake callbacks to EcuMode · A5 LinNm · A6 EthNm/UdpNm · A7 partial networking ·
-A8 coordinated sleep. *(CanNm/GatewayNm slice 1 done; remaining gaps in NM_USE_CASE_ANALYSIS.md.)*
+A8 coordinated sleep.
+
+Status update (latest main): `linlink::LinLinkManager` (LinNm) and `ethlink::EthLinkManager`
+(EthNm) delivered with active/passive NM, multi-user aggregation, PN, CSR coordinator, remote
+wakeup, bus-off handling, gateway coordination. CanNm/GatewayNm (in `nm`) remain the CAN variant.
+Remaining gaps: UdpNm, NM PDU forwarding between buses, PN filter lists (multiple groups), NM
+coordinator voting, ComM↔NM integration (commchannel available), bus-off retry strategy, timing
+config validation.
 
 **Additions:**
 - A9 LinNm (LIN master/slave scheduler) — depends on LinIf driver (R7).
@@ -149,9 +165,16 @@ A8 coordinated sleep. *(CanNm/GatewayNm slice 1 done; remaining gaps in NM_USE_C
 B1 channel model + user request API · B2 channel modes (FULL/NO/SILENT) · B3 user request
 aggregation · B4 mode-dependent tie-in to EcuMode.
 
+Status update (latest main): `commchannel::CommChannelManager` delivered with channels, users,
+FULL/SILENT/NO modes, request/release aggregation, tick-driven mainFunction. Phase B
+substantially complete (integration with EcuMode/modearbiter ongoing).
+
 ### 4.4 Phase C — BswM (🟠 high)
 
 C1 mode arbitration (rules+actions) · C2 mode request API · C3 action execution.
+
+Status update (latest main): `modearbiter::ModeArbiter` delivered (rules + actions, EcuMode
+integration). Phase C substantially complete.
 
 ### 4.5 Phase D — Multi-core & Partitioning (🔴 critical)
 
