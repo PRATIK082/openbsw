@@ -81,7 +81,8 @@ Application/SWC → RTE (not present as AUTOSAR RTE; uses middleware/commgateway
 
 ## 5. Traceability
 
-- Requirement IDs embedded via Doxygen (`@req`, `@trace`) — to be inventoried (T0.3).
+- Requirement IDs: **none found** in source (no `@req`/`@trace`/`@satisfies` tags) — traceability
+  gap (see X/traceability in study plan).
 - No DOORS/Polarion export found in repo (inferred).
 
 ## 6. Gaps vs production-grade
