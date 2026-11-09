@@ -1,6 +1,6 @@
 # CODEBASE_MAP — Eclipse OpenBSW (first pass)
 
-**Baseline commit:** `4b74e28c` (2026-11-08)  
+**Baseline commit:** `51d2a8bc` (2026-11-05)  
 **Platform classification:** Classic AUTOSAR-style BSW (C/C++, CMake+Bazel, RTOS abstraction) with
 POSIX simulation; mixed MCU targets (S32K148, STM32, …). No `.arxml` ECU config in repo; configuration
 is code/YAML-driven (blob tool).  
@@ -29,7 +29,6 @@ is code/YAML-driven (blob tool).
 | blob | Config blob generation/parse | libs/bsw/blob | 🟡 | QM |
 | bsp | Board support package | libs/bsw/bsp | 🟡 | QM |
 | canstack | CAN stack (signals, multi-channel) | libs/bsw/canstack | ✅ | B/C |
-| commchannel | ComM (channels, users, FULL/SILENT/NO) | libs/bsw/commchannel | ✅ | B |
 | commgateway | LIN/comm gateway | libs/bsw/commgateway | 🟡 | B |
 | common | Shared types/util | libs/bsw/common | ✅ | QM |
 | cpp2can | C++↔CAN codegen binding | libs/bsw/cpp2can | ✅ | QM |
@@ -38,22 +37,17 @@ is code/YAML-driven (blob tool).
 | docan | CAN transport protocol (ISO-TP) | libs/bsw/docan | ✅ | B |
 | doip | Diagnostic over IP | libs/bsw/doip | ✅ | QM/B |
 | ecumode | ECU state manager | libs/bsw/ecumode | 🟡 | C |
-| modearbiter | BswM mode arbiter (rules + actions) | libs/bsw/modearbiter | ✅ | C |
 | faultmanager | Dem (diagnostic event manager) | libs/bsw/faultmanager | ✅ | B/C |
 | framegateway | PDU routing (ISO-TP, DoIP, XCP) | libs/bsw/framegateway | ✅ | B |
 | gwbridge | Gateway bridge | libs/bsw/gwbridge | 🟡 | QM |
 | integrity | E2E protection (CRC+counter+data-ID) | libs/bsw/integrity | ✅ | C/D |
 | io | I/O abstraction | libs/bsw/io | 🟡 | QM/B |
-| ethdriverbinding | Eth driver binding (HAL) | libs/bsw/ethdriverbinding | ✅/🟡 | QM/B |
-| lindriverbinding | LIN driver binding (HAL) | libs/bsw/lindriverbinding | ✅/🟡 | QM/B |
 | lifecycle | Lifecycle management | libs/bsw/lifecycle | 🟡 | QM |
 | logger | Logging | libs/bsw/logger | ✅ | QM |
 | loggerIntegration | Logger integration | libs/bsw/loggerIntegration | 🟡 | QM |
 | lwipSocket | Ethernet TCP/UDP (lwIP) | libs/bsw/lwipSocket | ✅ | QM/B |
 | middleware | Middleware glue | libs/bsw/middleware | 🟡 | QM |
 | nm | Network Management (CanNm, GatewayNm) | libs/bsw/nm | ✅/🟡 | B |
-| linlink | LinNm (NM state machine for LIN) | libs/bsw/linlink | ✅ | B |
-| ethlink | EthNm (NM state machine for Ethernet) | libs/bsw/ethlink | ✅ | B |
 | persistence | NvM (flash wear store) | libs/bsw/persistence | ✅/🟡 | C |
 | routing | Routing utilities | libs/bsw/routing | 🟡 | QM |
 | runtime | Runtime glue | libs/bsw/runtime | 🟡 | QM |
