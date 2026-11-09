@@ -33,3 +33,6 @@ bazel-out
 bazel-testlogs
 libs/3rdparty/**/MODULE.bazel.lock
 /target/
+
+# AI/CLI agent files (keep local only)
+.agents/
