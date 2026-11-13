@@ -29,6 +29,11 @@ referenced from source via Doxygen `\req` / `\trace` tags. No external requireme
 | SYS-UDS-004 | uds | `libs/bsw/uds/include/uds/services/securityaccess/SecurityAccess.h` | `SecurityAccessTest`, `UdsDemSecurityE2ETest.security_access_seed_key_round_trip` | Partial |
 | SYS-UDS-005 | uds | `libs/bsw/uds/include/uds/services/...` (pending 0x34/0x36/0x37 transfer services) | not implemented | Pending |
 | SYS-FAULT-001 | faultmanager | `libs/bsw/faultmanager` | `FaultManagerTest` (if present) | Not verified |
+| SYS-CRYPTO-001 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmAesTest` | Partial |
+| SYS-CRYPTO-002 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmSha256Test` | Partial |
+| SYS-CRYPTO-003 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmHmacTest` | Partial |
+| SYS-CRYPTO-004 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmMacVerifyTest` | Partial |
+| SYS-CRYPTO-005 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmTest` | Partial |
 
 ## 3. Next steps (N1.4)
 
