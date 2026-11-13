@@ -25,6 +25,11 @@ referenced from source via Doxygen `\req` / `\trace` tags. No external requireme
 | SYS-PERSIST-002 | persistence | same | `FlashWearStoreTest.DelegatesToFlashDriverWhenBound` | Partial |
 | SYS-UDS-001 | uds | `libs/bsw/uds/include/uds/services/...` | `ReadDTCInformationTest`, etc. | Partial |
 | SYS-FAULT-001 | faultmanager | `libs/bsw/faultmanager` | `FaultManagerTest` (if present) | Not verified |
+| SYS-CRYPTO-001 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmAesTest` | Partial |
+| SYS-CRYPTO-002 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmSha256Test` | Partial |
+| SYS-CRYPTO-003 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmHmacTest` | Partial |
+| SYS-CRYPTO-004 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmMacVerifyTest` | Partial |
+| SYS-CRYPTO-005 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmTest` | Partial |
 
 ## 3. Next steps (N1.4)
 

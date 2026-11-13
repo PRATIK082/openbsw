@@ -42,6 +42,7 @@ add_subdirectory(util)
 
 if (OPENBSW_CONFIGURE_GENERIC_BSW)
     add_subdirectory(blob)
+    add_subdirectory(csm)
     add_subdirectory(cpp2ethernet)
     add_subdirectory(cpp2someip)
     add_subdirectory(docan)
