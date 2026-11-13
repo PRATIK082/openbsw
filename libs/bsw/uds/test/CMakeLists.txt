@@ -35,6 +35,7 @@ add_executable(
     src/uds/services/routinecontrol/StartRoutineTest.cpp
     src/uds/services/routinecontrol/StopRoutineTest.cpp
     src/uds/services/securityaccess/SecurityAccessTest.cpp
+    src/uds/services/UdsDemSecurityE2ETest.cpp
     src/uds/services/sessioncontrol/DiagnosticSessionControlTest.cpp
     src/uds/services/testerpresent/TesterPresentTest.cpp
     src/uds/services/writedata/WriteDataByIdentifierTest.cpp
