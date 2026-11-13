@@ -38,6 +38,14 @@ namespace ecumode
  *
  * Mode actions are dispatched to caller-registered handlers only; this class
  * never calls other BSW singletons directly.
+ *
+ * \req SYS-ECUMODE-001 ECU mode state machine (UNINIT/NORMAL/STANDBY/SLEEP/DIAG/...).
+ * \req SYS-ECUMODE-002 Mode-dependent frame filter policy and exceptions.
+ * \req SYS-ECUMODE-003 Mode action dispatch via registered handlers.
+ * \req SYS-ECUMODE-004 Wakeup source registry and propagation to NORMAL mode.
+ * \req SYS-ECUMODE-005 Run-request management (BswM-like keep-awake).
+ * \req SYS-ECUMODE-006 Mode-dependent communication enable flag.
+ * \trace TEST: EcuModeManagerTest (libs/bsw/ecumode/test)
  */
 class CommStateManagerPhase5 : public ::commgateway::CommStateManager
 {

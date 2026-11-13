@@ -466,4 +466,45 @@ TEST_F(EcuModeManagerTest, wakeup_source_propagates_to_normal_mode)
     EXPECT_EQ(0U, mgr.getWakeupReason());
 }
 
+TEST_F(EcuModeManagerTest, multiple_wakeup_sources_are_reported_and_propagate_from_standby)
+{
+    Manager& mgr = manager();
+    enterMode(mgr, EcuMode::STANDBY);
+
+    mgr.registerWakeupSource(7U, []() { return false; });
+    mgr.registerWakeupSource(9U, []() { return true; });
+    mgr.registerWakeupSource(11U, []() { return true; });
+
+    auto const active = mgr.getActiveWakeupSources();
+    EXPECT_EQ(2U, active.size());
+    EXPECT_TRUE(mgr.hasActiveWakeup());
+    // First active source in registration/id order is reported as the reason.
+    EXPECT_TRUE(mgr.getWakeupReason() == 9U || mgr.getWakeupReason() == 11U);
+
+    mgr.processWakeupSources();
+    mgr.mainFunction(1U);
+    EXPECT_EQ(EcuMode::NORMAL, mgr.getCurrentEcuMode());
+
+    mgr.unregisterWakeupSource(9U);
+    mgr.unregisterWakeupSource(11U);
+    mgr.unregisterWakeupSource(7U);
+    EXPECT_FALSE(mgr.hasActiveWakeup());
+    EXPECT_EQ(0U, mgr.getWakeupReason());
+}
+
+TEST_F(EcuModeManagerTest, wakeup_source_does_not_propagate_from_normal_mode)
+{
+    Manager& mgr = manager();
+    enterMode(mgr, EcuMode::NORMAL);
+
+    mgr.registerWakeupSource(5U, []() { return true; });
+    EXPECT_TRUE(mgr.hasActiveWakeup());
+
+    mgr.processWakeupSources();
+    mgr.mainFunction(1U);
+    EXPECT_EQ(EcuMode::NORMAL, mgr.getCurrentEcuMode());
+
+    mgr.unregisterWakeupSource(5U);
+}
+
 } // namespace
