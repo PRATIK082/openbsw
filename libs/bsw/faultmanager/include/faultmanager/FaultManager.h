@@ -125,26 +125,28 @@ public:
     FaultManager(FaultManager const&)            = delete;
     FaultManager& operator=(FaultManager const&) = delete;
 
-    bool init(DtcConfig const* dtcs, size_t count, FaultManagerConfig const& cfg = FaultManagerConfig{});
+    virtual ~FaultManager() = default;
+
+    virtual bool init(DtcConfig const* dtcs, size_t count, FaultManagerConfig const& cfg = FaultManagerConfig{});
     bool isInitialized() const { return _initialized; }
 
-    void recordFault(uint32_t dtc, Severity severity = Severity::Major);
-    void recordFaultWithSignals(
+    virtual void recordFault(uint32_t dtc, Severity severity = Severity::Major);
+    virtual void recordFaultWithSignals(
         uint32_t dtc, Severity severity, FreezeSignal const* signals, size_t signalCount);
-    void clearFault(uint32_t dtc);
+    virtual void clearFault(uint32_t dtc);
 
-    uint8_t getDtcStatus(uint32_t dtc) const;
-    etl::vector<uint32_t, MAX_DTCS> getStoredDtcs() const;
-    etl::vector<DtcWithStatus, MAX_DTCS> getDtcsWithStatus() const;
+    virtual uint8_t getDtcStatus(uint32_t dtc) const;
+    virtual etl::vector<uint32_t, MAX_DTCS> getStoredDtcs() const;
+    virtual etl::vector<DtcWithStatus, MAX_DTCS> getDtcsWithStatus() const;
 
-    bool getFreezeFrame(uint32_t dtc, FreezeFrame& out) const;
-    bool getExtendedData(uint32_t dtc, ExtendedData& out) const;
-    bool storeExtendedData(uint32_t dtc, uint8_t const* data, uint8_t length);
+    virtual bool getFreezeFrame(uint32_t dtc, FreezeFrame& out) const;
+    virtual bool getExtendedData(uint32_t dtc, ExtendedData& out) const;
+    virtual bool storeExtendedData(uint32_t dtc, uint8_t const* data, uint8_t length);
 
-    void clearAllDtcs();
-    void notifyOperationCycle(char const* cycleName);
-    void setDtcRecordingSuppressed(bool suppressed) { _suppressed = suppressed; }
-    bool isDtcRecordingSuppressed() const { return _suppressed; }
+    virtual void clearAllDtcs();
+    virtual void notifyOperationCycle(char const* cycleName);
+    virtual void setDtcRecordingSuppressed(bool suppressed) { _suppressed = suppressed; }
+    virtual bool isDtcRecordingSuppressed() const { return _suppressed; }
 
     void setTimeProvider(TimeProvider provider) { _timeProvider = provider; }
     void setFreezeSignals(FreezeSignal const* signals, size_t count);
@@ -169,7 +171,7 @@ public:
 
     void mainFunction();
 
-private:
+protected:
     FaultManager() = default;
 
     struct Entry

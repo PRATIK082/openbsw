@@ -42,7 +42,7 @@ boot/TLS/IdsM), OTA/FOTA, WdgM/PFM, observability (DLT/tracing/profiling), trace
 | ID | Task | Acceptance |
 |---|---|---|
 | N1.1 | Wire `FlashWearStore::setFlashDriver()` in reference app with a POSIX mock `IFlashDriver`; add unit test. | Mock flash driver round-trip test green; reference app builds. |
-| N1.2 | UDS→Dem/Persistence/Security end-to-end round trip (0x14, 0x19, 0x27, 0x34/0x36/0x37). | POSIX e2e test green. |
+| N1.2 | UDS→Dem/Persistence/Security end-to-end round trip (0x14, 0x19, 0x27, 0x85). Transfer services 0x34/0x36/0x37 remain pending (SYS-UDS-005). | POSIX e2e test green. |
 | N1.3 | Verify wakeup source registry fully wired: all sources propagate to NORMAL mode from SLEEP/STANDBY. | Tests for single/multiple sources. |
 | N1.4 | Traceability bootstrap: add `SYS-xxx` IDs to Doxygen comments for delivered modules; generate matrix. | Matrix doc + at least one module fully tagged. |
 | N1.5 | Guard-audit + clang-tidy clean on touched modules. | CI green. |

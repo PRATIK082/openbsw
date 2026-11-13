@@ -28,6 +28,9 @@ namespace uds
  * which handles the groupOfDTC parameter:
  * - groupOfDTC 0xFFFFFF (all DTCs) returns a positive response
  * - any other group returns NRC 0x31 (requestOutOfRange)
+ *
+ * \req SYS-UDS-001 Clear diagnostic information (0x14) routed to Dem.
+ * \trace TEST: ClearDiagnosticInformationTest (libs/bsw/uds/test)
  */
 class ClearDiagnosticInformation : public Service
 {

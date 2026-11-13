@@ -16,8 +16,19 @@
 
 #include <etl/array.h>
 
+namespace faultmanager
+{
+class FaultManager;
+} // namespace faultmanager
+
 namespace uds
 {
+/**
+ * UDS service SecurityAccess (0x27).
+ *
+ * \req SYS-UDS-004 Security access (0x27) software seed/key check.
+ * \trace TEST: SecurityAccessTest (libs/bsw/uds/test)
+ */
 class SecurityAccess
 : public uds::IDiagAuthenticator
 , public Service
@@ -41,6 +52,10 @@ public:
      */
     uint8_t getSecurityAccessType() const;
 
+    /// Wire to the Dem (FaultManager) (kept for API consistency with other UDS services).
+    void setFaultManager(faultmanager::FaultManager* dem) { _dem = dem; }
+    faultmanager::FaultManager* getFaultManager() const { return _dem; }
+
 protected:
     static uint8_t const RANDOM_LENGTH    = 8U;
     static uint8_t const TESTER_ID_LENGTH = 4U;
@@ -49,6 +64,8 @@ protected:
     uint16_t fCurrentEcuId;
     uint16_t fAuthenticatedEcu;
     uint8_t fSecurityAccessType;
+
+    faultmanager::FaultManager* _dem{nullptr};
 };
 
 } // namespace uds

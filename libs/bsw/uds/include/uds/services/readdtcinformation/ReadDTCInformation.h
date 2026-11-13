@@ -24,6 +24,8 @@ class IncomingDiagConnection;
 /**
  * UDS service ReadDTCInformation (0x19).
  *
+ * \req SYS-UDS-002 Read DTC information (0x19) routed to Dem.
+ * \trace TEST: ReadDTCInformationTest (libs/bsw/uds/test)
  */
 class ReadDTCInformation : public Service
 {
