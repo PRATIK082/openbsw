@@ -25,6 +25,11 @@ referenced from source via Doxygen `\req` / `\trace` tags. No external requireme
 | SYS-PERSIST-002 | persistence | same | `FlashWearStoreTest.DelegatesToFlashDriverWhenBound` | Partial |
 | SYS-UDS-001 | uds | `libs/bsw/uds/include/uds/services/...` | `ReadDTCInformationTest`, etc. | Partial |
 | SYS-FAULT-001 | faultmanager | `libs/bsw/faultmanager` | `FaultManagerTest` (if present) | Not verified |
+| SYS-SAFETY-001 | wdgm | `libs/bsw/wdgm` | `WdgMTest` | Partial |
+| SYS-SAFETY-002 | wdgm | `libs/bsw/wdgm` | `WdgMTest.AlivePass`, `AliveFailTooFew`, `AliveFailTooMany` | Partial |
+| SYS-SAFETY-003 | wdgm | `libs/bsw/wdgm` | `WdgMTest.WindowViolation` | Partial |
+| SYS-SAFETY-004 | wdgm | `libs/bsw/wdgm` | `WdgMTest.QaMismatch`, `QaPass`, `QaCustomVerifierMismatch` | Partial |
+| SYS-SAFETY-005 | wdgm | `libs/bsw/wdgm` | `WdgMTest` (safe-state callback) | Partial |
 
 ## 3. Next steps (N1.4)
 
