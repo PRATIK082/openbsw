@@ -34,6 +34,11 @@ referenced from source via Doxygen `\req` / `\trace` tags. No external requireme
 | SYS-CRYPTO-003 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmHmacTest` | Partial |
 | SYS-CRYPTO-004 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmMacVerifyTest` | Partial |
 | SYS-CRYPTO-005 | csm | `libs/bsw/csm/include/csm/Csm.h` | `CsmTest` | Partial |
+| SYS-SAFETY-001 | wdgm | `libs/bsw/wdgm` | `WdgMTest` | Partial |
+| SYS-SAFETY-002 | wdgm | `libs/bsw/wdgm` | `WdgMTest.AlivePass`, `AliveFailTooFew`, `AliveFailTooMany` | Partial |
+| SYS-SAFETY-003 | wdgm | `libs/bsw/wdgm` | `WdgMTest.WindowViolation` | Partial |
+| SYS-SAFETY-004 | wdgm | `libs/bsw/wdgm` | `WdgMTest.QaMismatch`, `QaPass`, `WdgMTest.QaCustomVerifierMismatch` | Partial |
+| SYS-SAFETY-005 | wdgm | `libs/bsw/wdgm` | `WdgMTest` (safe-state callback) | Partial |
 
 ## 3. Next steps (N1.4)
 
