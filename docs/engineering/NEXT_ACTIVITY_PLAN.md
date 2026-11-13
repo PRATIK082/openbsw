@@ -79,10 +79,10 @@ boot/TLS/IdsM), OTA/FOTA, WdgM/PFM, observability (DLT/tracing/profiling), trace
 
 | ID | Task | Acceptance |
 |---|---|---|
-| N5.1 | Complete `CODEBASE_MAP.md` ASIL zones + signal flow (finish M0). | Map verified against source. |
-| N5.2 | Per-module validation matrix (build/static/comm/diag/fault/regression). | Matrix doc present. |
-| N5.3 | Busload & worst-case latency analysis (CAN/LIN/Eth). | Analysis doc with numbers. |
-| N5.4 | DBC/ARXML/LDF/FIBEX description-file discipline + hashes. | Hash check in CI. |
+| N5.1 | Complete `CODEBASE_MAP.md` ASIL zones + signal flow (finish M0). | Map verified against source. **✅ Done (N5.1)** |
+| N5.2 | Per-module validation matrix (build/static/comm/diag/fault/regression). | Matrix doc present. **✅ Done (N5.2)** |
+| N5.3 | Busload & worst-case latency analysis (CAN/LIN/Eth). | Analysis doc with numbers. **✅ Done (N5.3)** |
+| N5.4 | DBC/ARXML/LDF/FIBEX description-file discipline + hashes. | Hash check in CI. **✅ Done (N5.4)** |
 | N5.5 | Observability: DLT + tracing + perf counters. | DLT log output test. |
 | N5.6 | HIL test expansion (pytest) for new modules. | At least 3 HIL tests. |
 
@@ -114,7 +114,8 @@ boot/TLS/IdsM), OTA/FOTA, WdgM/PFM, observability (DLT/tracing/profiling), trace
 
 ### Later
 
-- [ ] N5.1–N5.6 Cross-cutting.
+- [x] N5.1–N5.4 Cross-cutting docs (CODEBASE_MAP ASIL/signal flow, validation matrix, busload analysis, description-file discipline) — completed (N5.1–N5.4).
+- [ ] N5.5–N5.6 Cross-cutting (observability DLT, HIL expansion).
 
 ---
 

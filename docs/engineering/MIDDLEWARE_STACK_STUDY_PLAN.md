@@ -225,10 +225,10 @@ K19 MQTT/AMQP (cloud), V2X · K20 FlexRay driver.
 
 | ID | Addition | Pri | Rationale |
 |---|---|---|---|
-| X1 | CODEBASE_MAP.md (per-feature BSW/middleware/ASIL map) | 🔴 | Study deliverable; enables all later work. |
-| X2 | Per-module validation matrix (build/static/comm/diag/fault/regression) | 🟠 | From BSW integration skill. |
-| X3 | Busload & worst-case latency analysis per bus (CAN/LIN/Eth) | 🟠 | Production blocker for timing. |
-| X4 | DBC/ARXML/LDF/FIBEX description-file discipline + hashes | 🟠 | Source-of-truth for comms. |
+| X1 | CODEBASE_MAP.md (per-feature BSW/middleware/ASIL map) | 🔴 | Study deliverable; enables all later work. **Status: ✅ Done (N5.1)** |
+| X2 | Per-module validation matrix (build/static/comm/diag/fault/regression) | 🟠 | From BSW integration skill. **Status: ✅ Done (N5.2)** |
+| X3 | Busload & worst-case latency analysis per bus (CAN/LIN/Eth) | 🟠 | Production blocker for timing. **Status: ✅ Done (N5.3)** |
+| X4 | DBC/ARXML/LDF/FIBEX description-file discipline + hashes | 🟠 | Source-of-truth for comms. **Status: ✅ Done (N5.4)** |
 | X5 | Guard-audit clean as phase gate (already convention) | 🔴 | Keep enforced. |
 | X6 | Safety tooling in CI (MISRA, Polyspace/QAC) | 🟡 | Compliance. |
 | X7 | Observability: per-component logging + DLT + tracing + perf counters | 🟡 | Field diagnostics. |
@@ -355,10 +355,10 @@ Each mission is a self-contained, testable unit. Work them in the order of §6 (
 
 ### Now (this branch, study-first)
 
-- [ ] T0.1 Run `codebase-analysis` over openbsw; produce `docs/engineering/CODEBASE_MAP.md`.
-- [ ] T0.2 Inventory BSW modules + map signal flow + ASIL zones.
+- [x] T0.1 Run `codebase-analysis` over openbsw; produce `docs/engineering/CODEBASE_MAP.md`. (N5.1)
+- [x] T0.2 Inventory BSW modules + map signal flow + ASIL zones. (N5.1)
 - [ ] T0.3 Record traceability IDs (SYS-xxx) found in source (Doxygen @req/@trace).
-- [ ] T0.4 Verify map internal consistency; write "Verified against / could not verify" line.
+- [x] T0.4 Verify map internal consistency; write "Verified against / could not verify" line. (N5.1)
 - [ ] T1.1 Wire `FlashWearStore::setFlashDriver()` in reference app (R1).
 - [ ] T1.2 UDS→Dem/Persistence round trip test (R2).
 - [ ] T1.3 LinIf/EthIf binding scaffolding (R7).
@@ -393,7 +393,8 @@ Each mission is a self-contained, testable unit. Work them in the order of §6 (
 - [ ] T10.* Advanced diagnostics (I1–I6).
 - [ ] T11.* Functional safety (J1–J6).
 - [ ] T12.* MCAL/manufacturing/bootloader/power/observability/tooling/Adaptive (K1–K20).
-- [ ] T13.* Cross-cutting (X1–X9).
+- [x] T13.1–T13.4 Cross-cutting docs (X1–X4): CODEBASE_MAP, validation matrix, busload analysis, description-file discipline. (N5.1–N5.4)
+- [ ] T13.5–T13.9 Cross-cutting (X5–X9).
 
 ---
 
