@@ -8,13 +8,13 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "ethlink/EthLinkManager.h"
+#include "linknm/LinkManager.h"
 
 #include <algorithm>
 #include <cstring>
 #include <string>
 
-namespace ethlink
+namespace linknm
 {
 
 bool parseNmState(char const* text, NmState& state)
@@ -29,7 +29,7 @@ bool parseNmState(char const* text, NmState& state)
     return false;
 }
 
-bool EthLinkManager::init(EthLinkManagerConfig const& config)
+bool LinkManager::init(LinkManagerConfig const& config)
 {
     if (config.maxNodes == 0U) return false;
     if (config.tTx == 0U) return false;
@@ -58,7 +58,7 @@ bool EthLinkManager::init(EthLinkManagerConfig const& config)
     return true;
 }
 
-void EthLinkManager::shutdown()
+void LinkManager::shutdown()
 {
     initialised_ = false;
     state_ = NmState::BusSleep;
@@ -67,7 +67,7 @@ void EthLinkManager::shutdown()
 }
 
 // ---- User management ----
-int8_t EthLinkManager::registerUser()
+int8_t LinkManager::registerUser()
 {
     if (!initialised_) return -1;
     for (uint8_t i = 0U; i < cfg_.maxUsers; ++i)
@@ -79,7 +79,7 @@ int8_t EthLinkManager::registerUser()
     return -1;
 }
 
-void EthLinkManager::userNetworkRequest(uint8_t userId)
+void LinkManager::userNetworkRequest(uint8_t userId)
 {
     if (!initialised_) return;
     if (userId >= cfg_.maxUsers) return;
@@ -96,7 +96,7 @@ void EthLinkManager::userNetworkRequest(uint8_t userId)
     }
 }
 
-void EthLinkManager::userNetworkRelease(uint8_t userId)
+void LinkManager::userNetworkRelease(uint8_t userId)
 {
     if (!initialised_) return;
     if (userId >= cfg_.maxUsers) return;
@@ -107,20 +107,20 @@ void EthLinkManager::userNetworkRelease(uint8_t userId)
     }
 }
 
-void EthLinkManager::networkRequest()
+void LinkManager::networkRequest()
 {
     if (!initialised_) return;
     // aggregate: request on behalf of user 0
     userNetworkRequest(0U);
 }
 
-void EthLinkManager::networkRelease()
+void LinkManager::networkRelease()
 {
     if (!initialised_) return;
     userNetworkRelease(0U);
 }
 
-void EthLinkManager::setCommMode(CommMode mode)
+void LinkManager::setCommMode(CommMode mode)
 {
     if (!initialised_) return;
     commMode_ = mode;
@@ -139,7 +139,7 @@ void EthLinkManager::setCommMode(CommMode mode)
 }
 
 // ---- Receive path ----
-bool EthLinkManager::isRelevantPdu(uint8_t pnGroup) const
+bool LinkManager::isRelevantPdu(uint8_t pnGroup) const
 {
     if (!cfg_.partialNetworkingEnabled) return true;
     // broadcast group 0 or matching group
@@ -147,7 +147,7 @@ bool EthLinkManager::isRelevantPdu(uint8_t pnGroup) const
     return (pnGroup == cfg_.pnGroup);
 }
 
-void EthLinkManager::onNmPduReceived(uint8_t nodeId, uint8_t const* data, uint8_t dlc, uint32_t nowMs)
+void LinkManager::onNmPduReceived(uint8_t nodeId, uint8_t const* data, uint8_t dlc, uint32_t nowMs)
 {
     if (!initialised_) return;
     if (nodeId >= cfg_.maxNodes) return;
@@ -195,7 +195,7 @@ void EthLinkManager::onNmPduReceived(uint8_t nodeId, uint8_t const* data, uint8_
     }
 }
 
-void EthLinkManager::onBusOff()
+void LinkManager::onBusOff()
 {
     if (!initialised_) return;
     if (busOffCallback_) busOffCallback_();
@@ -204,7 +204,7 @@ void EthLinkManager::onBusOff()
 }
 
 // ---- Periodic processing ----
-void EthLinkManager::mainFunction(uint32_t nowMs)
+void LinkManager::mainFunction(uint32_t nowMs)
 {
     if (!initialised_) return;
 
@@ -272,7 +272,7 @@ void EthLinkManager::mainFunction(uint32_t nowMs)
     }
 }
 
-void EthLinkManager::transitionTo(NmState next, uint32_t nowMs)
+void LinkManager::transitionTo(NmState next, uint32_t nowMs)
 {
     if (next == state_) return;
     NmState old = state_;
@@ -287,7 +287,7 @@ void EthLinkManager::transitionTo(NmState next, uint32_t nowMs)
     }
 }
 
-void EthLinkManager::transmitPdu(uint32_t nowMs)
+void LinkManager::transmitPdu(uint32_t nowMs)
 {
     if (!cfg_.activeNm) return; // passive NM never transmits
     if (commMode_ == CommMode::SilentCommunication || commMode_ == CommMode::NoCommunication) return;
@@ -314,7 +314,7 @@ void EthLinkManager::transmitPdu(uint32_t nowMs)
     lastTxTime_ = nowMs;
 }
 
-void EthLinkManager::updateAliveNodes(uint32_t nowMs)
+void LinkManager::updateAliveNodes(uint32_t nowMs)
 {
     for (uint8_t i = 0U; i < cfg_.maxNodes; ++i)
     {
@@ -327,7 +327,7 @@ void EthLinkManager::updateAliveNodes(uint32_t nowMs)
     }
 }
 
-uint8_t EthLinkManager::getAliveNodeCount() const
+uint8_t LinkManager::getAliveNodeCount() const
 {
     uint8_t n = 0U;
     for (uint8_t i = 0U; i < cfg_.maxNodes; ++i)
@@ -340,14 +340,14 @@ uint8_t EthLinkManager::getAliveNodeCount() const
     return n;
 }
 
-bool EthLinkManager::isNodeAlive(uint8_t nodeId, uint32_t nowMs) const
+bool LinkManager::isNodeAlive(uint8_t nodeId, uint32_t nowMs) const
 {
     if (nodeId >= cfg_.maxNodes) return false;
     if (!seen_[nodeId]) return false;
     return (nowMs - lastSeen_[nodeId]) <= cfg_.tNm;
 }
 
-void EthLinkManager::getNodeUserData(uint8_t nodeId, uint8_t* out, uint8_t len) const
+void LinkManager::getNodeUserData(uint8_t nodeId, uint8_t* out, uint8_t len) const
 {
     if (out == nullptr || nodeId >= cfg_.maxNodes) return;
     if (!seen_[nodeId]) return;
@@ -355,7 +355,7 @@ void EthLinkManager::getNodeUserData(uint8_t nodeId, uint8_t* out, uint8_t len) 
     for (uint8_t i = 0U; i < n; ++i) out[i] = nodeUserData_[nodeId][i];
 }
 
-void EthLinkManager::setUserData(uint8_t const* data, uint8_t len)
+void LinkManager::setUserData(uint8_t const* data, uint8_t len)
 {
     uint8_t n = std::min<uint8_t>(len, 8U);
     for (uint8_t i = 0U; i < 8U; ++i) localUserData_[i] = 0U;
@@ -363,14 +363,14 @@ void EthLinkManager::setUserData(uint8_t const* data, uint8_t len)
         for (uint8_t i = 0U; i < n; ++i) localUserData_[i] = data[i];
 }
 
-void EthLinkManager::getUserData(uint8_t* out, uint8_t len) const
+void LinkManager::getUserData(uint8_t* out, uint8_t len) const
 {
     if (out == nullptr) return;
     uint8_t n = std::min<uint8_t>(len, 8U);
     for (uint8_t i = 0U; i < n; ++i) out[i] = localUserData_[i];
 }
 
-uint8_t EthLinkManager::encodePdu(EthLinkManagerConfig const& cfg, NmControlBits const& cb,
+uint8_t LinkManager::encodePdu(LinkManagerConfig const& cfg, NmControlBits const& cb,
                          uint8_t srcNodeId, uint8_t const* userData,
                          uint8_t* out, uint8_t outSize)
 {
@@ -397,7 +397,7 @@ uint8_t EthLinkManager::encodePdu(EthLinkManagerConfig const& cfg, NmControlBits
     return dlc;
 }
 
-bool EthLinkManager::decodePdu(uint8_t const* data, uint8_t dlc,
+bool LinkManager::decodePdu(uint8_t const* data, uint8_t dlc,
                       NmControlBits& cb, uint8_t& srcNodeId,
                       uint8_t* userData, uint8_t& userDataLen,
                       uint8_t* pnGroup)
@@ -422,4 +422,4 @@ bool EthLinkManager::decodePdu(uint8_t const* data, uint8_t dlc,
     return true;
 }
 
-} // namespace ethlink
+} // namespace linknm
