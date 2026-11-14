@@ -38,6 +38,3 @@ using LinDriverMockType = LinDriverMock;
 
 } // namespace lindriverbinding
 
-namespace lindriver = lindriverbinding;
-namespace linbinding = lindriverbinding;
-namespace lin        = lindriverbinding;

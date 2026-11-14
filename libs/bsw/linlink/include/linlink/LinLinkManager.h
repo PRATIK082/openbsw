@@ -218,33 +218,4 @@ private:
 };
 
 
-/// Alias names (compatibility / hidden tests)
-using Config = LinLinkManagerConfig;
-using LinkConfig = LinLinkManagerConfig;
-using NmConfig = LinLinkManagerConfig;
-
-using LinkState = NmState;
-using State = NmState;
-
-using LinkControlBits = NmControlBits;
-using ControlBits = NmControlBits;
-
-using LinLinkManagerType = LinLinkManager;
-using LinNm = LinLinkManager;
-using LinLink = LinLinkManager;
-using LinkManager = LinLinkManager;
-using Manager = LinLinkManager;
-using Nm = LinLinkManager;
-
-
-/// Additional compatibility aliases
-using LinLinkManagerState = NmState;
-using LinLinkManagerControlBits = NmControlBits;
-
-// inline parse wrappers
-inline bool parseLinLinkManagerState(char const* text, NmState& state) { return parseNmState(text, state); }
-
 } // namespace linlink
-
-namespace linnm = linlink;
-namespace lin = linlink;

@@ -17,7 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <etl/delegate.h>
+#include <functional>
 #include <etl/map.h>
 
 namespace wdgm
@@ -56,10 +56,10 @@ struct EntityConfig
     uint32_t maxWindowMs{0U};
 };
 
-using TickProvider     = etl::delegate<uint32_t()>;
-using SafeStateCallback = etl::delegate<void()>;
+using TickProvider     = std::function<uint32_t()>;
+using SafeStateCallback = std::function<void()>;
 /// Verifier: returns true if \p response matches \p challenge.
-using QaVerifier      = etl::delegate<bool(uint32_t, uint32_t)>;
+using QaVerifier      = std::function<bool(uint32_t, uint32_t)>;
 
 /// Compatibility aliases.
 using SupervisedEntityConfig = EntityConfig;
@@ -132,6 +132,8 @@ private:
         bool windowViolation{false};
         bool qaSatisfied{false};
         bool failedLastCycle{false};
+        uint32_t currentChallenge{0U};
+        bool qaPending{false};
     };
 
     Entity* find(uint32_t id);

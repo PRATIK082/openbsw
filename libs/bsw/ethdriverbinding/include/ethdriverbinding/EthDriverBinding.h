@@ -97,6 +97,3 @@ using EthTransceiverBinding = EthDriverBinding;
 
 } // namespace ethdriverbinding
 
-namespace ethdriver = ethdriverbinding;
-namespace ethbinding = ethdriverbinding;
-namespace eth       = ethdriverbinding;

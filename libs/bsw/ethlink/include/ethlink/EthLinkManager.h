@@ -218,34 +218,5 @@ private:
 };
 
 
-/// Alias names (compatibility / hidden tests)
-using Config = EthLinkManagerConfig;
-using LinkConfig = EthLinkManagerConfig;
-using NmConfig = EthLinkManagerConfig;
-
-using LinkState = NmState;
-using State = NmState;
-
-using LinkControlBits = NmControlBits;
-using ControlBits = NmControlBits;
-
-using EthLinkManagerType = EthLinkManager;
-using EthNm = EthLinkManager;
-using EthLink = EthLinkManager;
-using LinkManager = EthLinkManager;
-using Manager = EthLinkManager;
-using Nm = EthLinkManager;
-
-
-/// Additional compatibility aliases
-using EthLinkManagerState = NmState;
-using EthLinkManagerControlBits = NmControlBits;
-
-// inline parse wrappers
-inline bool parseEthLinkManagerState(char const* text, NmState& state) { return parseNmState(text, state); }
-
 } // namespace ethlink
-
-namespace ethnm = ethlink;
-namespace eth = ethlink;
 
