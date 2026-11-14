@@ -33,6 +33,10 @@ namespace persistence
 /// Logical addresses are striped across N sectors; each write picks the valid
 /// sector with the lowest erase-cycle count, so erase wear spreads evenly.
 /// A bad sector can be marked and is then skipped for new writes.
+///
+/// \req SYS-PERSIST-001 Flash wear-levelled storage with bad-sector handling.
+/// \req SYS-PERSIST-002 Optional HAL binding via IFlashDriver (R1).
+/// \trace TEST: FlashWearStoreTest (libs/bsw/persistence/test)
 class FlashWearStore
 {
 public:

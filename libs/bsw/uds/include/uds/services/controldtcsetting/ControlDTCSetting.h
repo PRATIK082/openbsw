@@ -19,6 +19,12 @@ class FaultManager;
 
 namespace uds
 {
+/**
+ * UDS service ControlDTCSetting (0x85).
+ *
+ * \req SYS-UDS-003 Control DTC setting (0x85) routed to Dem.
+ * \trace TEST: ControlDTCSettingTest (libs/bsw/uds/test)
+ */
 class ControlDTCSetting : public Service
 {
 public:
