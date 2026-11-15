@@ -193,9 +193,5 @@ private:
     uint32_t lastTick_ = 0U;
 };
 
-// short alias
-using ChannelManager = CommChannelManager;
 
 } // namespace commchannel
-
-namespace commmanager = commchannel;

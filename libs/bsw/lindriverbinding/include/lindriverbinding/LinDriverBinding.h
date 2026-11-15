@@ -106,6 +106,3 @@ using LinTransceiverBinding = LinDriverBinding;
 
 } // namespace lindriverbinding
 
-namespace lindriver = lindriverbinding;
-namespace linbinding = lindriverbinding;
-namespace lin        = lindriverbinding;

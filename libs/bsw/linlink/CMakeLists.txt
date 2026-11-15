@@ -8,11 +8,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-add_library(linlink src/linlink/LinLinkManager.cpp)
+add_library(linlink INTERFACE)
 
-target_include_directories(linlink PUBLIC include)
+target_include_directories(linlink INTERFACE include)
 
-target_link_libraries(linlink PUBLIC etl commgateway)
+target_link_libraries(linlink INTERFACE linknm)
 
 if (BUILD_EXECUTABLE STREQUAL "unitTest")
     add_subdirectory(test)

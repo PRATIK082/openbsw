@@ -60,6 +60,3 @@ using LinHwDriver        = ILinDriver;
 } // namespace lindriverbinding
 
 // Compatibility aliases
-namespace lindriver = lindriverbinding;
-namespace linbinding = lindriverbinding;
-namespace lin        = lindriverbinding;

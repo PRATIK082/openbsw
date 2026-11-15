@@ -8,11 +8,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-add_library(ethlink src/ethlink/EthLinkManager.cpp)
+add_library(ethlink INTERFACE)
 
-target_include_directories(ethlink PUBLIC include)
+target_include_directories(ethlink INTERFACE include)
 
-target_link_libraries(ethlink PUBLIC etl commgateway)
+target_link_libraries(ethlink INTERFACE linknm)
 
 if (BUILD_EXECUTABLE STREQUAL "unitTest")
     add_subdirectory(test)
