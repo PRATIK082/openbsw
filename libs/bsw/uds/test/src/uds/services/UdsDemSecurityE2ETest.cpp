@@ -121,7 +121,7 @@ public:
     MOCK_METHOD(void, setDtcRecordingSuppressed, (bool suppressed), (override));
     MOCK_METHOD(bool, isDtcRecordingSuppressed, (), (const, override));
     MOCK_METHOD(
-        ::etl::vector<faultmanager::DtcWithStatus, faultmanager::MAX_DTCS>,
+        (::etl::vector<faultmanager::DtcWithStatus, faultmanager::MAX_DTCS>),
         getDtcsWithStatus,
         (),
         (const, override));
@@ -230,9 +230,10 @@ TEST_F(UdsDemSecurityE2ETest, control_dtc_setting_invokes_dem_suppression)
 
     // ON -> suppressed false
     {
+        NiceMock<IncomingDiagConnectionMock> incoming2(::async::CONTEXT_INVALID);
         uint8_t request[] = {0x85U, 0x01U};
         TransportMessageWithBuffer pRequest(0xF1U, 0x10U, request, 0U);
-        fIncomingDiagConnection.requestMessage = pRequest.get();
+        incoming2.requestMessage = pRequest.get();
 
         EXPECT_CALL(fSessionManager, getActiveSession())
             .WillRepeatedly(ReturnRef(DiagSession::APPLICATION_EXTENDED_SESSION()));
@@ -243,7 +244,7 @@ TEST_F(UdsDemSecurityE2ETest, control_dtc_setting_invokes_dem_suppression)
 
         EXPECT_EQ(
             DiagReturnCode::OK,
-            fControl.execute(fIncomingDiagConnection, request, sizeof(request)));
+            fControl.execute(incoming2, request, sizeof(request)));
     }
 }
 
@@ -264,9 +265,11 @@ TEST_F(UdsDemSecurityE2ETest, security_access_seed_key_round_trip)
     EXPECT_TRUE(fSecurity.seedIssued());
 
     // sendKey with correct key derived from seed bytes 0x01 0x02
+    NiceMock<IncomingDiagConnectionMock> incoming2(::async::CONTEXT_INVALID);
+    incoming2.requestMessage = fIncomingDiagConnection.requestMessage; // placeholder
     uint8_t requestKey[] = {0x27U, 0x02U, 0x01U, 0x02U};
     TransportMessageWithBuffer pRequest2(0xF1U, 0x10U, requestKey, 0U);
-    fIncomingDiagConnection.requestMessage = pRequest2.get();
+    incoming2.requestMessage = pRequest2.get();
 
     EXPECT_CALL(fSessionManager, getActiveSession())
         .WillRepeatedly(ReturnRef(DiagSession::APPLICATION_DEFAULT_SESSION()));
@@ -275,11 +278,7 @@ TEST_F(UdsDemSecurityE2ETest, security_access_seed_key_round_trip)
 
     EXPECT_EQ(
         DiagReturnCode::OK,
-        fSecurity.execute(fIncomingDiagConnection, requestKey, sizeof(requestKey)));
+        fSecurity.execute(incoming2, requestKey, sizeof(requestKey)));
 }
 
 } // namespace
-```
-
-Wait SecurityAccess service auth: Service::execute checks getDiagAuthenticator().isAuthenticated(connection.sourceAddress). Default authenticator? IDiagAuthenticator default. For SecurityAccess itself is authenticator, but as Service base uses getDefaultDiagAuthenticator, not itself. Need check getDiagAuthenticator default. Could be a default authenticator that always true. Existing SecurityAccessTest doesn't call execute. Our execute may fail auth if default authenticator denies. Let's check getDefaultDiagAuthenticator.<|end|><|start|>-start<|channel|>analysis <|constrain|>xml<|message|><rfl:parameter name="command">
-cd E:/My_Project/My_Github/openbsw-n1-uds; grep -rn "getDefaultDiagAuthenticator" libs/bsw/uds/src libs/bsw/uds/include
