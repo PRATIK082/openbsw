@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2025 Accenture
+ * Copyright (c) 2026 BMW AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License Version 2.0 which is available at
@@ -8,12 +8,19 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "udp/socket/AbstractDatagramSocket.h"
+#pragma once
 
-namespace udp
+#include <gmock/gmock.h>
+
+#include "middleware/core/IPduTxSink.h"
+
+namespace middleware::core::test
 {
-AbstractDatagramSocket::AbstractDatagramSocket()
-: _dataListener(nullptr), _dataSentListener(nullptr)
-{}
 
-} // namespace udp
+class PduTxSinkMock : public IPduTxSink
+{
+public:
+    MOCK_METHOD(void, submit, (uint32_t, ::etl::span<uint8_t const>), (override));
+};
+
+} // namespace middleware::core::test
